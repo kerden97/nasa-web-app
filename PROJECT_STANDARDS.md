@@ -70,6 +70,19 @@ Use Playwright for:
 - high-value journeys only
 - final integration confidence before submission
 
+## TypeScript Standards
+
+- Use strict TypeScript throughout — avoid `any` wherever possible
+- Prefer explicit types over inferred where it aids readability
+- Do not use duplicate or redundant type assertions
+- If `any` is genuinely unavoidable (e.g. browser/window APIs, incomplete third-party types), suppress with `// eslint-disable-next-line @typescript-eslint/no-explicit-any` and a brief comment explaining why
+
+## Frontend Link Rules
+
+- All external links in the app must use `target="_blank" rel="noopener noreferrer"`
+- Internal navigation links do not need `target="_blank"`
+- This does not apply to README.md — GitHub renders markdown in its own context where same-tab behaviour is standard
+
 ## Working Rules
 
 - Backend owns NASA API communication

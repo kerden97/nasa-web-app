@@ -126,6 +126,7 @@ Available local endpoints:
 - React
 - Vite
 - TypeScript
+- Tailwind CSS
 - ESLint
 - Vitest
 - React Testing Library
