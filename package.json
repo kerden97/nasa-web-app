@@ -1,0 +1,24 @@
+{
+  "name": "nasa-web-app",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kerden97/nasa-web-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/kerden97/nasa-web-app/issues"
+  },
+  "homepage": "https://github.com/kerden97/nasa-web-app#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
+}
