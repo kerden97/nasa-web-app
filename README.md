@@ -20,7 +20,7 @@
 - Build Command: `npm install && npm run build`
 - Start Command: `npm start`
 - Health Check Path: `/healthz`
-- Auto-Deploy: on commit to `main` (backend paths only)
+- Auto-Deploy: after CI checks pass on `main`
 
 Required environment variables on Render:
 
@@ -43,8 +43,6 @@ Required environment variables on Vercel:
 ```env
 VITE_API_URL=https://nasa-web-app-lv7c.onrender.com
 ```
-
----
 
 ## Local Setup
 
@@ -119,6 +117,17 @@ Available local endpoints:
 - Backend: `http://localhost:4000`
 - Backend health check: `http://localhost:4000/healthz`
 
+## CI/CD
+
+GitHub Actions runs on every push to `main` and on pull requests:
+
+- **Backend Tests** — `npm test` (Jest) in `backend/`
+- **Frontend Tests** — `npm test` (Vitest) in `frontend/`
+
+Both jobs run in parallel. Render (backend) is configured to deploy only after CI checks pass. Vercel (frontend) deploys on every push independently.
+
+Workflow file: `.github/workflows/ci.yml`
+
 ## Current Stack
 
 ### Frontend
@@ -154,10 +163,3 @@ Available local endpoints:
 - Docker Compose
 - Nginx
 - Playwright
-
-## Environment Files
-
-- `frontend/.env`
-- `frontend/.env.example`
-- `backend/.env`
-- `backend/.env.example`

@@ -6,7 +6,7 @@ This file defines the agreed tooling and working rules for the NASA web app so i
 
 ## Project Structure
 
-- `frontend/`: React + Vite + TypeScript
+- `frontend/`: React + Vite + TypeScript + Tailwind CSS
 - `backend/`: Node.js + Express + TypeScript
 - Root repository: shared repo-level files such as `.gitignore`, `README.md`, and project standards
 
