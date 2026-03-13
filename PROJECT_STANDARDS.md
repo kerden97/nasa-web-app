@@ -10,6 +10,39 @@ This file defines the agreed tooling and working rules for the NASA web app so i
 - `backend/`: Node.js + Express + TypeScript
 - Root repository: shared repo-level files such as `.gitignore`, `README.md`, and project standards
 
+### Frontend Structure
+
+```text
+frontend/src/
+├── assets/         # static assets (logo, images)
+├── components/     # UI components grouped by feature (Header/, Footer/)
+├── context/        # React context providers (ThemeContext)
+├── App.tsx         # root layout
+├── main.tsx        # entry point
+└── index.css       # Tailwind imports and global styles
+```
+
+### Backend Structure
+
+```text
+backend/src/
+├── config/         # environment config and constants
+├── controllers/    # request handlers
+├── lib/            # core libraries (logger)
+├── middleware/      # error handler, request logger
+├── routes/         # route definitions
+├── services/       # business logic, NASA API communication
+├── types/          # shared TypeScript types
+├── utils/          # helper functions
+└── index.ts        # app entry point
+```
+
+### Import Conventions
+
+- Frontend uses `@/` path alias mapped to `src/` (e.g., `import Navbar from '@/components/Header/Navbar'`)
+- Backend uses relative imports
+- Sibling imports within the same feature folder use `./` (e.g., `import ThemeToggle from './ThemeToggle'`)
+
 ## Logging
 
 ### Backend
@@ -87,6 +120,14 @@ Theme is toggled via Tailwind's `dark:` variant with a `dark` class on `<html>`.
 - Only add comments to explain *why*, not *what*
 - Avoid redundant or obvious comments
 
+## Accessibility & Semantic HTML
+
+- Use semantic elements (`<nav>`, `<main>`, `<footer>`, `<section>`, `<article>`) over generic `<div>`s
+- All interactive elements must be keyboard accessible
+- Icon-only buttons must have `aria-label`
+- Images must have meaningful `alt` text
+- Color contrast must meet WCAG AA minimum
+
 ## TypeScript Standards
 
 - Use strict TypeScript throughout — avoid `any` wherever possible
@@ -146,3 +187,6 @@ Use clear, small commits with conventional prefixes where appropriate:
 - Frontend testing uses `Vitest` + React Testing Library
 - Backend testing uses `Jest` + `Supertest`
 - End-to-end testing uses `Playwright`
+- Backend follows route → controller → service pattern
+- Frontend uses `@/` path alias for imports
+- Icons use `lucide-react`

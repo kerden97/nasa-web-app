@@ -4,7 +4,11 @@
       "Bash(npm install:*)",
       "Bash(npx tsc:*)",
       "Bash(npm test:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npx jest:*)",
+      "Bash(node -e \"require\\(''ts-jest''\\)\")",
+      "Bash(node -e \"console.log\\(require\\(''ts-jest/package.json''\\).version\\)\")",
+      "Bash(node -e \"console.log\\(require\\(''jest/package.json''\\).version\\)\")"
     ]
   }
 }

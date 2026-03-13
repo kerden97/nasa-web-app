@@ -1,5 +1,5 @@
-import Navbar from './components/Header/Navbar'
-import Footer from './components/Footer/Footer'
+import Navbar from '@/components/Header/Navbar'
+import Footer from '@/components/Footer/Footer'
 
 function App() {
   return (

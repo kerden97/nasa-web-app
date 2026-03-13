@@ -1,36 +1,27 @@
-import dotenv from "dotenv";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import compression from "compression";
-import logger from "./logger";
-
-dotenv.config();
+import { config } from "./config";
+import logger from "./lib/logger";
+import { requestLogger } from "./middleware/requestLogger";
+import { globalErrorHandler } from "./middleware/errorHandler";
+import healthRoutes from "./routes/health";
 
 const app = express();
-const port = Number(process.env.PORT || 4000);
-const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:3000";
 
 app.use(helmet());
-app.use(
-  cors({
-    origin: frontendOrigin,
-  }),
-);
+app.use(cors({ origin: config.frontendOrigin }));
 app.use(compression());
 app.use(express.json());
+app.use(requestLogger);
 
-app.get("/healthz", (_req, res) => {
-  res.status(200).json({ status: "ok" });
+app.use(healthRoutes);
+
+app.use(globalErrorHandler);
+
+app.listen(config.port, "0.0.0.0", () => {
+  logger.info(`Backend listening on http://0.0.0.0:${config.port}`);
 });
 
-app.get("/api/health", (_req, res) => {
-  res.status(200).json({
-    status: "ok",
-    service: "backend",
-  });
-});
-
-app.listen(port, "0.0.0.0", () => {
-  logger.info(`Backend listening on http://0.0.0.0:${port}`);
-});
+export default app;
