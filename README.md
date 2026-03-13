@@ -136,6 +136,7 @@ Workflow file: `.github/workflows/ci.yml`
 - Vite
 - TypeScript
 - Tailwind CSS
+- Lucide React
 - ESLint
 - Vitest
 - React Testing Library

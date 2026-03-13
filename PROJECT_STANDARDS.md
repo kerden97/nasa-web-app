@@ -70,6 +70,23 @@ Use Playwright for:
 - high-value journeys only
 - final integration confidence before submission
 
+## Color Palette
+
+All colors use Tailwind's built-in palette — no custom values. Stay consistent with these across the app:
+
+- **Primary (Blue):** `blue-600` for actions, `blue-500` for hover, `blue-400` for dark mode accents
+- **Accent (Amber):** `amber-500` / `amber-400` for highlights, badges, and secondary emphasis
+- **Dark theme:** `slate-950` background, `slate-900` cards/header, `slate-800` borders, `white` / `slate-300` text
+- **Light theme:** `slate-50` background, `white` cards/header, `slate-200` borders, `slate-900` / `slate-600` text
+
+Theme is toggled via Tailwind's `dark:` variant with a `dark` class on `<html>`.
+
+## Code Style
+
+- Prefer self-documenting code — use clear, consistent naming for variables, functions, and components
+- Only add comments to explain *why*, not *what*
+- Avoid redundant or obvious comments
+
 ## TypeScript Standards
 
 - Use strict TypeScript throughout — avoid `any` wherever possible
