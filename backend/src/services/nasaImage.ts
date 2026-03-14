@@ -1,0 +1,148 @@
+import logger from '../lib/logger'
+import type { NasaImageItem, NasaImageQuery } from '../types/nasaImage'
+
+// NASA Image and Video Library — no API key required
+const BASE_URL = 'https://images-api.nasa.gov'
+
+const searchCache = new Map<string, { items: NasaImageItem[]; totalHits: number }>()
+const failedQueries = new Map<string, { timestamp: number; message: string }>()
+const FAIL_COOLDOWN_MS = 10 * 60 * 1000 // don't retry a failed query for 10 minutes
+const MAX_RETRIES = 3
+const RETRY_STATUSES = new Set([500, 502, 503, 504])
+
+// In-flight request deduplication — prevents concurrent identical API calls
+const inflight = new Map<string, Promise<{ items: NasaImageItem[]; totalHits: number }>>()
+
+function cacheKey(query: NasaImageQuery): string {
+  return `${query.q}:${query.media_type ?? ''}:${query.year_start ?? ''}:${query.year_end ?? ''}:${query.page ?? 1}`
+}
+
+interface NasaSearchResponse {
+  collection: {
+    items: {
+      href?: string
+      data: {
+        nasa_id: string
+        title: string
+        description?: string
+        date_created: string
+        media_type: 'image' | 'video' | 'audio'
+        center?: string
+        keywords?: string[]
+      }[]
+      links?: { href: string; rel: string }[]
+    }[]
+    metadata: { total_hits: number }
+  }
+}
+
+function mapResponse(data: NasaSearchResponse): { items: NasaImageItem[]; totalHits: number } {
+  const items: NasaImageItem[] = data.collection.items
+    .filter((entry) => entry.data[0])
+    .map((entry) => {
+      const d = entry.data[0]!
+      const thumbnail = entry.links?.find((l) => l.rel === 'preview')?.href ?? ''
+      const result: NasaImageItem = {
+        nasa_id: d.nasa_id,
+        title: d.title,
+        description: d.description ?? '',
+        date_created: d.date_created,
+        media_type: d.media_type,
+        href: thumbnail,
+      }
+      if (typeof entry.href === 'string') result.asset_manifest_url = entry.href
+      if (d.center) result.center = d.center
+      if (d.keywords) result.keywords = d.keywords
+      return result
+    })
+
+  return { items, totalHits: data.collection.metadata.total_hits }
+}
+
+async function fetchFromNasa(
+  query: NasaImageQuery,
+  key: string,
+): Promise<{ items: NasaImageItem[]; totalHits: number }> {
+  // Deduplicate concurrent requests for the same query
+  const existing = inflight.get(key)
+  if (existing) {
+    logger.info('Deduplicating in-flight NASA Image Library request', { key })
+    return existing
+  }
+
+  const promise = (async () => {
+    const params = new URLSearchParams({ q: query.q })
+    if (query.media_type) params.set('media_type', query.media_type)
+    if (query.year_start) params.set('year_start', query.year_start)
+    if (query.year_end) params.set('year_end', query.year_end)
+    params.set('page', String(query.page ?? 1))
+
+    const url = `${BASE_URL}/search?${params.toString()}`
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      logger.info('Searching NASA Image Library', { q: query.q, page: query.page ?? 1, attempt })
+
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        const body = await response.text()
+
+        if (RETRY_STATUSES.has(response.status) && attempt < MAX_RETRIES) {
+          const delay = attempt * 1000
+          logger.warn('NASA Image Library transient error, retrying', {
+            status: response.status,
+            attempt,
+            retryIn: `${delay}ms`,
+          })
+          await new Promise((r) => setTimeout(r, delay))
+          continue
+        }
+        logger.error('NASA Image Library API error', { status: response.status, body })
+        throw new Error(`NASA Image Library responded with ${response.status}`)
+      }
+
+      const data: NasaSearchResponse = await response.json()
+      const result = mapResponse(data)
+
+      searchCache.set(key, result)
+      return result
+    }
+
+    throw new Error('NASA Image Library failed after retries')
+  })()
+
+  inflight.set(key, promise)
+  const cleanup = () => inflight.delete(key)
+  promise.then(cleanup, cleanup)
+
+  return promise
+}
+
+export async function searchNasaImages(
+  query: NasaImageQuery,
+): Promise<{ items: NasaImageItem[]; totalHits: number }> {
+  const key = cacheKey(query)
+
+  const cached = searchCache.get(key)
+  if (cached) {
+    logger.info('NASA Image Library cache hit', { key })
+    return cached
+  }
+
+  // Don't retry a query that recently failed
+  const lastFail = failedQueries.get(key)
+  if (lastFail && Date.now() - lastFail.timestamp < FAIL_COOLDOWN_MS) {
+    logger.info('Skipping fetch — query in cooldown', { key })
+    throw new Error(lastFail.message)
+  }
+
+  try {
+    const result = await fetchFromNasa(query, key)
+    failedQueries.delete(key) // success — clear cooldown
+    return result
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'NASA Image Library error'
+    failedQueries.set(key, { timestamp: Date.now(), message })
+    throw error
+  }
+}

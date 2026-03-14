@@ -23,7 +23,12 @@
       "Bash(find /c/Users/User/nasa-web-app -name *.test.ts -o -name *.test.tsx)",
       "Bash(grep -n \"allowFullScreen\" /c/Users/User/nasa-web-app/frontend/src/components/Apod/*.tsx)",
       "Bash(find /c/Users/User/nasa-web-app -name *.test.ts -o -name *.test.tsx -o -name *.spec.ts)",
-      "Bash(wc -l /c/Users/User/nasa-web-app/backend/src/**/*.ts /c/Users/User/nasa-web-app/frontend/src/**/*.tsx /c/Users/User/nasa-web-app/frontend/src/**/*.ts)"
+      "Bash(wc -l /c/Users/User/nasa-web-app/backend/src/**/*.ts /c/Users/User/nasa-web-app/frontend/src/**/*.tsx /c/Users/User/nasa-web-app/frontend/src/**/*.ts)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&page=1&api_key=DEMO_KEY\")",
+      "Bash(curl -s \"https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&page=1&api_key=DEMO_KEY\")",
+      "Bash(npx prettier:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx markdownlint-cli:*)"
     ]
   }
 }

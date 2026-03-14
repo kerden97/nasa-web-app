@@ -10,15 +10,15 @@ import FeaturedApodHeroSkeleton from '@/components/Apod/FeaturedApodHeroSkeleton
 import type { ApodItem } from '@/types/apod'
 
 export default function ApodPage() {
+  useEffect(() => {
+    document.title = 'APOD | Wonders of the Universe | Home & Beyond'
+  }, [])
+
   const [filter, setFilter] = useState<{
     date?: string
     startDate?: string
     endDate?: string
   }>({})
-
-  useEffect(() => {
-    document.title = 'Wonders of the Universe | Home & Beyond'
-  }, [])
 
   const { pageSize } = useGridSize()
   const { items, loading, error, loadMore, hasMore } = useApod({
@@ -32,19 +32,11 @@ export default function ApodPage() {
   const archiveItems = featuredItem && !isFiltered ? items.slice(1) : items
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <h1 className="font-nasa text-3xl tracking-widest text-slate-900 dark:text-white">
-          Wonders of the Universe
-        </h1>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          NASA's Astronomy Picture of the Day
-        </p>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-          Discover daily cosmic stories with richer context, credits, and a closer look at the
-          images behind NASA&apos;s APOD archive.
-        </p>
-      </div>
+    <>
+      <p className="mb-6 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+        Discover daily cosmic stories with richer context, credits, and a closer look at the images
+        behind NASA&apos;s APOD archive.
+      </p>
 
       {!loading && items.length === 0 && !error && (
         <div className="py-20 text-center text-slate-500 dark:text-slate-400">
@@ -113,6 +105,6 @@ export default function ApodPage() {
       )}
 
       {selectedItem && <ApodModal item={selectedItem} onClose={() => setSelectedItem(null)} />}
-    </section>
+    </>
   )
 }

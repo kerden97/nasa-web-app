@@ -8,7 +8,7 @@ export default function HomePage() {
 
   return (
     <div className="relative overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-[24rem] bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.12),_transparent_45%),radial-gradient(circle_at_top_right,_rgba(15,23,42,0.08),_transparent_35%)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.14),_transparent_38%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.12),_transparent_30%)]" />
+      <div className="absolute inset-x-0 top-0 h-96 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.12),transparent_45%),radial-gradient(circle_at_top_right,rgba(15,23,42,0.08),transparent_35%)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.14),_transparent_38%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.12),_transparent_30%)]" />
 
       <section className="relative mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:items-center">
@@ -20,9 +20,9 @@ export default function HomePage() {
               Home &amp; Beyond
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-9 text-slate-600 dark:text-slate-300">
-              A space-focused web experience built around NASA&apos;s open APIs. Start with a
-              cinematic Astronomy Picture of the Day journey and explore daily stories, imagery, and
-              discoveries through a homepage that stays useful as the collection grows.
+              A space-focused web experience built around NASA&apos;s open APIs. Explore the
+              Astronomy Picture of the Day, search NASA&apos;s vast image and video archive, and
+              view full-disk Earth imagery from deep space — all in one place.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
@@ -50,8 +50,8 @@ export default function HomePage() {
               Wonders of the Universe
             </h2>
             <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
-              An Astronomy Picture of the Day experience built around a featured story, a browsable
-              archive, rich detail views, and a calmer editorial rhythm than a plain image feed.
+              Three NASA APIs in one hub: daily APOD stories, a searchable image and video library
+              with 140,000+ assets, and full-disk Earth imagery from the DSCOVR satellite.
             </p>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
@@ -59,7 +59,7 @@ export default function HomePage() {
                   Experience
                 </p>
                 <p className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">
-                  Featured APOD stories with archive exploration and immersive detail views
+                  APOD archive, NASA Image Library search, and EPIC Earth imagery in one hub
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
@@ -67,7 +67,7 @@ export default function HomePage() {
                   Highlights
                 </p>
                 <p className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">
-                  Featured daily image, archive filters, smooth browsing, responsive reading
+                  Featured daily image, media filters, search, date presets, and detail modals
                 </p>
               </div>
             </div>
@@ -83,40 +83,40 @@ export default function HomePage() {
         <div className="grid gap-5 lg:grid-cols-3">
           <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <p className="font-nasa text-xs uppercase tracking-[0.22em] text-blue-600 dark:text-blue-400">
-              Daily discovery
+              Astronomy Picture of the Day
             </p>
             <h3 className="mt-4 text-xl font-semibold text-slate-950 dark:text-white">
               Begin with a story, not just a thumbnail
             </h3>
             <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
-              Wonders of the Universe is designed to feel editorial and immersive, with a featured
-              moment up front and a deeper archive waiting below.
+              A featured daily moment up front, a browsable archive below, date filters, and
+              immersive detail views with credit and source context.
             </p>
           </article>
 
           <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <p className="font-nasa text-xs uppercase tracking-[0.22em] text-blue-600 dark:text-blue-400">
-              Guided exploration
+              NASA Image Library
             </p>
             <h3 className="mt-4 text-xl font-semibold text-slate-950 dark:text-white">
-              Step from the homepage into deeper space stories
+              Search 140,000+ images, videos, and audio files
             </h3>
             <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
-              The homepage gives the product a clear front door while each destination can build its
-              own identity, mood, and way of exploring NASA&apos;s data.
+              Full-text search across NASA&apos;s archive with media type filters, keyword tags,
+              paginated results, and video and audio playback in detail views.
             </p>
           </article>
 
           <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <p className="font-nasa text-xs uppercase tracking-[0.22em] text-blue-600 dark:text-blue-400">
-              What this space offers
+              EPIC Earth Imagery
             </p>
             <h3 className="mt-4 text-xl font-semibold text-slate-950 dark:text-white">
-              Designed for return visits, not just a single click-through
+              Full-disk Earth photos from deep space
             </h3>
             <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
-              Daily updates, archive browsing, richer context, and polished reading flow turn the
-              homepage into an invitation rather than a handoff page.
+              Daily imagery from the DSCOVR satellite with natural and enhanced colour views, date
+              presets, coordinate data, and high-resolution downloads.
             </p>
           </article>
         </div>

@@ -167,7 +167,10 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
       {pendingExternalLink && (
         <div
           className="absolute inset-0 z-10 flex items-center justify-center bg-black/45 p-4"
-          onClick={() => setPendingExternalLink(null)}
+          onClick={(e) => {
+            e.stopPropagation()
+            setPendingExternalLink(null)
+          }}
         >
           <div
             className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"

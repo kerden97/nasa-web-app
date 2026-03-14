@@ -149,7 +149,7 @@ Theme is toggled via Tailwind's `dark:` variant with a `dark` class on `<html>`.
 
 ## Responsive Payload Strategy
 
-UI responsiveness extends beyond layout to include data loading:
+### APOD
 
 | Breakpoint    | Grid columns | First load | Load more |
 | ------------- | ------------ | ---------- | --------- |
@@ -161,8 +161,16 @@ UI responsiveness extends beyond layout to include data loading:
 - **First load is always 21** — hardcoded to avoid delaying the API request while waiting for client-side viewport detection
 - **Load-more is responsive** — `useGridSize` hook detects the current breakpoint and returns `pageSize` for subsequent batches
 - `pageSize` is stored in a ref to prevent viewport resizes from triggering data refetches
-- Skeleton counts match `pageSize` to prevent layout shift
-- Frontend uses `AbortController` in the data-fetching effect to cancel duplicate requests (React StrictMode)
+
+### NASA Image Library & EPIC
+
+- NASA Image Library uses server-side pagination (page number forwarded to NASA API)
+- EPIC returns all images for a given date in a single response — no client-side pagination
+
+### Shared
+
+- Skeleton counts match the expected item count to prevent layout shift
+- Frontend uses `AbortController` in data-fetching effects to cancel duplicate requests (React StrictMode)
 
 ## Working Rules
 
@@ -206,15 +214,32 @@ Use clear, small commits with conventional prefixes where appropriate:
 
 ## Caching & Performance
 
-- Backend uses per-date in-memory cache for NASA API responses
+All three backend services share these resilience patterns:
+
+- **In-flight request deduplication** — concurrent requests for the same key share a single HTTP call
+- **Retry with backoff** — transient NASA errors (500, 502, 503, 504) are retried up to 3 times with increasing delays (1 s, 2 s)
+- **Failure cooldown** — after retries are exhausted, the same key is blocked from re-fetching for 10 minutes to avoid hammering a failing upstream
+- Cache resets on server restart — acceptable for this project's scale
+
+### APOD caching
+
 - Past dates are cached permanently (APOD data is immutable once published)
 - Today's date is cached until midnight UTC rollover (APOD publishes once daily)
-- **Partial cache fetch** — when a range request includes cached and uncached dates, only the uncached dates are fetched from NASA (e.g. 1 date instead of 26)
-- **In-flight request deduplication** — concurrent requests for the same NASA API URL share a single HTTP call
-- **Startup prefetch** — backend warms the cache on boot by fetching the latest 26 days in the background, so the first user request is served from cache
-- **Retry with backoff** — transient NASA errors (500, 502, 503, 504) are retried up to 3 times with increasing delays
-- On NASA API failure, stale cached data is served as a fallback; if no cache exists, a user-friendly 502 error is returned
-- Cache resets on server restart — acceptable for this project's scale
+- **Partial cache fetch** — when a range request includes cached and uncached dates, only the uncached dates are fetched from NASA
+- **Startup prefetch** — backend warms the cache on boot by fetching the latest 26 days in the background
+- On NASA API failure for a range, any already-cached items in that range are still returned
+
+### NASA Image Library caching
+
+- Search results are cached by query + filters + page number
+- Cache does not expire (search results are stable) — on fetch failure after cache miss, a 502 error is returned directly
+
+### EPIC caching
+
+- Dated image requests are cached permanently; "latest" (no date) requests are cached until midnight UTC rollover
+- Date lists are cached until midnight UTC rollover
+- Empty image responses are not cached (allows retry on next request)
+- **Stale fallback** — when NASA fails after cache expiry, stale cached images and dates are served instead of erroring
 
 ## Decision Notes
 

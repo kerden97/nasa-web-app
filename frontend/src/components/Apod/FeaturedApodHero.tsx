@@ -14,7 +14,7 @@ export default function FeaturedApodHero({ item, onOpen }: FeaturedApodHeroProps
   return (
     <section className="mb-10 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.8fr)]">
-        <div className="relative max-h-130 min-h-80 overflow-hidden bg-black">
+        <div className="relative max-h-130 min-h-130 overflow-hidden bg-black">
           {heroImage ? (
             <img src={heroImage} alt={item.title} className="h-full w-full object-cover" />
           ) : hasDirectVideo ? (

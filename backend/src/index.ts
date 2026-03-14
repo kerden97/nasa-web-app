@@ -8,6 +8,8 @@ import { requestLogger } from './middleware/requestLogger'
 import { globalErrorHandler } from './middleware/errorHandler'
 import healthRoutes from './routes/health'
 import apodRoutes from './routes/apod'
+import nasaImageRoutes from './routes/nasaImage'
+import epicRoutes from './routes/epic'
 import { prefetchLatest } from './services/apod'
 
 const app = express()
@@ -20,6 +22,8 @@ app.use(requestLogger)
 
 app.use(healthRoutes)
 app.use(apodRoutes)
+app.use(nasaImageRoutes)
+app.use(epicRoutes)
 
 app.use(globalErrorHandler)
 

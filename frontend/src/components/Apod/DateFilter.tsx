@@ -136,7 +136,7 @@ function MiniCalendar({
     }
   }
 
-  const monthLabel = new Date(viewYear, viewMonth).toLocaleDateString('en-US', {
+  const monthLabel = new Date(viewYear, viewMonth).toLocaleDateString('en-GB', {
     month: 'long',
     year: 'numeric',
   })

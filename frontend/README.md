@@ -22,7 +22,9 @@ VITE_API_URL=http://localhost:4000
 ## Current Scope
 
 - `/` — Home & Beyond landing page
-- `/wonders-of-the-universe` — APOD experience
+- `/wonders-of-the-universe/apod` — Astronomy Picture of the Day
+- `/wonders-of-the-universe/nasa-image-library` — NASA Image Library search
+- `/wonders-of-the-universe/epic` — EPIC Earth imagery
 
 ## Notes
 

@@ -84,11 +84,24 @@ describe('ApodPage', () => {
 
     render(<ApodPage />)
 
-    expect(screen.getByText('Wonders of the Universe')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: items[0]!.title })).toBeInTheDocument()
     expect(screen.getByText('Browse recent discoveries')).toBeInTheDocument()
     expect(screen.getByText(items[1]!.title)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Explore details' })).toBeInTheDocument()
+  })
+
+  it('sets the document title on mount', () => {
+    mockedUseApod.mockReturnValue({
+      items,
+      loading: false,
+      error: null,
+      loadMore: vi.fn(),
+      hasMore: true,
+    })
+
+    render(<ApodPage />)
+
+    expect(document.title).toBe('APOD | Wonders of the Universe | Home & Beyond')
   })
 
   it('renders an empty state when no items are returned', () => {
