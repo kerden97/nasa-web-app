@@ -2,11 +2,11 @@
 
 ## Live Deployment
 
-| Service | Platform | URL |
-| ---- | ---- | ---- |
-| Frontend | Vercel | [nasa-web-app-iota.vercel.app](https://nasa-web-app-iota.vercel.app) |
-| Backend | Render | [nasa-web-app-lv7c.onrender.com](https://nasa-web-app-lv7c.onrender.com) |
-| Backend Health | Render | [nasa-web-app-lv7c.onrender.com/healthz](https://nasa-web-app-lv7c.onrender.com/healthz) |
+| Service        | Platform | URL                                                                                      |
+| -------------- | -------- | ---------------------------------------------------------------------------------------- |
+| Frontend       | Vercel   | [nasa-web-app-iota.vercel.app](https://nasa-web-app-iota.vercel.app)                     |
+| Backend        | Render   | [nasa-web-app-lv7c.onrender.com](https://nasa-web-app-lv7c.onrender.com)                 |
+| Backend Health | Render   | [nasa-web-app-lv7c.onrender.com/healthz](https://nasa-web-app-lv7c.onrender.com/healthz) |
 
 > Note: The Render free tier spins down after inactivity. The first request after idle may take up to 50 seconds.
 
@@ -95,6 +95,7 @@ VITE_API_URL=http://localhost:4000
 #### 2. Install dependencies
 
 ```bash
+npm install
 cd backend && npm install
 cd ../frontend && npm install
 ```
@@ -117,14 +118,32 @@ Available local endpoints:
 - Backend: `http://localhost:4000`
 - Backend health check: `http://localhost:4000/healthz`
 
+## Formatting
+
+Formatting is handled centrally at the repository root with Prettier.
+
+Format all supported files:
+
+```bash
+npm run format
+```
+
+Check formatting without rewriting files:
+
+```bash
+npm run format:check
+```
+
 ## CI/CD
 
 GitHub Actions runs on every push to `main` and on pull requests:
 
+- **Format Check** — `npm run format:check` at the repo root
 - **Backend Tests** — `npm test` (Jest) in `backend/`
 - **Frontend Tests** — `npm test` (Vitest) in `frontend/`
+- **Frontend Build** — `npm run build` in `frontend/`
 
-Both jobs run in parallel. Render (backend) is configured to deploy only after CI checks pass. Vercel (frontend) deploys on every push independently.
+Formatting is enforced before backend/frontend jobs run. Render (backend) is configured to deploy only after CI checks pass. Vercel (frontend) deploys on every push independently.
 
 Workflow file: `.github/workflows/ci.yml`
 
@@ -133,6 +152,7 @@ Workflow file: `.github/workflows/ci.yml`
 ### Frontend
 
 - React
+- React Router
 - Vite
 - TypeScript
 - Tailwind CSS
@@ -164,3 +184,4 @@ Workflow file: `.github/workflows/ci.yml`
 - Docker Compose
 - Nginx
 - Playwright
+- Prettier
