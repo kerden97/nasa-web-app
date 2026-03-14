@@ -7,4 +7,5 @@ export interface ApodItem {
   media_type: 'image' | 'video'
   copyright?: string
   thumbnail_url?: string
+  service_version?: string
 }

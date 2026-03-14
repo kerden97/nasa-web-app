@@ -19,7 +19,11 @@
       "Bash(grep -n \"mb-10.*rounded-\\\\[28px\\\\]\\\\|mb-10.*rounded-2xl\" c:/Users/User/nasa-web-app/frontend/src/components/Apod/*.tsx)",
       "Bash(grep \"text-xs font-medium uppercase tracking-\\\\[0.18em\\\\]\" c:/Users/User/nasa-web-app/frontend/src/components/Apod/*.tsx c:/Users/User/nasa-web-app/frontend/src/pages/*.tsx)",
       "Bash(npx vite:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(find /c/Users/User/nasa-web-app -name *.test.ts -o -name *.test.tsx)",
+      "Bash(grep -n \"allowFullScreen\" /c/Users/User/nasa-web-app/frontend/src/components/Apod/*.tsx)",
+      "Bash(find /c/Users/User/nasa-web-app -name *.test.ts -o -name *.test.tsx -o -name *.spec.ts)",
+      "Bash(wc -l /c/Users/User/nasa-web-app/backend/src/**/*.ts /c/Users/User/nasa-web-app/frontend/src/**/*.tsx /c/Users/User/nasa-web-app/frontend/src/**/*.ts)"
     ]
   }
 }
