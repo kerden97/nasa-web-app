@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Compass, House, X } from 'lucide-react'
 import type { ReactNode } from 'react'
@@ -18,10 +18,18 @@ interface MobileMenuProps {
 
 export default function MobileMenu({ isOpen, onClose, navLinks, themeToggle }: MobileMenuProps) {
   const location = useLocation()
+  const previousPathnameRef = useRef(location.pathname)
 
   useEffect(() => {
-    if (!isOpen) return
-    onClose()
+    if (!isOpen) {
+      previousPathnameRef.current = location.pathname
+      return
+    }
+
+    if (previousPathnameRef.current !== location.pathname) {
+      previousPathnameRef.current = location.pathname
+      onClose()
+    }
   }, [isOpen, location.pathname, onClose])
 
   useEffect(() => {
