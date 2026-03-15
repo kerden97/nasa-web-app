@@ -36,7 +36,10 @@
       "Bash(grep -E \"\\\\.\\(ts|js|css\\)$\")",
       "Bash(cat /c/Users/User/nasa-web-app/frontend/tailwind.config.*)",
       "Bash(cat /c/Users/User/nasa-web-app/tailwind.config.*)",
-      "Bash(find /c/Users/User/nasa-web-app -type d -not -path */node_modules -not -path */.git)"
+      "Bash(find /c/Users/User/nasa-web-app -type d -not -path */node_modules -not -path */.git)",
+      "Bash(wc -l c:/Users/User/nasa-web-app/frontend/src/pages/*.tsx c:/Users/User/nasa-web-app/frontend/src/components/**/*.tsx)",
+      "Bash(wc -l c:/Users/User/nasa-web-app/frontend/src/pages/AsteroidWatchPage.tsx c:/Users/User/nasa-web-app/frontend/src/components/NeoWs/*.tsx c:/Users/User/nasa-web-app/frontend/src/lib/neoUtils.ts)",
+      "Bash(wc -l /c/Users/User/nasa-web-app/frontend/src/components/**/*.tsx)"
     ]
   }
 }

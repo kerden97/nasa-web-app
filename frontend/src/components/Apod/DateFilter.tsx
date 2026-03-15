@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Calendar, X } from 'lucide-react'
 import { APOD_EPOCH } from '@/lib/apodMeta'
 import MiniCalendar from '@/components/MiniCalendar'
+import { useClickOutside } from '@/hooks/useClickOutside'
 import { addDays, formatLabel, todayStr } from '@/lib/calendarUtils'
 
 interface DateFilterProps {
@@ -79,15 +80,8 @@ export default function DateFilter({
 
   const isDateDisabled = (iso: string) => iso > todayStr() || iso < APOD_EPOCH
 
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setCalendarOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+  const closeCalendar = useCallback(() => setCalendarOpen(false), [])
+  useClickOutside(dropdownRef, closeCalendar)
 
   function applyPreset(preset: Preset) {
     const result = preset.getRange()

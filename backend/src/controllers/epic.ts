@@ -1,25 +1,9 @@
 import type { Request, Response, NextFunction } from 'express'
 import { fetchEpicImages, fetchEpicDates } from '../services/epic'
 import type { EpicCollection } from '../types/epic'
+import { isValidDate } from '../lib/validation'
 
 const VALID_COLLECTIONS = ['natural', 'enhanced'] as const
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
-
-function isValidDate(value: string): boolean {
-  if (!DATE_REGEX.test(value)) return false
-
-  const [yearStr, monthStr, dayStr] = value.split('-')
-  const year = Number(yearStr)
-  const month = Number(monthStr)
-  const day = Number(dayStr)
-  const parsed = new Date(Date.UTC(year, month - 1, day))
-
-  return (
-    parsed.getUTCFullYear() === year &&
-    parsed.getUTCMonth() === month - 1 &&
-    parsed.getUTCDate() === day
-  )
-}
 
 export async function getEpicImages(
   req: Request,

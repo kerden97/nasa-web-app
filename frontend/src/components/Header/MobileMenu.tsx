@@ -97,7 +97,10 @@ export default function MobileMenu({ isOpen, onClose, navLinks, themeToggle }: M
             <NavLink
               to="/"
               end
-              onClick={onClose}
+              onClick={(e) => {
+                if (location.pathname === '/') e.preventDefault()
+                onClose()
+              }}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-2xl border px-4 py-3 text-lg font-medium transition ${
                   isActive
@@ -113,7 +116,10 @@ export default function MobileMenu({ isOpen, onClose, navLinks, themeToggle }: M
               <NavLink
                 key={to}
                 to={to}
-                onClick={onClose}
+                onClick={(e) => {
+                  if (location.pathname.startsWith(to)) e.preventDefault()
+                  onClose()
+                }}
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-2xl border px-4 py-3 text-lg font-medium transition ${
                     isActive

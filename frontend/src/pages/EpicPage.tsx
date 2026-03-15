@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Calendar, X } from 'lucide-react'
 import EpicCard from '@/components/Epic/EpicCard'
 import EpicCardSkeleton from '@/components/Epic/EpicCardSkeleton'
 import EpicModal from '@/components/Epic/EpicModal'
 import MiniCalendar from '@/components/MiniCalendar'
+import { useClickOutside } from '@/hooks/useClickOutside'
 import { formatLabel, todayStr } from '@/lib/calendarUtils'
 import { useEpic, useEpicDates } from '@/hooks/useEpic'
 import type { EpicCollection, EpicImage } from '@/types/epic'
@@ -31,15 +32,8 @@ export default function EpicPage() {
     document.title = 'EPIC | Wonders of the Universe | Home & Beyond'
   }, [])
 
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setCalendarOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+  const closeCalendar = useCallback(() => setCalendarOpen(false), [])
+  useClickOutside(dropdownRef, closeCalendar)
 
   const availableDatesSet = useMemo(() => new Set(dates), [dates])
 
