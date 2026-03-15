@@ -149,7 +149,7 @@ describe('AsteroidWatchPage', () => {
   it('renders page heading and description', () => {
     mockedUseNeows.mockReturnValue({ data: null, loading: false, error: null })
     renderPage()
-    expect(screen.getByText('Asteroid Watch')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Asteroid Watch', level: 1 })).toBeInTheDocument()
     expect(screen.getByText(/Track near-Earth objects/)).toBeInTheDocument()
   })
 

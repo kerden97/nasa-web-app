@@ -35,7 +35,8 @@
       "Bash(docker compose:*)",
       "Bash(grep -E \"\\\\.\\(ts|js|css\\)$\")",
       "Bash(cat /c/Users/User/nasa-web-app/frontend/tailwind.config.*)",
-      "Bash(cat /c/Users/User/nasa-web-app/tailwind.config.*)"
+      "Bash(cat /c/Users/User/nasa-web-app/tailwind.config.*)",
+      "Bash(find /c/Users/User/nasa-web-app -type d -not -path */node_modules -not -path */.git)"
     ]
   }
 }
