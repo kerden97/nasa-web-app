@@ -27,14 +27,18 @@ backend/src/
 │   ├── nasaImage.ts
 │   ├── nasaImage.test.ts
 │   ├── epic.ts
-│   └── epic.test.ts
+│   ├── epic.test.ts
+│   ├── neows.ts
+│   └── neows.test.ts
 ├── services/
 │   ├── apod.ts
 │   ├── apod.test.ts
 │   ├── nasaImage.ts
 │   ├── nasaImage.test.ts
 │   ├── epic.ts
-│   └── epic.test.ts
+│   ├── epic.test.ts
+│   ├── neows.ts
+│   └── neows.test.ts
 ```
 
 These backend tests are intentionally split into:
@@ -213,6 +217,55 @@ These are unit tests for the EPIC service's image fetching, URL building, date l
 | Cooldown after repeated failure | Immediate re-request is blocked without hitting NASA           |
 | Non-retryable API error         | Non-OK responses outside the retry set throw immediately       |
 
+## Controller Tests — NeoWs (`controllers/neows.test.ts`)
+
+These are HTTP-level tests for the NeoWs feed endpoint. The service layer is mocked so the controller is tested in isolation for required-parameter checks, date validation, range validation, and error mapping.
+
+**What is covered:**
+
+| Test                  | Validates                                                          |
+| --------------------- | ------------------------------------------------------------------ |
+| Valid date range      | 200 + feed body returned + correct args passed to service          |
+| Missing start_date    | 400 — `start_date` is required                                     |
+| Missing end_date      | 400 — `end_date` is required                                       |
+| Invalid start_date    | 400 — non-YYYY-MM-DD format rejected                               |
+| Invalid end_date      | 400 — invalid date format rejected                                 |
+| Impossible start_date | 400 — impossible start dates rejected by UTC round-trip validation |
+| Impossible end_date   | 400 — impossible end dates rejected by UTC round-trip validation   |
+| start_date > end_date | 400 — invalid range ordering                                       |
+| Range exceeds 7 days  | 400 — more than 7 inclusive days rejected                          |
+| Full 7-day range      | 200 — maximum valid range is accepted                              |
+| 8-day inclusive range | 400 — one day beyond the 7-day limit is rejected                   |
+| NASA service failure  | 502 — NeoWs upstream errors mapped to temporary-unavailable error  |
+| Unexpected error      | 500 — delegated to global error handler                            |
+
+## Service Tests — NeoWs (`services/neows.test.ts`)
+
+These are unit tests for the NeoWs feed service's mapping, cache policy, retry handling for both HTTP and network failures, cooldown behavior, in-flight deduplication, stale-cache fallback, and date-range cache invalidation. `global.fetch` is mocked directly.
+
+**What is covered:**
+
+| Test                                | Validates                                                                  |
+| ----------------------------------- | -------------------------------------------------------------------------- |
+| Feed and close-approach mapping     | NeoWs response mapped correctly, including nested close-approach fields    |
+| Empty feed mapping                  | Empty `near_earth_objects` payload maps cleanly without errors             |
+| Multi-date response mapping         | Multiple date buckets are mapped correctly into separate keys              |
+| Cache hit (past range)              | Stable past ranges return cached data on second request                    |
+| Past-range cache after rollover     | A range that becomes fully historical after UTC midnight stays cached      |
+| Non-historical range cache policy   | Ranges including today or later use same-day cache and invalidate daily    |
+| Retry with backoff                  | Transient 500/502/503/504 failures retry and can later succeed             |
+| Transient HTTP retry exhaustion     | Persistent retryable HTTP failures throw after max retries                 |
+| Network-error retry success         | Thrown `fetch` errors are retried and may later succeed                    |
+| Network-error retry exhaustion      | Persistent thrown `fetch` errors throw after max retries                   |
+| Mixed failure-mode retry            | Retries work across both thrown network errors and retryable HTTP failures |
+| Non-transient error                 | 400-type responses are not retried                                         |
+| In-flight deduplication             | Concurrent identical feed requests share one `fetch` call                  |
+| Failed in-flight cleanup            | Failed in-flight requests are cleared so later calls can retry normally    |
+| Cooldown after repeated failure     | Immediate re-request is blocked after repeated failures                    |
+| Stale cache fallback after rollover | Stale cached feeds are served when a refetch fails after cache rollover    |
+| Stale cache served during cooldown  | Cooldown requests return stale cached data immediately when available      |
+| Separate cache keys                 | Different date ranges maintain separate cache entries                      |
+
 ## Key Patterns and Gotchas
 
 ### Why `jest.resetModules()` + dynamic import?
@@ -257,3 +310,7 @@ The controller uses `/^\d+$/.test(count)` instead of `parseInt()`. This matters 
 ### UTC date validation
 
 `new Date("2026-02-31")` doesn't throw — JavaScript normalises it to March 3rd. The controller validates dates by parsing the year/month/day components, constructing a `Date` via `Date.UTC()`, and checking that the resulting UTC components match the input. This catches impossible calendar dates.
+
+### NeoWs retry behavior
+
+NeoWs retries both retryable HTTP responses and thrown `fetch()` network errors. The service tests cover pure HTTP retry sequences, pure network-failure sequences, and mixed sequences to ensure both retry paths behave consistently.

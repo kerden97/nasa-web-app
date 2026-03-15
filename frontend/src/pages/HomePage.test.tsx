@@ -14,93 +14,52 @@ function renderPage() {
 describe('HomePage', () => {
   it('sets the document title on mount', () => {
     renderPage()
-
     expect(document.title).toBe('Home & Beyond')
   })
 
-  it('renders the hero section content', () => {
+  it('renders the hero heading and tagline', () => {
     renderPage()
-
-    expect(screen.getByText('NASA Data Explorer')).toBeInTheDocument()
+    expect(screen.getByText('NASA Open-Data Explorer')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Home & Beyond', level: 1 })).toBeInTheDocument()
-    expect(
-      screen.getByText(/A space-focused web experience built around NASA's open APIs\./i),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Four NASA APIs, one interface/)).toBeInTheDocument()
   })
 
-  it('renders the main call-to-action links to Wonders of the Universe', () => {
+  it('renders both primary CTA links', () => {
     renderPage()
 
-    const enterLink = screen.getByRole('link', {
-      name: 'Enter Wonders of the Universe',
-    })
-    const exploreLink = screen.getByRole('link', {
-      name: 'Explore Wonders',
-    })
+    const wondersLink = screen.getByRole('link', { name: 'Explore the Universe' })
+    const asteroidLink = screen.getByRole('link', { name: 'Asteroid Watch' })
 
-    expect(enterLink).toBeInTheDocument()
-    expect(enterLink).toHaveAttribute('href', '/wonders-of-the-universe')
-
-    expect(exploreLink).toBeInTheDocument()
-    expect(exploreLink).toHaveAttribute('href', '/wonders-of-the-universe')
+    expect(wondersLink).toHaveAttribute('href', '/wonders-of-the-universe')
+    expect(asteroidLink).toHaveAttribute('href', '/asteroid-watch')
   })
 
-  it('renders the featured destination section', () => {
+  it('renders all four feature cards with correct routes', () => {
     renderPage()
 
-    expect(screen.getByText('Featured destination')).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: 'Wonders of the Universe', level: 2 }),
-    ).toBeInTheDocument()
-    expect(screen.getByText(/Three NASA APIs in one hub:/i)).toBeInTheDocument()
-    expect(screen.getByText('Experience')).toBeInTheDocument()
-    expect(screen.getByText('Highlights')).toBeInTheDocument()
+    const cards = screen.getAllByRole('link').filter((el) => el.classList.contains('group'))
+    expect(cards).toHaveLength(4)
+
+    const [apodCard, imageCard, epicCard, neoCard] = cards
+
+    expect(apodCard).toHaveAttribute('href', '/wonders-of-the-universe/apod')
+    expect(imageCard).toHaveAttribute('href', '/wonders-of-the-universe/nasa-image-library')
+    expect(epicCard).toHaveAttribute('href', '/wonders-of-the-universe/epic')
+    expect(neoCard).toHaveAttribute('href', '/asteroid-watch')
   })
 
-  it('renders the three homepage feature cards', () => {
+  it('renders feature card headings', () => {
     renderPage()
 
-    expect(screen.getByText('Astronomy Picture of the Day')).toBeInTheDocument()
-    expect(screen.getByText('NASA Image Library')).toBeInTheDocument()
-    expect(screen.getByText('EPIC Earth Imagery')).toBeInTheDocument()
-
     expect(
-      screen.getByRole('heading', {
-        name: 'Begin with a story, not just a thumbnail',
-        level: 3,
-      }),
+      screen.getByRole('heading', { name: 'Astronomy Picture of the Day', level: 2 }),
     ).toBeInTheDocument()
-
     expect(
-      screen.getByRole('heading', {
-        name: 'Search 140,000+ images, videos, and audio files',
-        level: 3,
-      }),
+      screen.getByRole('heading', { name: 'NASA Image & Video Search', level: 2 }),
     ).toBeInTheDocument()
-
     expect(
-      screen.getByRole('heading', {
-        name: 'Full-disk Earth photos from deep space',
-        level: 3,
-      }),
+      screen.getByRole('heading', { name: 'Earth from Deep Space', level: 2 }),
     ).toBeInTheDocument()
-  })
-
-  it('renders the coming next section and roadmap points', () => {
-    renderPage()
-
-    expect(screen.getByText('Coming next')).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', {
-        name: 'A homepage built to welcome new space experiences',
-        level: 2,
-      }),
-    ).toBeInTheDocument()
-
-    expect(screen.getByText('1. Discover a calm, curated starting point')).toBeInTheDocument()
-    expect(
-      screen.getByText('2. Enter focused destinations with their own character'),
-    ).toBeInTheDocument()
-    expect(screen.getByText('3. Return whenever new explorations arrive')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Asteroid Watch', level: 2 })).toBeInTheDocument()
   })
 })

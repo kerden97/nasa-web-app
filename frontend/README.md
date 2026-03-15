@@ -25,6 +25,7 @@ VITE_API_URL=http://localhost:4000
 - `/wonders-of-the-universe/apod` — Astronomy Picture of the Day
 - `/wonders-of-the-universe/nasa-image-library` — NASA Image Library search
 - `/wonders-of-the-universe/epic` — EPIC Earth imagery
+- `/asteroid-watch` — NeoWs asteroid tracking and visualization
 
 ## Notes
 

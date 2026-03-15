@@ -71,7 +71,7 @@ describe('EpicPage', () => {
     render(<EpicPage />)
 
     expect(screen.getByText(/EPIC offers full-disk Earth imagery/)).toBeInTheDocument()
-    expect(screen.getByText(/2026/)).toBeInTheDocument()
+    expect(screen.getByText(/Thursday, 12 March 2026/)).toBeInTheDocument()
   })
 
   it('sets the document title on mount', () => {
@@ -128,7 +128,7 @@ describe('EpicPage', () => {
   it('switches to enhanced collection when clicking Enhanced pill', () => {
     render(<EpicPage />)
 
-    fireEvent.click(screen.getByText('Enhanced'))
+    fireEvent.click(screen.getByRole('button', { name: 'Enhanced' }))
 
     expect(mockedUseEpic).toHaveBeenLastCalledWith('enhanced', expect.anything())
   })
@@ -136,17 +136,17 @@ describe('EpicPage', () => {
   it('shows date preset pills', () => {
     render(<EpicPage />)
 
-    expect(screen.getByText('Latest')).toBeInTheDocument()
-    expect(screen.getByText('Previous')).toBeInTheDocument()
-    expect(screen.getByText('Last 7 days')).toBeInTheDocument()
-    expect(screen.getByText('Last 30 days')).toBeInTheDocument()
-    expect(screen.getByText('Custom')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Latest' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Previous' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Last 7 days' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Last 30 days' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Custom' })).toBeInTheDocument()
   })
 
   it('selects the previous available date when Previous is clicked', () => {
     render(<EpicPage />)
 
-    fireEvent.click(screen.getByText('Previous'))
+    fireEvent.click(screen.getByRole('button', { name: 'Previous' }))
 
     expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-11')
   })
@@ -154,28 +154,31 @@ describe('EpicPage', () => {
   it('selects the closest available date when Last 7 days is clicked', () => {
     render(<EpicPage />)
 
-    fireEvent.click(screen.getByText('Last 7 days'))
+    fireEvent.click(screen.getByRole('button', { name: 'Last 7 days' }))
 
     expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-09')
   })
 
-  it('shows the custom date picker when Custom is clicked', () => {
+  it('shows the calendar when Custom is clicked', () => {
     render(<EpicPage />)
 
-    fireEvent.click(screen.getByText('Custom'))
+    fireEvent.click(screen.getByRole('button', { name: 'Custom' }))
 
-    expect(screen.getByRole('combobox')).toBeInTheDocument()
+    expect(screen.getByLabelText('Previous month')).toBeInTheDocument()
+    expect(screen.getByLabelText('Next month')).toBeInTheDocument()
   })
 
-  it('updates the selected date when using the custom date picker', () => {
+  it('updates the selected date when clicking a date in the calendar', () => {
     render(<EpicPage />)
 
-    fireEvent.click(screen.getByText('Custom'))
-    fireEvent.change(screen.getByRole('combobox'), {
-      target: { value: '2026-03-10' },
-    })
+    fireEvent.click(screen.getByRole('button', { name: 'Custom' }))
+    // Click day 12 (an available date in the mock data)
+    const dayButtons = screen.getAllByRole('button', { name: '12' })
+    // The calendar day button (not a preset)
+    const calendarDay = dayButtons.find((btn) => !(btn as HTMLButtonElement).disabled)
+    fireEvent.click(calendarDay!)
 
-    expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-10')
+    expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-12')
   })
 
   it('resets the selected date to the latest available date when switching collection', () => {
@@ -191,10 +194,10 @@ describe('EpicPage', () => {
 
     render(<EpicPage />)
 
-    fireEvent.click(screen.getByText('Previous'))
+    fireEvent.click(screen.getByRole('button', { name: 'Previous' }))
     expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-11')
 
-    fireEvent.click(screen.getByText('Enhanced'))
+    fireEvent.click(screen.getByRole('button', { name: 'Enhanced' }))
 
     expect(mockedUseEpic).toHaveBeenLastCalledWith('enhanced', '2026-03-08')
   })
@@ -213,5 +216,44 @@ describe('EpicPage', () => {
     render(<EpicPage />)
 
     expect(mockedUseEpic).toHaveBeenCalledWith('natural', '2026-03-12')
+  })
+
+  it('clears the active date filter when Clear filter is clicked', () => {
+    render(<EpicPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Previous' }))
+    expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-11')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear filter' }))
+
+    expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-12')
+  })
+
+  it('closes the calendar when clicking outside', () => {
+    render(<EpicPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Custom' }))
+    expect(screen.getByLabelText('Previous month')).toBeInTheDocument()
+
+    fireEvent.mouseDown(document.body)
+
+    expect(screen.queryByLabelText('Previous month')).not.toBeInTheDocument()
+  })
+
+  it('selects the closest available date when Last 30 days is clicked', () => {
+    render(<EpicPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Last 30 days' }))
+
+    expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-09')
+  })
+
+  it('renders fallback date label when no dates are available', () => {
+    mockedUseEpicDates.mockReturnValue({ dates: [], loading: false })
+    mockedUseEpic.mockReturnValue({ images: [], loading: false, error: null })
+
+    render(<EpicPage />)
+
+    expect(screen.getByText('Fetching the latest Earth imagery...')).toBeInTheDocument()
   })
 })

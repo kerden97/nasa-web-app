@@ -99,9 +99,9 @@ export default function MobileMenu({ isOpen, onClose, navLinks, themeToggle }: M
               end
               onClick={onClose}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-2xl border px-4 py-3 text-base font-medium transition ${
+                `flex items-center gap-3 rounded-2xl border px-4 py-3 text-lg font-medium transition ${
                   isActive
-                    ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300'
+                    ? 'border-blue-200 bg-blue-50 text-blue-700 shadow-sm dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300'
                     : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white'
                 }`
               }
@@ -115,9 +115,9 @@ export default function MobileMenu({ isOpen, onClose, navLinks, themeToggle }: M
                 to={to}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-2xl border px-4 py-3 text-base font-medium transition ${
+                  `flex items-center gap-3 rounded-2xl border px-4 py-3 text-lg font-medium transition ${
                     isActive
-                      ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300'
+                      ? 'border-blue-200 bg-blue-50 text-blue-700 shadow-sm dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300'
                       : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white'
                   }`
                 }

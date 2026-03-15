@@ -268,7 +268,7 @@ describe('NasaImagePage', () => {
 
     render(<NasaImagePage />)
 
-    fireEvent.change(screen.getByRole('combobox'), {
+    fireEvent.change(screen.getByLabelText('Media'), {
       target: { value: 'video' },
     })
 

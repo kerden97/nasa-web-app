@@ -10,6 +10,7 @@ import healthRoutes from './routes/health'
 import apodRoutes from './routes/apod'
 import nasaImageRoutes from './routes/nasaImage'
 import epicRoutes from './routes/epic'
+import neowsRoutes from './routes/neows'
 import { prefetchLatest } from './services/apod'
 
 const app = express()
@@ -24,6 +25,7 @@ app.use(healthRoutes)
 app.use(apodRoutes)
 app.use(nasaImageRoutes)
 app.use(epicRoutes)
+app.use(neowsRoutes)
 
 app.use(globalErrorHandler)
 

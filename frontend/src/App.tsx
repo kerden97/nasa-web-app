@@ -7,6 +7,7 @@ import WondersPage from '@/pages/WondersPage'
 import ApodPage from '@/pages/ApodPage'
 import NasaImagePage from '@/pages/NasaImagePage'
 import EpicPage from '@/pages/EpicPage'
+import AsteroidWatchPage from '@/pages/AsteroidWatchPage'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="nasa-image-library" element={<NasaImagePage />} />
             <Route path="epic" element={<EpicPage />} />
           </Route>
+          <Route path="/asteroid-watch" element={<AsteroidWatchPage />} />
         </Routes>
       </main>
       <ScrollToTopButton />

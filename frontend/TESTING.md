@@ -37,7 +37,11 @@ frontend/src/
 │   ├── NasaImagePage.tsx
 │   ├── NasaImagePage.test.tsx
 │   ├── EpicPage.tsx
-│   └── EpicPage.test.tsx
+│   ├── EpicPage.test.tsx
+│   ├── WondersPage.tsx
+│   ├── WondersPage.test.tsx
+│   ├── AsteroidWatchPage.tsx
+│   └── AsteroidWatchPage.test.tsx
 └── test/
     └── setup.ts
 ```
@@ -61,14 +65,31 @@ These are page-level rendering tests for the homepage. Because the page uses `re
 
 **What is covered:**
 
-| Test                 | Validates                                                   |
-| -------------------- | ----------------------------------------------------------- |
-| Document title       | `document.title` is set to `Home & Beyond` on mount         |
-| Hero rendering       | Hero badge, heading, and intro copy render correctly        |
-| Main CTA links       | Both homepage CTA links point to `/wonders-of-the-universe` |
-| Featured destination | Featured destination section and supporting copy render     |
-| Feature cards        | APOD, NASA Image Library, and EPIC feature cards render     |
-| Coming next section  | Closing roadmap section and its three points render         |
+| Test                | Validates                                                   |
+| ------------------- | ----------------------------------------------------------- |
+| Document title      | `document.title` is set to `Home & Beyond` on mount         |
+| Hero rendering      | Hero badge, heading, and intro copy render correctly        |
+| Main CTA links      | Both homepage CTA links point to `/wonders-of-the-universe` |
+| Feature cards       | APOD, NASA Image Library, EPIC, and NeoWs cards render      |
+| Feature card routes | Each homepage card links to the correct destination         |
+
+## Page Tests — Wonders (`pages/WondersPage.test.tsx`)
+
+These are page-level rendering tests for the Wonders layout shell. Because the page uses `NavLink` and `Outlet` from `react-router-dom`, it is rendered inside a `MemoryRouter`.
+
+**Setup pattern:**
+
+- `WondersPage` is rendered through a `renderPage()` helper wrapped in `MemoryRouter`
+- No hooks or async data are mocked because the page is a static layout shell
+
+**What is covered:**
+
+| Test             | Validates                                                                      |
+| ---------------- | ------------------------------------------------------------------------------ |
+| Document title   | `document.title` is set to `Wonders of the Universe \| Home & Beyond` on mount |
+| Heading and copy | Page heading and description render correctly                                  |
+| Navigation tabs  | All three tab links (APOD, NASA Image Library, EPIC) render                    |
+| Tab href targets | Each tab links to the correct sub-route                                        |
 
 ## Page Tests — APOD (`pages/ApodPage.test.tsx`)
 
@@ -153,6 +174,48 @@ These are page-level behavior tests for the EPIC route. Both `useEpic` and `useE
 | Modal open/close             | Clicking a card opens the detail modal, close button dismisses it |
 | Default date selection       | Hook is called with the first available date by default           |
 
+## Page Tests — Asteroid Watch (`pages/AsteroidWatchPage.test.tsx`)
+
+These are page-level behavior tests for the NeoWs asteroid route. The `useNeows` hook is mocked, Recharts is replaced with test doubles, and the theme context is stubbed so the page can be exercised deterministically.
+
+**Setup pattern:**
+
+- `useNeows` is mocked to control feed data, loading, and errors
+- `recharts` components are mocked because real chart SVG rendering is unreliable in `jsdom`
+- `useTheme` is mocked so chart color branches stay deterministic
+- `AsteroidWatchSkeleton` is mocked with a test ID for stable loading assertions
+- The page is wrapped in `MemoryRouter` because breadcrumbs now render `Link` elements
+- `userEvent` is used for sorting, presets, calendar selection, and pagination
+
+**What is covered:**
+
+| Test                         | Validates                                                               |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| Document title               | Page sets `document.title` on mount                                     |
+| Heading and description      | Hero title and intro copy render correctly                              |
+| Loading skeleton             | NeoWs skeleton renders during initial loading                           |
+| Error state                  | Hook error renders the error banner                                     |
+| Empty valid feed             | A valid empty NeoWs response renders the dedicated empty state          |
+| Summary stats                | Total, hazardous, closest, fastest, and largest cards render            |
+| Chart rendering              | Bar, pie, and scatter chart containers render                           |
+| Table rendering              | Sorted asteroid rows render in the data table                           |
+| Hazardous badge              | Potentially hazardous asteroids show a `Yes` badge                      |
+| Preset pills                 | `Today`, `Yesterday`, `Last 3 days`, `Last 7 days`, and `Custom` render |
+| Yesterday preset             | Single-day preset updates the hook with matching start/end dates        |
+| Custom single-date selection | Calendar single-date mode updates the hook with one selected date       |
+| Reset behavior               | Clear filter returns the page to the default date range                 |
+| 7-day UI guard               | Custom ranges are clamped to a 7-day inclusive window                   |
+| Null data guard              | Charts and table stay hidden when no feed data exists                   |
+| Sorting interactions         | Table headers sort by name and toggle distance ordering                 |
+| Rows-per-page controls       | Dropdown menus and pagination summary render correctly                  |
+| Pagination flow              | Next/previous pagination updates the visible range                      |
+| Default range wiring         | Page calls `useNeows` with the default last-7-days range on mount       |
+| Today / Last 3 days presets  | Preset buttons update the hook with the expected date ranges            |
+| Calendar close behavior      | Clicking outside closes the custom calendar popover                     |
+| Calendar mode switch         | Toggling between single-date and date-range modes updates the UI        |
+| Rows-per-page reset          | Changing rows per page resets pagination to the first page              |
+| Single-page disable state    | Pagination buttons disable when all rows fit on one page                |
+
 ## Component Tests — APOD Card (`components/Apod/ApodCard.test.tsx`)
 
 These are focused rendering and interaction tests for a single APOD archive card.
@@ -220,9 +283,9 @@ The real `DateFilter` has its own UI complexity. For `ApodPage`, what matters is
 
 The real skeletons are purely visual and do not expose accessible labels. Small test doubles with `data-testid` make loading-state assertions stable and intentional.
 
-### Why fake timers in `apodMeta.test.ts` and `EpicPage.test.tsx`?
+### Why fake timers in `apodMeta.test.ts`, `EpicPage.test.tsx`, and `AsteroidWatchPage.test.tsx`?
 
-`formatApodRelativeDate()` depends on the current time, and `EpicPage` preset handlers use relative `Date` calculations such as `Last 7 days` and `Last 30 days`. Fake timers make those assertions deterministic instead of depending on the actual runtime date.
+`apodMeta.test.ts`, `EpicPage.test.tsx`, and `AsteroidWatchPage.test.tsx` all rely on date-sensitive logic, so fake timers are used to keep assertions deterministic.
 
 ### Why wrap `HomePage` in `MemoryRouter`?
 

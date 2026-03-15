@@ -28,7 +28,14 @@
       "Bash(curl -s \"https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&page=1&api_key=DEMO_KEY\")",
       "Bash(npx prettier:*)",
       "Bash(npx eslint:*)",
-      "Bash(npx markdownlint-cli:*)"
+      "Bash(npx markdownlint-cli:*)",
+      "WebFetch(domain:api.nasa.gov)",
+      "Bash(find /c/Users/User/nasa-web-app/frontend/src -type f -name *.tsx -o -name *.ts -o -name *.jsx -o -name *.js)",
+      "Bash(python3:*)",
+      "Bash(docker compose:*)",
+      "Bash(grep -E \"\\\\.\\(ts|js|css\\)$\")",
+      "Bash(cat /c/Users/User/nasa-web-app/frontend/tailwind.config.*)",
+      "Bash(cat /c/Users/User/nasa-web-app/tailwind.config.*)"
     ]
   }
 }

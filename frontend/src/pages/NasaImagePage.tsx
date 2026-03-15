@@ -66,7 +66,7 @@ export default function NasaImagePage() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="e.g. nebula, apollo 11, saturn..."
-              className="h-10 w-full min-w-[200px] rounded-lg border border-slate-200 bg-white px-3 pr-11 text-sm text-slate-700 transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500"
+              className="h-10 w-full min-w-50 rounded-lg border border-slate-200 bg-white px-3 pr-11 text-sm text-slate-700 transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder:text-slate-500 dark:hover:border-slate-600 dark:focus:border-blue-500"
             />
             {searchInput && (
               <button
@@ -82,10 +82,14 @@ export default function NasaImagePage() {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+          <label
+            htmlFor="nasa-image-media-type"
+            className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
+          >
             Media
           </label>
           <select
+            id="nasa-image-media-type"
             value={mediaType}
             onChange={(e) => setMediaType(e.target.value)}
             className={selectBase}

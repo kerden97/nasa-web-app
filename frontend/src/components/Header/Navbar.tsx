@@ -5,7 +5,10 @@ import logo from '@/assets/logo.png'
 import ThemeToggle from './ThemeToggle'
 import MobileMenu from './MobileMenu'
 
-const navLinks = [{ to: '/wonders-of-the-universe', label: 'Wonders', icon: '✨' }] as const
+const navLinks = [
+  { to: '/wonders-of-the-universe', label: 'Wonders', icon: '✨' },
+  { to: '/asteroid-watch', label: 'Asteroid Watch', icon: '☄️' },
+] as const
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -22,20 +25,22 @@ export default function Navbar() {
               Home & Beyond
             </span>
           </Link>
-          <ul className="hidden items-center gap-4 md:flex">
+          <ul className="hidden items-center gap-5 md:flex">
             {navLinks.map(({ to, label, icon }) => (
               <li key={to}>
                 <NavLink
                   to={to}
                   className={({ isActive }) =>
-                    `inline-flex items-center gap-2 text-base font-medium transition-colors ${
+                    `inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-base font-medium transition-all ${
                       isActive
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                        ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-900'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
                     }`
                   }
                 >
-                  <span aria-hidden="true">{icon}</span>
+                  <span className="text-base leading-none" aria-hidden="true">
+                    {icon}
+                  </span>
                   {label}
                 </NavLink>
               </li>
