@@ -1,5 +1,5 @@
 import { Pause, Play } from 'lucide-react'
-import { useMotion } from '@/context/MotionContext'
+import { useMotion } from '@/context/useMotion'
 
 interface MotionToggleProps {
   className?: string

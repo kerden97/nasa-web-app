@@ -1,11 +1,5 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-
-interface MotionContextValue {
-  starsPaused: boolean
-  toggleStarsPaused: () => void
-}
-
-const MotionContext = createContext<MotionContextValue | undefined>(undefined)
+import { useEffect, useState } from 'react'
+import { MotionContext } from '@/context/motionContextObject'
 
 export function MotionProvider({ children }: { children: React.ReactNode }) {
   const [starsPaused, setStarsPaused] = useState<boolean>(() => {
@@ -25,12 +19,4 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
       {children}
     </MotionContext.Provider>
   )
-}
-
-export function useMotion() {
-  const context = useContext(MotionContext)
-  if (!context) {
-    throw new Error('useMotion must be used within a MotionProvider')
-  }
-  return context
 }

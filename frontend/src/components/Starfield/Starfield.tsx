@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useMotion } from '@/context/MotionContext'
+import { useMotion } from '@/context/useMotion'
 
 interface StarfieldProps {
   className?: string

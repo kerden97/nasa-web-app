@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { Compass, House, X } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useMotion } from '@/context/MotionContext'
+import { useMotion } from '@/context/useMotion'
 
 interface MobileMenuLink {
   to: string
