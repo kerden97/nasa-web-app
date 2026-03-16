@@ -268,9 +268,7 @@ describe('NasaImagePage', () => {
 
     render(<NasaImagePage />)
 
-    fireEvent.change(screen.getByLabelText('Media'), {
-      target: { value: 'video' },
-    })
+    fireEvent.click(screen.getByRole('button', { name: 'Video' }))
 
     expect(mockedUseNasaImage).toHaveBeenLastCalledWith({
       query: '',

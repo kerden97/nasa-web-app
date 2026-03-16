@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 
 const footerLinks = [
   { to: '/wonders-of-the-universe/apod', label: 'APOD' },
@@ -31,12 +31,18 @@ export default function Footer() {
             <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
               {footerLinks.map((link) => (
                 <li key={link.to}>
-                  <Link
+                  <NavLink
                     to={link.to}
-                    className="text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    className={({ isActive }) =>
+                      `rounded-full px-2 py-1 transition-colors ${
+                        isActive
+                          ? 'bg-cyan-400/10 text-cyan-700 dark:text-cyan-300'
+                          : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                      }`
+                    }
                   >
                     {link.label}
-                  </Link>
+                  </NavLink>
                 </li>
               ))}
             </ul>

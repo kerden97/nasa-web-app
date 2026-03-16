@@ -1,18 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Calendar, X } from 'lucide-react'
+import { Calendar, Globe, Sparkles } from 'lucide-react'
 import EpicCard from '@/components/Epic/EpicCard'
 import EpicCardSkeleton from '@/components/Epic/EpicCardSkeleton'
 import EpicModal from '@/components/Epic/EpicModal'
 import MiniCalendar from '@/components/MiniCalendar'
+import FilterChipButton from '@/components/Wonders/FilterChipButton'
+import ActiveFilterPill from '@/components/Wonders/ActiveFilterPill'
+import SegmentedControl from '@/components/Wonders/SegmentedControl'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { formatLabel, todayStr } from '@/lib/calendarUtils'
 import { useEpic, useEpicDates } from '@/hooks/useEpic'
 import type { EpicCollection, EpicImage } from '@/types/epic'
-
-const collectionOptions: { label: string; value: EpicCollection }[] = [
-  { label: 'Natural', value: 'natural' },
-  { label: 'Enhanced', value: 'enhanced' },
-]
 
 type EpicDatePreset = 'latest' | 'previous' | 'week' | 'month' | 'custom'
 
@@ -93,23 +91,6 @@ export default function EpicPage() {
     return null
   })()
 
-  const latestDateLabel = useMemo(() => {
-    if (!effectiveSelectedDate) return 'Fetching the latest Earth imagery...'
-
-    return new Date(effectiveSelectedDate).toLocaleDateString('en-GB', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  }, [effectiveSelectedDate])
-
-  const pillBase =
-    'rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 whitespace-nowrap'
-  const pillIdle =
-    'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:bg-slate-800'
-  const pillActive =
-    'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300'
   const dateOptions: { label: string; value: Exclude<EpicDatePreset, 'custom'> }[] = [
     { label: 'Latest', value: 'latest' },
     { label: 'Previous', value: 'previous' },
@@ -119,42 +100,59 @@ export default function EpicPage() {
 
   return (
     <>
-      <div className="mb-6 flex flex-col gap-5">
-        <div className="max-w-3xl">
-          <p className="text-sm leading-6 text-slate-500 dark:text-slate-400">
-            EPIC offers full-disk Earth imagery captured from deep space. Switch between natural
-            color and enhanced imagery to compare how cloud structures, landmasses, and atmospheric
-            patterns appear from the DSCOVR mission.
+      <p className="mb-6 text-sm leading-7 text-slate-500 dark:text-slate-400">
+        EPIC offers full-disk Earth imagery captured from deep space. Switch between natural color
+        and enhanced imagery to compare how cloud structures, landmasses, and atmospheric patterns
+        appear from the DSCOVR mission.
+      </p>
+
+      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="font-nasa text-xs uppercase tracking-[0.28em] text-cyan-500 dark:text-cyan-300">
+            Earth From Deep Space
           </p>
-          <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">{latestDateLabel}</p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
+            Daily full-disk views of Earth
+          </h2>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+            Switch between the latest Earth views, quick date presets, or a custom day across both
+            EPIC collections.
+          </p>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+          {images.length > 0 && (
+            <p>
+              {images.length} item{images.length === 1 ? '' : 's'}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-4">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap gap-2">
             {dateOptions.map((option) => (
-              <button
+              <FilterChipButton
                 key={option.value}
-                type="button"
                 onClick={() => handleDatePreset(option.value)}
-                className={`${pillBase} ${datePreset === option.value ? pillActive : pillIdle}`}
+                active={datePreset === option.value}
               >
                 {option.label}
-              </button>
+              </FilterChipButton>
             ))}
             <div className="relative" ref={dropdownRef}>
-              <button
-                type="button"
+              <FilterChipButton
                 onClick={() => setCalendarOpen(!calendarOpen)}
-                className={`${pillBase} inline-flex items-center gap-1.5 ${
-                  datePreset === 'custom' || calendarOpen ? pillActive : pillIdle
-                }`}
+                active={datePreset === 'custom' || calendarOpen}
+                className="inline-flex items-center gap-1.5"
               >
                 <Calendar size={13} />
                 Custom
-              </button>
+              </FilterChipButton>
 
               {calendarOpen && (
-                <div className="absolute left-0 top-full z-40 mt-2 rounded-xl border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                <div className="absolute left-0 top-full z-40 mt-2 rounded-[22px] border border-slate-200 bg-white/95 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.16)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/96 dark:shadow-[0_24px_70px_rgba(2,6,23,0.5)]">
                   <MiniCalendar
                     rangeStart={effectiveSelectedDate ?? null}
                     rangeEnd={null}
@@ -166,39 +164,27 @@ export default function EpicPage() {
                 </div>
               )}
             </div>
-
             {isEpicFiltered && epicSelectionLabel && (
-              <div className="ml-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
-                <span>{epicSelectionLabel}</span>
-                <button
-                  type="button"
-                  onClick={handleEpicReset}
-                  className="rounded-full p-0.5 text-blue-500 transition-colors hover:bg-blue-100 hover:text-blue-700 dark:text-blue-300 dark:hover:bg-blue-900 dark:hover:text-blue-200"
-                  aria-label="Clear filter"
-                >
-                  <X size={14} />
-                </button>
-              </div>
+              <ActiveFilterPill label={epicSelectionLabel} onClear={handleEpicReset} />
             )}
           </div>
+        </div>
 
-          <div className="flex flex-wrap gap-2">
-            {collectionOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  setCollection(option.value)
-                  setDatePreset('latest')
-                  setSelectedDate(undefined)
-                  setCalendarOpen(false)
-                }}
-                className={`${pillBase} ${collection === option.value ? pillActive : pillIdle}`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+        <div className="self-start lg:shrink-0 lg:self-auto">
+          <SegmentedControl
+            className="w-fit"
+            value={collection}
+            onChange={(value: EpicCollection) => {
+              setCollection(value)
+              setDatePreset('latest')
+              setSelectedDate(undefined)
+              setCalendarOpen(false)
+            }}
+            options={[
+              { value: 'natural', label: 'Natural', icon: <Globe size={14} /> },
+              { value: 'enhanced', label: 'Enhanced', icon: <Sparkles size={14} /> },
+            ]}
+          />
         </div>
       </div>
 

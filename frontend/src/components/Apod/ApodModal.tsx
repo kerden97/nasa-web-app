@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
-import { X, ExternalLink } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ExternalLink } from 'lucide-react'
 import type { ApodItem } from '@/types/apod'
+import ModalFrame from '@/components/Wonders/ModalFrame'
+import ExternalLinkPrompt from '@/components/Wonders/ExternalLinkPrompt'
+import MediaBadge from '@/components/Wonders/MediaBadge'
 import { formatApodLongDate, formatApodRelativeDate, isDirectVideo } from '@/lib/apodMeta'
 
 interface ApodModalProps {
@@ -12,6 +15,7 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
   const originalHref = item.url
   const hdHref = item.hdurl
   const showHdButton = !!hdHref && hdHref !== originalHref
+  const credit = item.copyright ?? 'NASA/ESA'
   const explanationPreviewLength = 260
   const [expandedExplanation, setExpandedExplanation] = useState(false)
   const [pendingExternalLink, setPendingExternalLink] = useState<{
@@ -26,24 +30,6 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
     return `${item.explanation.slice(0, explanationPreviewLength).trimEnd()}...`
   }, [expandedExplanation, item.explanation, shouldTruncateExplanation])
 
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (pendingExternalLink) {
-          setPendingExternalLink(null)
-          return
-        }
-        onClose()
-      }
-    }
-    document.addEventListener('keydown', handleKey)
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', handleKey)
-      document.body.style.overflow = ''
-    }
-  }, [onClose, pendingExternalLink])
-
   const queueExternalLink = (href: string, label: 'Original' | 'HD') => {
     const hostname = new URL(href).hostname.replace(/^www\./, '')
     setPendingExternalLink({ href, label, hostname })
@@ -56,34 +42,10 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-      onClick={onClose}
-    >
-      <div
-        className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
-          <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-600 dark:text-blue-400">
-              {item.media_type}
-            </p>
-            <h2 className="truncate text-lg font-bold text-slate-900 dark:text-white">
-              {item.title}
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Close modal"
-            className="flex shrink-0 rounded-full border border-slate-300 bg-white p-2.5 text-slate-700 shadow-sm transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="scrollbar-thin overflow-y-auto">
-          <div className="flex h-[50vh] items-center justify-center bg-black">
+    <ModalFrame onClose={onClose}>
+      <div className="max-h-full overflow-y-auto lg:overflow-hidden">
+        <div className="grid lg:h-[48rem] lg:max-h-[calc(100vh-73px-2rem)] lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.9fr)]">
+          <div className="flex min-h-[18rem] max-h-[46svh] items-center justify-center bg-black sm:min-h-[20rem] sm:max-h-[52svh] lg:max-h-none">
             {item.media_type === 'image' ? (
               <img src={item.url} alt={item.title} className="h-full w-full object-contain" />
             ) : isDirectVideo(item.url) ? (
@@ -93,71 +55,109 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
             )}
           </div>
 
-          <div className="p-6">
-            <p className="mt-5 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-              {explanationText}
-            </p>
-            {shouldTruncateExplanation && (
-              <button
-                type="button"
-                onClick={() => setExpandedExplanation((current) => !current)}
-                className="mt-3 text-sm font-semibold text-slate-900 underline decoration-slate-400 decoration-2 underline-offset-4 transition hover:text-blue-600 hover:decoration-blue-500 dark:text-white dark:decoration-slate-600 dark:hover:text-blue-400 dark:hover:decoration-blue-400"
-              >
-                {expandedExplanation ? 'See less' : 'See more'}
-              </button>
-            )}
+          <div className="relative flex flex-col border-t border-slate-200 bg-white/98 p-5 dark:border-slate-800 dark:bg-slate-900/96 lg:min-h-0 lg:border-l lg:border-t-0 lg:p-8">
+            <div className="pointer-events-none absolute right-0 top-0 h-36 w-36 rounded-full bg-cyan-400/10 blur-3xl" />
 
-            <div className="mt-6 grid gap-4 border-t border-slate-200 pt-5 dark:border-slate-800 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
-              <div>
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  {formatApodLongDate(item.date)}
-                </p>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  {formatApodRelativeDate(item.date)}
-                </p>
+            <div className="relative flex flex-1 flex-col lg:min-h-0">
+              <div className="sticky top-0 z-10 -mx-5 -mt-5 border-b border-slate-200 bg-white/96 px-5 pb-5 pt-5 backdrop-blur dark:border-slate-800 dark:bg-slate-900/96 lg:-mx-8 lg:-mt-8 lg:px-8 lg:pt-8">
+                <div className="flex flex-wrap items-center gap-2 pr-12">
+                  <span className="cosmic-pill-date rounded-full px-3 py-1.5 text-xs font-medium tracking-[0.12em]">
+                    {formatApodLongDate(item.date)}
+                  </span>
+                  <MediaBadge kind={item.media_type} />
+                </div>
+
+                <h2 className="mt-5 pr-12 font-nasa text-2xl leading-[1.08] tracking-[0.04em] text-slate-900 dark:text-white sm:text-3xl">
+                  {item.title}
+                </h2>
               </div>
-              <div className="grid w-full gap-2 sm:grid-cols-2 md:w-auto md:min-w-[12.5rem]">
+
+              <div
+                className={`mt-5 ${expandedExplanation ? 'lg:min-h-0 lg:flex-1 lg:overflow-hidden' : ''}`}
+              >
+                <div
+                  className={
+                    expandedExplanation
+                      ? 'lg:scrollbar-thin lg:h-full lg:overflow-y-auto lg:pr-2'
+                      : ''
+                  }
+                >
+                  <p
+                    className={`text-[15px] leading-8 text-slate-600 dark:text-slate-300 ${
+                      expandedExplanation ? '' : 'line-clamp-5'
+                    }`}
+                  >
+                    {explanationText}
+                  </p>
+                  {shouldTruncateExplanation && (
+                    <button
+                      type="button"
+                      onClick={() => setExpandedExplanation((current) => !current)}
+                      className="mt-3 text-sm font-semibold text-slate-900 underline decoration-slate-400 decoration-2 underline-offset-4 transition hover:text-cyan-600 hover:decoration-cyan-500 dark:text-white dark:decoration-slate-600 dark:hover:text-cyan-300 dark:hover:decoration-cyan-300"
+                    >
+                      {expandedExplanation ? 'See less' : 'See more'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-5 border-t border-slate-200 pt-5 dark:border-slate-800">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <button
                   type="button"
                   onClick={() => queueExternalLink(originalHref, 'Original')}
-                  className="flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                  className={`flex h-11 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-medium ${
+                    showHdButton ? 'cosmic-btn-ghost' : 'cosmic-btn-primary'
+                  }`}
                 >
                   <span className="flex h-4 w-4 items-center justify-center">
                     <ExternalLink size={14} />
                   </span>
                   <span>Original</span>
                 </button>
-                {showHdButton && (
+
+                {showHdButton ? (
                   <button
                     type="button"
                     onClick={() => queueExternalLink(hdHref, 'HD')}
-                    className="flex h-10 items-center justify-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 px-3 text-sm font-medium text-white transition-colors hover:border-blue-500 hover:bg-blue-500"
+                    className="cosmic-btn-primary flex h-11 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-semibold"
                   >
                     <span className="flex h-4 w-4 items-center justify-center">
                       <ExternalLink size={14} />
                     </span>
                     <span>HD</span>
                   </button>
+                ) : (
+                  <div className="hidden sm:block" />
                 )}
               </div>
-            </div>
 
-            <div className="mt-5 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-800 dark:bg-slate-950/60 md:grid-cols-2">
-              <div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/85 p-4 text-sm dark:border-slate-800 dark:bg-slate-950/60">
+                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                    Published
+                  </p>
+                  <p className="mt-2 font-medium text-slate-800 dark:text-slate-200">
+                    {formatApodRelativeDate(item.date)}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/85 p-4 text-sm dark:border-slate-800 dark:bg-slate-950/60">
+                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                    Media
+                  </p>
+                  <p className="mt-2 font-medium uppercase text-slate-800 dark:text-slate-200">
+                    {item.media_type}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-800 dark:bg-slate-950/60">
                 <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
                   Credit
                 </p>
-                <p className="mt-1 font-medium text-slate-800 dark:text-slate-200">
-                  {item.copyright ?? 'NASA APOD'}
-                </p>
-              </div>
-              <div className="md:text-right">
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                  Source
-                </p>
-                <p className="mt-1 font-medium text-slate-800 dark:text-slate-200">
-                  NASA Astronomy Picture of the Day
-                </p>
+                <p className="mt-2 font-medium text-slate-800 dark:text-slate-200">{credit}</p>
               </div>
             </div>
           </div>
@@ -165,49 +165,13 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
       </div>
 
       {pendingExternalLink && (
-        <div
-          className="absolute inset-0 z-10 flex items-center justify-center bg-black/45 p-4"
-          onClick={(e) => {
-            e.stopPropagation()
-            setPendingExternalLink(null)
-          }}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-600 dark:text-blue-400">
-              Leaving Home &amp; Beyond
-            </p>
-            <h3 className="mt-3 text-xl font-semibold text-slate-900 dark:text-white">
-              Open {pendingExternalLink.label} media?
-            </h3>
-            <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
-              You are about to leave this site and open the media on{' '}
-              <span className="font-semibold text-slate-900 dark:text-white">
-                {pendingExternalLink.hostname}
-              </span>
-              .
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => setPendingExternalLink(null)}
-                className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-              >
-                Stay here
-              </button>
-              <button
-                type="button"
-                onClick={confirmExternalLink}
-                className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500"
-              >
-                Continue to {pendingExternalLink.label}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ExternalLinkPrompt
+          hostname={pendingExternalLink.hostname}
+          label={pendingExternalLink.label}
+          onCancel={() => setPendingExternalLink(null)}
+          onConfirm={confirmExternalLink}
+        />
       )}
-    </div>
+    </ModalFrame>
   )
 }

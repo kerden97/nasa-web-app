@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Image as ImageIcon, Play, Shapes } from 'lucide-react'
 import { useApod } from '@/hooks/useApod'
 import { useGridSize } from '@/hooks/useGridSize'
 import ApodCard from '@/components/Apod/ApodCard'
@@ -7,6 +8,7 @@ import ApodModal from '@/components/Apod/ApodModal'
 import DateFilter from '@/components/Apod/DateFilter'
 import FeaturedApodHero from '@/components/Apod/FeaturedApodHero'
 import FeaturedApodHeroSkeleton from '@/components/Apod/FeaturedApodHeroSkeleton'
+import SegmentedControl from '@/components/Wonders/SegmentedControl'
 import type { ApodItem } from '@/types/apod'
 
 export default function ApodPage() {
@@ -26,20 +28,20 @@ export default function ApodPage() {
     pageSize,
   })
   const [selectedItem, setSelectedItem] = useState<ApodItem | null>(null)
+  const [mediaFilter, setMediaFilter] = useState<'all' | 'image' | 'video'>('all')
 
   const isFiltered = !!(filter.date || filter.startDate)
-  const featuredItem = items[0] ?? null
-  const archiveItems = featuredItem && !isFiltered ? items.slice(1) : items
+  const visibleItems = useMemo(
+    () => items.filter((item) => mediaFilter === 'all' || item.media_type === mediaFilter),
+    [items, mediaFilter],
+  )
+  const featuredItem = visibleItems[0] ?? null
+  const archiveItems = featuredItem && !isFiltered ? visibleItems.slice(1) : visibleItems
 
   return (
     <>
-      <p className="mb-6 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-        Discover daily cosmic stories with richer context, credits, and a closer look at the images
-        behind NASA&apos;s APOD archive.
-      </p>
-
       {!loading && items.length === 0 && !error && (
-        <div className="py-20 text-center text-slate-500 dark:text-slate-400">
+        <div className="rounded-[28px] border border-slate-200 bg-white/80 py-20 text-center text-slate-500 shadow-sm dark:border-slate-800 dark:bg-slate-900/45 dark:text-slate-400">
           No results found for the selected date.
         </div>
       )}
@@ -51,34 +53,54 @@ export default function ApodPage() {
       )}
 
       {(archiveItems.length > 0 || loading || error) && (
-        <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="font-nasa text-xs uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+            <p className="font-nasa text-xs uppercase tracking-[0.28em] text-cyan-500 dark:text-cyan-300">
               Archive
             </p>
-            <h2 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
               Browse recent discoveries
             </h2>
-          </div>
-          {archiveItems.length > 0 && (
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {archiveItems.length} item{archiveItems.length === 1 ? '' : 's'}
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+              Jump through recent APOD entries with quick presets or a custom date range.
             </p>
-          )}
+          </div>
+          <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+            {archiveItems.length > 0 && (
+              <p>
+                {archiveItems.length} item{archiveItems.length === 1 ? '' : 's'}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
-      <div className="mb-6">
-        <DateFilter
-          isFiltered={isFiltered}
-          onSingleDate={(date) => setFilter({ date })}
-          onDateRange={(startDate, endDate) => setFilter({ startDate, endDate })}
-          onReset={() => setFilter({})}
-        />
+      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-4">
+        <div className="min-w-0 flex-1">
+          <DateFilter
+            isFiltered={isFiltered}
+            onSingleDate={(date) => setFilter({ date })}
+            onDateRange={(startDate, endDate) => setFilter({ startDate, endDate })}
+            onReset={() => setFilter({})}
+          />
+        </div>
+
+        <div className="self-start lg:shrink-0 lg:self-auto">
+          <SegmentedControl
+            className="w-fit p-0.5 [&_button]:h-8 [&_button]:min-w-19 [&_button]:px-3 [&_button]:text-xs"
+            value={mediaFilter}
+            onChange={setMediaFilter}
+            options={[
+              { value: 'image', label: 'Image', icon: <ImageIcon size={13} /> },
+              { value: 'video', label: 'Video', icon: <Play size={13} /> },
+              { value: 'all', label: 'All', icon: <Shapes size={13} /> },
+            ]}
+          />
+        </div>
       </div>
 
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
+        <div className="mb-6 rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/60 dark:text-red-400">
           {error}
         </div>
       )}
@@ -97,7 +119,7 @@ export default function ApodPage() {
         <div className="mt-8 flex justify-center">
           <button
             onClick={loadMore}
-            className="rounded-lg border border-slate-200 px-6 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="cosmic-btn-load-more rounded-full px-6 py-3 text-sm font-semibold"
           >
             Load more
           </button>

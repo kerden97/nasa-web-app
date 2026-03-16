@@ -1,7 +1,9 @@
 import { useCallback, useRef, useState } from 'react'
-import { Calendar, X } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { APOD_EPOCH } from '@/lib/apodMeta'
 import MiniCalendar from '@/components/MiniCalendar'
+import FilterChipButton from '@/components/Wonders/FilterChipButton'
+import ActiveFilterPill from '@/components/Wonders/ActiveFilterPill'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { addDays, formatLabel, todayStr } from '@/lib/calendarUtils'
 
@@ -133,44 +135,34 @@ export default function DateFilter({
     return null
   })()
 
-  const chipBase =
-    'whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-200'
-  const chipIdle =
-    'border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:bg-slate-800'
-  const chipActive =
-    'border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300'
-
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2.5">
       {/* Preset chips */}
       {presets.map((preset) => (
-        <button
+        <FilterChipButton
           key={preset.label}
-          type="button"
           onClick={() => applyPreset(preset)}
-          className={`${chipBase} ${activePreset === preset.label ? chipActive : chipIdle}`}
+          active={activePreset === preset.label}
         >
           {preset.label}
-        </button>
+        </FilterChipButton>
       ))}
 
       {/* Custom calendar trigger */}
       <div className="relative" ref={dropdownRef}>
-        <button
-          type="button"
+        <FilterChipButton
           onClick={() => setCalendarOpen(!calendarOpen)}
-          className={`${chipBase} inline-flex items-center gap-1.5 ${
-            calendarOpen || (isFiltered && !activePreset) ? chipActive : chipIdle
-          }`}
+          active={calendarOpen || (isFiltered && !activePreset)}
+          className="inline-flex items-center gap-1.5"
         >
           <Calendar size={13} />
           Custom
-        </button>
+        </FilterChipButton>
 
         {calendarOpen && (
-          <div className="absolute left-0 top-full z-40 mt-2 rounded-xl border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          <div className="absolute left-0 top-full z-40 mt-3 rounded-[22px] border border-slate-200 bg-white/95 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.16)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/96 dark:shadow-[0_24px_70px_rgba(2,6,23,0.5)]">
             {/* Single / Range toggle */}
-            <div className="mb-3 flex rounded-lg border border-slate-200 dark:border-slate-700">
+            <div className="mb-3 flex rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950/60">
               <button
                 type="button"
                 onClick={() => {
@@ -180,9 +172,9 @@ export default function DateFilter({
                 }}
                 className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${
                   mode === 'single'
-                    ? 'bg-blue-600 text-white'
+                    ? 'rounded-lg bg-linear-to-r from-cyan-500 to-sky-500 text-white'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                } rounded-l-lg`}
+                } rounded-lg`}
               >
                 Single date
               </button>
@@ -195,9 +187,9 @@ export default function DateFilter({
                 }}
                 className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${
                   mode === 'range'
-                    ? 'bg-blue-600 text-white'
+                    ? 'rounded-lg bg-linear-to-r from-cyan-500 to-sky-500 text-white'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                } rounded-r-lg`}
+                } rounded-lg`}
               >
                 Date range
               </button>
@@ -227,16 +219,8 @@ export default function DateFilter({
 
       {/* Active selection label + clear */}
       {isFiltered && (
-        <div className="ml-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
-          {selectionLabel && <span>{selectionLabel}</span>}
-          <button
-            type="button"
-            onClick={handleReset}
-            className="rounded-full p-0.5 text-blue-500 transition-colors hover:bg-blue-100 hover:text-blue-700 dark:text-blue-300 dark:hover:bg-blue-900 dark:hover:text-blue-200"
-            aria-label="Clear filter"
-          >
-            <X size={14} />
-          </button>
+        <div className="ml-1">
+          <ActiveFilterPill label={selectionLabel ?? 'Custom'} onClear={handleReset} />
         </div>
       )}
     </div>

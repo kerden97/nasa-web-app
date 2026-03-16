@@ -67,11 +67,11 @@ describe('EpicPage', () => {
     vi.useRealTimers()
   })
 
-  it('renders EPIC description and date label', () => {
+  it('renders EPIC description and item count', () => {
     render(<EpicPage />)
 
     expect(screen.getByText(/EPIC offers full-disk Earth imagery/)).toBeInTheDocument()
-    expect(screen.getByText(/Thursday, 12 March 2026/)).toBeInTheDocument()
+    expect(screen.getByText('2 items')).toBeInTheDocument()
   })
 
   it('sets the document title on mount', () => {
@@ -248,12 +248,12 @@ describe('EpicPage', () => {
     expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-09')
   })
 
-  it('renders fallback date label when no dates are available', () => {
+  it('renders the page without header date metadata when no dates are available', () => {
     mockedUseEpicDates.mockReturnValue({ dates: [], loading: false })
     mockedUseEpic.mockReturnValue({ images: [], loading: false, error: null })
 
     render(<EpicPage />)
 
-    expect(screen.getByText('Fetching the latest Earth imagery...')).toBeInTheDocument()
+    expect(screen.getByText('Daily full-disk views of Earth')).toBeInTheDocument()
   })
 })

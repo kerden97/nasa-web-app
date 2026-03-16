@@ -36,6 +36,45 @@ interface NasaSearchResponse {
   }
 }
 
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&nbsp;/gi, ' ')
+}
+
+function sanitizeDescription(description: string | undefined): string {
+  if (!description) return ''
+
+  const withoutHtml = decodeHtmlEntities(description)
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>\s*<p>/gi, '\n\n')
+    .replace(/<[^>]+>/g, ' ')
+
+  const cutoffPatterns = [
+    /\bImage credit:/i,
+    /\bNASA image use policy\b/i,
+    /\bNASA Goddard Space Flight Center\b/i,
+    /\bFollow us on\b/i,
+    /\bLike us on\b/i,
+    /\bFind us on\b/i,
+  ]
+
+  let cleaned = withoutHtml
+  for (const pattern of cutoffPatterns) {
+    const match = pattern.exec(cleaned)
+    if (match && typeof match.index === 'number') {
+      cleaned = cleaned.slice(0, match.index)
+      break
+    }
+  }
+
+  return cleaned.replace(/\s+/g, ' ').trim()
+}
+
 function mapResponse(data: NasaSearchResponse): { items: NasaImageItem[]; totalHits: number } {
   const items: NasaImageItem[] = data.collection.items
     .filter((entry) => entry.data[0])
@@ -45,7 +84,7 @@ function mapResponse(data: NasaSearchResponse): { items: NasaImageItem[]; totalH
       const result: NasaImageItem = {
         nasa_id: d.nasa_id,
         title: d.title,
-        description: d.description ?? '',
+        description: sanitizeDescription(d.description),
         date_created: d.date_created,
         media_type: d.media_type,
         href: thumbnail,

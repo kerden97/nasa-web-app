@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { NasaImageItem } from '@/types/nasaImage'
+import MediaCard from '@/components/Wonders/MediaCard'
 
 interface ImageCardProps {
   item: NasaImageItem
@@ -9,7 +10,7 @@ interface ImageCardProps {
 export default function ImageCard({ item, onClick }: ImageCardProps) {
   const [loaded, setLoaded] = useState(false)
   const [inView, setInView] = useState(false)
-  const cardRef = useRef<HTMLButtonElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
   const readyToShow = loaded && inView
 
   useEffect(() => {
@@ -37,48 +38,19 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
   })
 
   return (
-    <button
-      ref={cardRef}
-      onClick={() => onClick(item)}
-      className="group relative flex aspect-9/16 w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-black text-left shadow-sm transition-transform duration-300 hover:-translate-y-1 dark:border-slate-800"
-    >
-      {!readyToShow && (
-        <div className="absolute inset-0">
-          <div className="h-full w-full animate-pulse bg-slate-200 dark:bg-slate-800" />
-        </div>
-      )}
-
-      {item.href ? (
-        <img
-          src={item.href}
-          alt={item.title}
-          className={`h-full w-full object-cover transition-all duration-500 group-hover:scale-105 ${
-            readyToShow ? 'scale-100 opacity-100' : 'scale-105 opacity-0'
-          }`}
-          loading="lazy"
-          decoding="async"
-          onLoad={() => setLoaded(true)}
-        />
-      ) : (
-        <div className="flex h-full items-center justify-center text-sm text-slate-400">
-          No preview
-        </div>
-      )}
-
-      <div className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/60 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white backdrop-blur-sm">
-        {item.media_type}
-      </div>
-
-      <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black via-black/95 to-transparent px-4 pb-4 pt-14">
-        <p className="text-sm font-semibold text-white line-clamp-2">{item.title}</p>
-        <p className="mt-1 text-[11px] text-slate-300">{date}</p>
-        <div className="mt-3 flex items-center justify-between gap-3 text-[11px]">
-          <span className="truncate text-slate-400">{item.center ?? 'NASA'}</span>
-          <span className="whitespace-nowrap rounded-full border border-white/15 px-2.5 py-1 font-medium text-white/90 transition-colors group-hover:bg-white/10">
-            View details
-          </span>
-        </div>
-      </div>
-    </button>
+    <div ref={cardRef} className="w-full">
+      <MediaCard
+        badge={item.media_type}
+        imageAlt={item.title}
+        imageSrc={item.href}
+        readyToShow={readyToShow}
+        title={item.title}
+        meta={date}
+        footerLeft={item.center ?? 'NASA'}
+        teaser={item.description}
+        onClick={() => onClick(item)}
+        onLoad={() => setLoaded(true)}
+      />
+    </div>
   )
 }

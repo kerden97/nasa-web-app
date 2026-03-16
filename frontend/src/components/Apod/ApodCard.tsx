@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ApodItem } from '@/types/apod'
 import { Play } from 'lucide-react'
+import MediaBadge from '@/components/Wonders/MediaBadge'
 import { formatApodLongDate, getApodTeaser, isDirectVideo } from '@/lib/apodMeta'
 
 interface ApodCardProps {
@@ -16,7 +17,6 @@ export default function ApodCard({ item, onClick }: ApodCardProps) {
   const [inView, setInView] = useState(false)
   const cardRef = useRef<HTMLButtonElement>(null)
   const credit = item.copyright ?? 'NASA APOD'
-
   const readyToShow = loaded && inView
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function ApodCard({ item, onClick }: ApodCardProps) {
     <button
       ref={cardRef}
       onClick={() => onClick(item)}
-      className="group relative flex aspect-9/16 w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-black text-left shadow-sm transition-transform duration-300 hover:-translate-y-1 dark:border-slate-800"
+      className="card-glow card-glow--blue group relative flex aspect-9/16 w-full flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white/90 text-left shadow-[0_18px_50px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-1.5 hover:border-cyan-300/30 dark:border-slate-800/80 dark:bg-slate-900/70 dark:shadow-[0_22px_56px_rgba(2,6,23,0.35)]"
     >
       {thumbnail && !readyToShow && (
         <div className="absolute inset-0">
@@ -57,7 +57,7 @@ export default function ApodCard({ item, onClick }: ApodCardProps) {
         <img
           src={thumbnail}
           alt={item.title}
-          className={`h-full w-full object-contain transition-all duration-500 group-hover:scale-105 ${
+          className={`h-full w-full object-cover transition-all duration-700 group-hover:scale-105 ${
             readyToShow ? 'scale-100 opacity-100' : 'scale-105 opacity-0'
           }`}
           loading="lazy"
@@ -81,19 +81,22 @@ export default function ApodCard({ item, onClick }: ApodCardProps) {
         </div>
       )}
 
-      <div className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/60 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white backdrop-blur-sm">
-        {item.media_type}
-      </div>
+      <MediaBadge kind={item.media_type} cardStyle className="absolute left-3 top-3" />
 
-      <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black via-black/95 to-transparent px-4 pb-4 pt-14">
-        <p className="text-sm font-semibold text-white line-clamp-2">{item.title}</p>
-        <p className="mt-1 text-[11px] text-slate-300">{formatApodLongDate(item.date)}</p>
-        <p className="mt-3 text-xs text-slate-300 line-clamp-2">
+      <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/78 via-45% to-slate-950/6" />
+      <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-20">
+        <p className="font-nasa text-[11px] tracking-[0.18em] text-slate-400">
+          {formatApodLongDate(item.date)}
+        </p>
+        <p className="mt-2 text-xl font-semibold leading-tight text-white line-clamp-2">
+          {item.title}
+        </p>
+        <p className="mt-3 text-xs leading-6 text-slate-300 line-clamp-2">
           {getApodTeaser(item.explanation)}
         </p>
         <div className="mt-3 flex items-center justify-between gap-3 text-[11px]">
           <span className="truncate text-slate-400">{credit}</span>
-          <span className="whitespace-nowrap rounded-full border border-white/15 px-2.5 py-1 font-medium text-white/90 transition-colors group-hover:bg-white/10">
+          <span className="whitespace-nowrap rounded-full border border-cyan-300/18 bg-white/5 px-2.5 py-1 font-medium text-white/90 transition-colors group-hover:border-cyan-300/30 group-hover:bg-cyan-400/10">
             View details
           </span>
         </div>

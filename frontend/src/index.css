@@ -124,6 +124,262 @@
     0 0 120px rgba(34, 211, 238, 0.15);
 }
 
+.cosmic-pill-date {
+  border: 1px solid rgba(34, 211, 238, 0.42);
+  background:
+    linear-gradient(135deg, rgba(6, 182, 212, 0.18), rgba(14, 165, 233, 0.08)),
+    rgba(8, 47, 73, 0.16);
+  color: rgb(8, 145, 178);
+  box-shadow:
+    inset 0 1px 0 rgba(186, 230, 253, 0.18),
+    0 0 0 1px rgba(34, 211, 238, 0.08),
+    0 12px 28px rgba(6, 182, 212, 0.1);
+  backdrop-filter: blur(12px);
+}
+
+.dark .cosmic-pill-date {
+  border-color: rgba(34, 211, 238, 0.45);
+  background:
+    linear-gradient(135deg, rgba(6, 182, 212, 0.22), rgba(14, 165, 233, 0.1)), rgba(8, 47, 73, 0.28);
+  color: rgb(103, 232, 249);
+  box-shadow:
+    inset 0 1px 0 rgba(186, 230, 253, 0.12),
+    0 0 0 1px rgba(34, 211, 238, 0.08),
+    0 14px 32px rgba(8, 145, 178, 0.16);
+}
+
+.cosmic-pill-media {
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  background:
+    linear-gradient(135deg, rgba(51, 65, 85, 0.08), rgba(15, 23, 42, 0.04)),
+    rgba(248, 250, 252, 0.9);
+  color: rgb(71, 85, 105);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 10px 24px rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(12px);
+}
+
+.dark .cosmic-pill-media {
+  border-color: rgba(100, 116, 139, 0.44);
+  background:
+    linear-gradient(135deg, rgba(51, 65, 85, 0.26), rgba(15, 23, 42, 0.12)), rgba(30, 41, 59, 0.72);
+  color: rgb(203, 213, 225);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 10px 24px rgba(2, 6, 23, 0.24);
+}
+
+.cosmic-pill-media--image {
+  border-color: rgba(59, 130, 246, 0.3);
+  background:
+    linear-gradient(135deg, rgba(59, 130, 246, 0.22), rgba(37, 99, 235, 0.12)),
+    rgba(30, 41, 59, 0.72);
+  color: rgb(239, 246, 255);
+  box-shadow:
+    inset 0 1px 0 rgba(191, 219, 254, 0.16),
+    0 0 0 1px rgba(59, 130, 246, 0.08),
+    0 14px 32px rgba(37, 99, 235, 0.12);
+}
+
+.dark .cosmic-pill-media--image {
+  border-color: rgba(125, 211, 252, 0.3);
+  background:
+    linear-gradient(135deg, rgba(71, 85, 105, 0.32), rgba(30, 41, 59, 0.16)), rgba(15, 23, 42, 0.62);
+  color: rgb(226, 232, 240);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(148, 163, 184, 0.06),
+    0 14px 32px rgba(2, 6, 23, 0.22);
+}
+
+.cosmic-pill-media--video {
+  border-color: rgba(168, 85, 247, 0.42);
+  background:
+    linear-gradient(135deg, rgba(168, 85, 247, 0.34), rgba(236, 72, 153, 0.2)),
+    rgba(88, 28, 135, 0.68);
+  color: rgb(250, 245, 255);
+  box-shadow:
+    inset 0 1px 0 rgba(243, 232, 255, 0.16),
+    0 0 0 1px rgba(192, 132, 252, 0.1),
+    0 14px 32px rgba(168, 85, 247, 0.22);
+}
+
+.dark .cosmic-pill-media--video {
+  border-color: rgba(216, 180, 254, 0.54);
+  background:
+    linear-gradient(135deg, rgba(168, 85, 247, 0.28), rgba(236, 72, 153, 0.14)),
+    rgba(76, 29, 149, 0.38);
+  color: rgb(243, 232, 255);
+  box-shadow:
+    inset 0 1px 0 rgba(243, 232, 255, 0.12),
+    0 0 0 1px rgba(192, 132, 252, 0.08),
+    0 14px 32px rgba(168, 85, 247, 0.22);
+}
+
+.cosmic-pill-media--audio {
+  border-color: rgba(251, 191, 36, 0.48);
+  background:
+    linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(249, 115, 22, 0.12)),
+    rgba(120, 53, 15, 0.24);
+  color: rgb(254, 240, 138);
+  box-shadow:
+    inset 0 1px 0 rgba(254, 243, 199, 0.12),
+    0 0 0 1px rgba(251, 191, 36, 0.08),
+    0 14px 32px rgba(245, 158, 11, 0.16);
+}
+
+.dark .cosmic-pill-media--audio {
+  border-color: rgba(252, 211, 77, 0.52);
+  background:
+    linear-gradient(135deg, rgba(245, 158, 11, 0.28), rgba(249, 115, 22, 0.14)),
+    rgba(120, 53, 15, 0.36);
+  color: rgb(254, 240, 138);
+  box-shadow:
+    inset 0 1px 0 rgba(254, 243, 199, 0.12),
+    0 0 0 1px rgba(251, 191, 36, 0.08),
+    0 14px 32px rgba(245, 158, 11, 0.18);
+}
+
+.cosmic-card-badge {
+  border-width: 1px;
+  padding: 0.42rem 0.72rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.cosmic-btn-primary {
+  border: 1px solid rgba(103, 232, 249, 0.42);
+  background:
+    linear-gradient(90deg, rgba(6, 182, 212, 0.22), rgba(59, 130, 246, 0.14)), rgba(2, 6, 23, 0.5);
+  color: white;
+  box-shadow:
+    0 0 0 1px rgba(34, 211, 238, 0.08),
+    0 16px 46px rgba(8, 145, 178, 0.2);
+  backdrop-filter: blur(10px);
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
+}
+
+.cosmic-btn-primary:hover {
+  transform: translateY(-1px);
+  border-color: rgba(165, 243, 252, 0.75);
+  box-shadow:
+    0 0 0 1px rgba(34, 211, 238, 0.15),
+    0 22px 58px rgba(34, 211, 238, 0.24);
+  background:
+    linear-gradient(90deg, rgba(6, 182, 212, 0.28), rgba(59, 130, 246, 0.2)), rgba(2, 6, 23, 0.56);
+}
+
+.cosmic-btn-secondary {
+  border: 1px solid rgba(252, 211, 77, 0.5);
+  background:
+    linear-gradient(90deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.04)), rgba(2, 6, 23, 0.35);
+  color: rgb(254, 240, 138);
+  box-shadow: 0 12px 34px rgba(245, 158, 11, 0.1);
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.cosmic-btn-secondary:hover {
+  transform: translateY(-1px);
+  border-color: rgba(253, 224, 71, 0.78);
+  background:
+    linear-gradient(90deg, rgba(245, 158, 11, 0.18), rgba(245, 158, 11, 0.08)), rgba(2, 6, 23, 0.42);
+  box-shadow: 0 18px 46px rgba(245, 158, 11, 0.14);
+}
+
+.cosmic-btn-ghost {
+  border: 1px solid rgba(148, 163, 184, 0.38);
+  background: rgba(255, 255, 255, 0.88);
+  color: rgb(51, 65, 85);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    background 0.3s ease,
+    color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.cosmic-btn-ghost:hover {
+  transform: translateY(-1px);
+  border-color: rgba(100, 116, 139, 0.5);
+  background: rgba(248, 250, 252, 1);
+  color: rgb(15, 23, 42);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
+}
+
+.dark .cosmic-btn-ghost {
+  border-color: rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.26);
+  color: rgb(226, 232, 240);
+  box-shadow: none;
+}
+
+.dark .cosmic-btn-ghost:hover {
+  border-color: rgba(148, 163, 184, 0.45);
+  background: rgba(15, 23, 42, 0.4);
+  color: white;
+}
+
+.cosmic-btn-load-more {
+  border: 1px solid rgba(103, 232, 249, 0.34);
+  background:
+    linear-gradient(90deg, rgba(6, 182, 212, 0.12), rgba(59, 130, 246, 0.08)),
+    rgba(255, 255, 255, 0.92);
+  color: rgb(8, 47, 73);
+  box-shadow:
+    0 0 0 1px rgba(34, 211, 238, 0.06),
+    0 16px 36px rgba(15, 23, 42, 0.08);
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    background 0.3s ease,
+    color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.cosmic-btn-load-more:hover {
+  transform: translateY(-1px);
+  border-color: rgba(34, 211, 238, 0.55);
+  background:
+    linear-gradient(90deg, rgba(6, 182, 212, 0.18), rgba(59, 130, 246, 0.12)),
+    rgba(255, 255, 255, 0.98);
+  color: rgb(8, 47, 73);
+  box-shadow:
+    0 0 0 1px rgba(34, 211, 238, 0.1),
+    0 20px 44px rgba(34, 211, 238, 0.12);
+}
+
+.dark .cosmic-btn-load-more {
+  border-color: rgba(103, 232, 249, 0.28);
+  background:
+    linear-gradient(90deg, rgba(6, 182, 212, 0.14), rgba(59, 130, 246, 0.08)), rgba(2, 6, 23, 0.42);
+  color: rgb(240, 249, 255);
+  box-shadow:
+    0 0 0 1px rgba(34, 211, 238, 0.06),
+    0 18px 42px rgba(2, 6, 23, 0.28);
+}
+
+.dark .cosmic-btn-load-more:hover {
+  border-color: rgba(103, 232, 249, 0.55);
+  background:
+    linear-gradient(90deg, rgba(6, 182, 212, 0.18), rgba(59, 130, 246, 0.12)), rgba(2, 6, 23, 0.52);
+  color: white;
+  box-shadow:
+    0 0 0 1px rgba(34, 211, 238, 0.12),
+    0 24px 54px rgba(34, 211, 238, 0.14);
+}
+
 /* ── Card glow light mode adjustments ── */
 :root:not(.dark) .card-glow::before {
   box-shadow: 0 0 30px var(--glow);

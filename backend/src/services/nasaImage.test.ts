@@ -100,6 +100,35 @@ describe('NASA Image Library service', () => {
     expect(calledUrl).toContain('page=1')
   })
 
+  it('sanitizes HTML and promotional boilerplate from descriptions', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () =>
+        mockApiResponse(
+          [
+            {
+              nasa_id: 'PIA00999',
+              title: 'Rosebud Galaxy',
+              description:
+                'Beautiful galaxy core. This NASA/ESA Hubble image shows a merger. Image credit: ESA/Hubble &amp; NASA <b><a href="http://www.nasa.gov/audience/formedia/features/MP_Photo_Guidelines.html">NASA image use policy.</a></b> <b>Follow us on <a href="http://twitter.com/NASAGoddardPix">Twitter</a></b>',
+              date_created: '2021-06-15T00:00:00Z',
+              media_type: 'image',
+              thumbnail: 'https://example.com/thumb.jpg',
+            },
+          ],
+          1,
+        ),
+    })
+
+    global.fetch = fetchMock as typeof fetch
+
+    const result = await searchNasaImages({ q: 'galaxy' })
+
+    expect(result.items[0]!.description).toBe(
+      'Beautiful galaxy core. This NASA/ESA Hubble image shows a merger.',
+    )
+  })
+
   it('caches identical search results', async () => {
     const fetchMock = jest.fn().mockResolvedValue({
       ok: true,
