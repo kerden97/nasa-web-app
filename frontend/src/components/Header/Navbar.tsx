@@ -21,7 +21,14 @@ export default function Navbar() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-3">
-            <img src={logo} alt="Home & Beyond" className="h-12 w-12" />
+            <img
+              src={logo}
+              alt="Home & Beyond"
+              className="h-12 w-12"
+              width="48"
+              height="48"
+              decoding="async"
+            />
             <span className="font-nasa text-xl tracking-widest text-slate-900 dark:text-white">
               Home & Beyond
             </span>

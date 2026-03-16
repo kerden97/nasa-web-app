@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from '@/components/Header/Navbar'
 import Footer from '@/components/Footer/Footer'
 import ScrollToTopButton from '@/components/ScrollToTop/ScrollToTopButton'
@@ -11,9 +11,12 @@ import EpicPage from '@/pages/EpicPage'
 import AsteroidWatchPage from '@/pages/AsteroidWatchPage'
 
 function App() {
+  const location = useLocation()
+  const showGlobalStarfield = location.pathname !== '/'
+
   return (
     <div className="relative isolate flex min-h-screen flex-col bg-slate-950">
-      <Starfield />
+      {showGlobalStarfield && <Starfield />}
       <Navbar />
       <main className="relative z-10 flex-1">
         <Routes>

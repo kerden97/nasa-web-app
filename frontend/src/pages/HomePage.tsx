@@ -99,6 +99,9 @@ export default function HomePage() {
           alt=""
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover"
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
         />
         <Starfield className="pointer-events-none absolute inset-0 z-1" />
         <div className="pointer-events-none absolute inset-0 z-2 bg-linear-to-b from-slate-950/72 via-slate-950/58 to-slate-950/78" />
@@ -191,6 +194,7 @@ export default function HomePage() {
                     alt={f.imageAlt}
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
+                    decoding="async"
                   />
                   {/* Gradient fade into card body */}
                   <div className="absolute inset-0 bg-linear-to-t from-white/80 via-transparent to-transparent dark:from-slate-900/80" />

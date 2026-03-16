@@ -28,17 +28,26 @@ export default function Starfield({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    const isMobile =
+      window.matchMedia('(max-width: 640px)').matches ||
+      window.matchMedia('(pointer: coarse)').matches
+    const starCount = isMobile ? 120 : 300
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, isMobile ? 1.25 : 1.5)
+
     const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      canvas.width = Math.floor(window.innerWidth * pixelRatio)
+      canvas.height = Math.floor(window.innerHeight * pixelRatio)
+      canvas.style.width = `${window.innerWidth}px`
+      canvas.style.height = `${window.innerHeight}px`
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
     }
     resize()
     window.addEventListener('resize', resize)
 
     if (starsRef.current.length === 0) {
-      starsRef.current = Array.from({ length: 300 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
+      starsRef.current = Array.from({ length: starCount }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
         size: Math.random() * 2 + 0.5,
         speed: Math.random() * 0.4 + 0.05,
         opacity: Math.random(),
@@ -61,7 +70,7 @@ export default function Starfield({
     let animationId: number
 
     const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
 
       starsRef.current.forEach((star) => {
         if (!starsPaused) {
@@ -78,9 +87,9 @@ export default function Starfield({
 
         if (!starsPaused) {
           star.y += star.speed
-          if (star.y > canvas.height) {
+          if (star.y > window.innerHeight) {
             star.y = 0
-            star.x = Math.random() * canvas.width
+            star.x = Math.random() * window.innerWidth
           }
         }
       })

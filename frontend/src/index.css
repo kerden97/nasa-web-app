@@ -18,6 +18,17 @@
   .dark {
     --scrollbar-thumb: theme(--color-slate-700);
   }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+    background-color: theme(--color-slate-950);
+  }
+
+  body {
+    margin: 0;
+  }
 }
 
 /* ── Animations ── */

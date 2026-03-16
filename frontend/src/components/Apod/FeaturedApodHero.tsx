@@ -16,7 +16,14 @@ export default function FeaturedApodHero({ item, onOpen }: FeaturedApodHeroProps
       <div className="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.8fr)]">
         <div className="relative max-h-130 min-h-130 overflow-hidden bg-black">
           {heroImage ? (
-            <img src={heroImage} alt={item.title} className="h-full w-full object-cover" />
+            <img
+              src={heroImage}
+              alt={item.title}
+              className="h-full w-full object-cover"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+            />
           ) : hasDirectVideo ? (
             <video src={item.url} muted autoPlay loop className="h-full w-full object-cover" />
           ) : isVideo ? (
