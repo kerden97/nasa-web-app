@@ -27,8 +27,8 @@ describe('HomePage', () => {
   it('renders both primary CTA links', () => {
     renderPage()
 
-    const wondersLink = screen.getByRole('link', { name: 'Explore the Universe' })
-    const asteroidLink = screen.getByRole('link', { name: 'Asteroid Watch' })
+    const wondersLink = screen.getByRole('link', { name: /Explore the Universe/ })
+    const asteroidLink = screen.getAllByRole('link', { name: 'Asteroid Watch' })[0]!
 
     expect(wondersLink).toHaveAttribute('href', '/wonders-of-the-universe')
     expect(asteroidLink).toHaveAttribute('href', '/asteroid-watch')
@@ -37,7 +37,7 @@ describe('HomePage', () => {
   it('renders all four feature cards with correct routes', () => {
     renderPage()
 
-    const cards = screen.getAllByRole('link').filter((el) => el.classList.contains('group'))
+    const cards = screen.getAllByRole('link').filter((el) => el.classList.contains('card-glow'))
     expect(cards).toHaveLength(4)
 
     const [apodCard, imageCard, epicCard, neoCard] = cards
@@ -52,14 +52,23 @@ describe('HomePage', () => {
     renderPage()
 
     expect(
-      screen.getByRole('heading', { name: 'Astronomy Picture of the Day', level: 2 }),
+      screen.getByRole('heading', { name: 'Astronomy Picture of the Day', level: 3 }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: 'NASA Image & Video Search', level: 2 }),
+      screen.getByRole('heading', { name: 'NASA Image & Video Search', level: 3 }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: 'Earth from Deep Space', level: 2 }),
+      screen.getByRole('heading', { name: 'Earth from Deep Space', level: 3 }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Asteroid Watch', level: 2 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Asteroid Watch', level: 3 })).toBeInTheDocument()
+  })
+
+  it('renders the stats bar', () => {
+    renderPage()
+
+    expect(screen.getByText('4')).toBeInTheDocument()
+    expect(screen.getByText('NASA APIs')).toBeInTheDocument()
+    expect(screen.getByText('140K+')).toBeInTheDocument()
+    expect(screen.getByText('Live')).toBeInTheDocument()
   })
 })

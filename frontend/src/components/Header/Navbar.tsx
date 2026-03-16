@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import logo from '@/assets/logo.png'
+import MotionToggle from './MotionToggle'
 import ThemeToggle from './ThemeToggle'
 import MobileMenu from './MobileMenu'
 
@@ -16,7 +17,7 @@ export default function Navbar() {
   const handleCloseMobileMenu = useCallback(() => setIsMobileMenuOpen(false), [])
 
   return (
-    <header className="border-b border-slate-200 bg-white py-3 dark:border-slate-800 dark:bg-slate-900">
+    <header className="relative z-50 border-b border-slate-200 bg-white py-3 dark:border-slate-800 dark:bg-slate-950">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-3">
@@ -48,6 +49,7 @@ export default function Navbar() {
           </ul>
         </div>
         <div className="flex items-center gap-2">
+          <MotionToggle className="hidden md:inline-flex" />
           <ThemeToggle className="hidden md:inline-flex" />
           <button
             type="button"
@@ -63,6 +65,9 @@ export default function Navbar() {
         isOpen={isMobileMenuOpen}
         onClose={handleCloseMobileMenu}
         navLinks={navLinks}
+        motionToggle={
+          <MotionToggle className="flex w-full items-center justify-center rounded-xl border border-slate-200 px-4 py-3 dark:border-slate-700" />
+        }
         themeToggle={
           <ThemeToggle className="flex w-full items-center justify-center rounded-xl border border-slate-200 px-4 py-3 dark:border-slate-700" />
         }

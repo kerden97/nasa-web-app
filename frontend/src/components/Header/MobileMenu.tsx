@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { Compass, House, X } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useMotion } from '@/context/MotionContext'
 
 interface MobileMenuLink {
   to: string
@@ -13,10 +14,18 @@ interface MobileMenuProps {
   isOpen: boolean
   onClose: () => void
   navLinks: readonly MobileMenuLink[]
+  motionToggle: ReactNode
   themeToggle: ReactNode
 }
 
-export default function MobileMenu({ isOpen, onClose, navLinks, themeToggle }: MobileMenuProps) {
+export default function MobileMenu({
+  isOpen,
+  onClose,
+  navLinks,
+  motionToggle,
+  themeToggle,
+}: MobileMenuProps) {
+  const { starsPaused } = useMotion()
   const location = useLocation()
   const previousPathnameRef = useRef(location.pathname)
 
@@ -134,11 +143,14 @@ export default function MobileMenu({ isOpen, onClose, navLinks, themeToggle }: M
             ))}
           </nav>
 
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-              Theme
-            </p>
-            <div className="mt-3">{themeToggle}</div>
+          <div className="mt-6 space-y-3">
+            {themeToggle}
+            <div>
+              {motionToggle}
+              <p className="mt-2 px-1 text-xs text-slate-500 dark:text-slate-400">
+                {starsPaused ? 'Start falling star animation.' : 'Stop falling star animation.'}
+              </p>
+            </div>
           </div>
         </div>
       </div>

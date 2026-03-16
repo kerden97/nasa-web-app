@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import { MotionProvider } from '@/context/MotionContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import '@/index.css'
 import App from '@/App.tsx'
@@ -8,9 +9,11 @@ import App from '@/App.tsx'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
+      <MotionProvider>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </MotionProvider>
     </BrowserRouter>
   </StrictMode>,
 )

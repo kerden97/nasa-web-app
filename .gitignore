@@ -33,7 +33,6 @@ logs/
 # OS / editor
 .DS_Store
 Thumbs.db
-.vscode/*
 !.vscode/extensions.json
 .idea/
 *.suo
@@ -41,3 +40,4 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+.vscode/*
