@@ -35,40 +35,42 @@ export default function WondersPage() {
     'Astronomy Picture of the Day'
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <Breadcrumbs
-        items={[
-          { label: 'Home', to: '/' },
-          { label: 'Wonders of the Universe' },
-          { label: activeTabLabel },
-        ]}
-      />
+    <section className="bg-slate-50 dark:bg-transparent">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <Breadcrumbs
+          items={[
+            { label: 'Home', to: '/' },
+            { label: 'Wonders of the Universe' },
+            { label: activeTabLabel },
+          ]}
+        />
 
-      <div className="mb-6">
-        <p className="mb-2 font-nasa text-xs uppercase tracking-[0.22em] text-blue-600 dark:text-blue-400">
-          Space Stories Hub
-        </p>
-        <h1 className="font-nasa text-3xl tracking-widest text-slate-900 dark:text-white">
-          Wonders of the Universe
-        </h1>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Explore NASA&apos;s featured daily stories, image archive, and Earth imagery
-        </p>
+        <div className="mb-6">
+          <p className="mb-2 font-nasa text-xs uppercase tracking-[0.22em] text-blue-600 dark:text-blue-400">
+            Space Stories Hub
+          </p>
+          <h1 className="font-nasa text-3xl tracking-widest text-slate-900 dark:text-white">
+            Wonders of the Universe
+          </h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            Explore NASA&apos;s featured daily stories, image archive, and Earth imagery
+          </p>
+        </div>
+
+        <nav className="mb-8 flex flex-wrap gap-2">
+          {tabs.map((tab) => (
+            <NavLink
+              key={tab.to}
+              to={tab.to}
+              className={({ isActive }) => `${pillBase} ${isActive ? pillActive : pillIdle}`}
+            >
+              {tab.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <Outlet />
       </div>
-
-      <nav className="mb-8 flex flex-wrap gap-2">
-        {tabs.map((tab) => (
-          <NavLink
-            key={tab.to}
-            to={tab.to}
-            className={({ isActive }) => `${pillBase} ${isActive ? pillActive : pillIdle}`}
-          >
-            {tab.label}
-          </NavLink>
-        ))}
-      </nav>
-
-      <Outlet />
     </section>
   )
 }

@@ -23,11 +23,16 @@
   body,
   #root {
     min-height: 100%;
-    background-color: theme(--color-slate-950);
+    background-color: theme(--color-slate-50);
   }
 
   body {
     margin: 0;
+  }
+
+  .dark body,
+  .dark #root {
+    background-color: theme(--color-slate-950);
   }
 }
 

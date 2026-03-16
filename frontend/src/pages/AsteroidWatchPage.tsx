@@ -92,66 +92,68 @@ export default function AsteroidWatchPage() {
   const hasResults = allNeos.length > 0
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Asteroid Watch' }]} />
+    <section className="bg-slate-50 dark:bg-transparent">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Asteroid Watch' }]} />
 
-      <div className="mb-8">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl" aria-hidden="true">
-            ☄️
-          </span>
-          <h1 className="font-nasa text-3xl tracking-widest text-slate-900 dark:text-white">
-            Asteroid Watch
-          </h1>
-        </div>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-          Track near-Earth objects approaching our planet. Visualize asteroid count, size, velocity,
-          and miss distance from NASA&apos;s NeoWs data — updated daily.
-        </p>
-      </div>
-
-      <NeoDateFilter defaultRange={defaultRange} onChange={handleRangeChange} />
-
-      {loading && <AsteroidWatchSkeleton />}
-
-      {error && !loading && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-400">
-          {error}
-        </div>
-      )}
-
-      {data && !loading && hasResults && (
-        <>
-          <SummaryStats allNeos={allNeos} />
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ChartCard title="Daily Near-Earth Objects">
-              <DailyCountChart data={dailyData} isDark={isDark} />
-            </ChartCard>
-
-            <ChartCard title="Hazardous Classification">
-              <HazardousPieChart data={hazardousData} />
-            </ChartCard>
-
-            <ChartCard title="Velocity vs. Miss Distance" className="lg:col-span-2">
-              <VelocityScatterChart data={scatterData} isDark={isDark} />
-            </ChartCard>
+        <div className="mb-8">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl" aria-hidden="true">
+              ☄️
+            </span>
+            <h1 className="font-nasa text-3xl tracking-widest text-slate-900 dark:text-white">
+              Asteroid Watch
+            </h1>
           </div>
-
-          <AsteroidTable neos={allNeos} />
-        </>
-      )}
-
-      {data && !loading && !error && !hasResults && (
-        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-            No near-Earth objects found for this range
-          </h2>
-          <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">
-            Try another date or a broader 7-day window to explore recent NeoWs activity.
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+            Track near-Earth objects approaching our planet. Visualize asteroid count, size,
+            velocity, and miss distance from NASA&apos;s NeoWs data — updated daily.
           </p>
         </div>
-      )}
+
+        <NeoDateFilter defaultRange={defaultRange} onChange={handleRangeChange} />
+
+        {loading && <AsteroidWatchSkeleton />}
+
+        {error && !loading && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-400">
+            {error}
+          </div>
+        )}
+
+        {data && !loading && hasResults && (
+          <>
+            <SummaryStats allNeos={allNeos} />
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <ChartCard title="Daily Near-Earth Objects">
+                <DailyCountChart data={dailyData} isDark={isDark} />
+              </ChartCard>
+
+              <ChartCard title="Hazardous Classification">
+                <HazardousPieChart data={hazardousData} />
+              </ChartCard>
+
+              <ChartCard title="Velocity vs. Miss Distance" className="lg:col-span-2">
+                <VelocityScatterChart data={scatterData} isDark={isDark} />
+              </ChartCard>
+            </div>
+
+            <AsteroidTable neos={allNeos} />
+          </>
+        )}
+
+        {data && !loading && !error && !hasResults && (
+          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+              No near-Earth objects found for this range
+            </h2>
+            <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">
+              Try another date or a broader 7-day window to explore recent NeoWs activity.
+            </p>
+          </div>
+        )}
+      </div>
     </section>
   )
 }

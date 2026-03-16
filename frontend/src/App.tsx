@@ -3,6 +3,7 @@ import Navbar from '@/components/Header/Navbar'
 import Footer from '@/components/Footer/Footer'
 import ScrollToTopButton from '@/components/ScrollToTop/ScrollToTopButton'
 import Starfield from '@/components/Starfield/Starfield'
+import { useTheme } from '@/context/ThemeContext'
 import HomePage from '@/pages/HomePage'
 import WondersPage from '@/pages/WondersPage'
 import ApodPage from '@/pages/ApodPage'
@@ -12,10 +13,11 @@ import AsteroidWatchPage from '@/pages/AsteroidWatchPage'
 
 function App() {
   const location = useLocation()
-  const showGlobalStarfield = location.pathname !== '/'
+  const { theme } = useTheme()
+  const showGlobalStarfield = location.pathname !== '/' && theme === 'dark'
 
   return (
-    <div className="relative isolate flex min-h-screen flex-col bg-slate-950">
+    <div className="relative isolate flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
       {showGlobalStarfield && <Starfield />}
       <Navbar />
       <main className="relative z-10 flex-1">
