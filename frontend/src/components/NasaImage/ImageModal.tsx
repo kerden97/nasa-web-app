@@ -157,7 +157,7 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
           </div>
 
           <div className="relative flex flex-col border-t border-slate-200 bg-white/98 p-5 dark:border-slate-800 dark:bg-slate-900/96 lg:min-h-0 lg:border-l lg:border-t-0 lg:p-8">
-            <div className="pointer-events-none absolute right-0 top-0 h-36 w-36 rounded-full bg-cyan-400/10 blur-3xl" />
+            <div className="pointer-events-none absolute right-0 top-0 h-36 w-36 rounded-full bg-[#0B3D91]/12 blur-3xl" />
             <div className="relative flex flex-1 flex-col lg:min-h-0">
               <div className="sticky top-0 z-10 -mx-5 -mt-5 border-b border-slate-200 bg-white/96 px-5 pb-5 pt-5 backdrop-blur dark:border-slate-800 dark:bg-slate-900/96 lg:-mx-8 lg:-mt-8 lg:px-8 lg:pt-8">
                 <div className="flex flex-wrap items-center gap-2 pr-12">
@@ -166,7 +166,7 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
                   </span>
                   <MediaBadge kind={item.media_type} />
                 </div>
-                <h2 className="mt-5 pr-12 font-nasa text-2xl leading-[1.08] tracking-[0.04em] text-slate-900 dark:text-white sm:text-3xl">
+                <h2 className="ui-page-title mt-5 pr-12 text-2xl leading-[1.08] text-slate-900 dark:text-white sm:text-3xl">
                   {item.title}
                 </h2>
               </div>
@@ -194,7 +194,7 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
                     <button
                       type="button"
                       onClick={() => setExpandedDescription((current) => !current)}
-                      className="mt-3 text-sm font-semibold text-slate-900 underline decoration-slate-400 decoration-2 underline-offset-4 transition hover:text-cyan-600 hover:decoration-cyan-500 dark:text-white dark:decoration-slate-600 dark:hover:text-cyan-300 dark:hover:decoration-cyan-300"
+                      className="mt-3 text-sm font-semibold text-slate-900 underline decoration-slate-400 decoration-2 underline-offset-4 transition hover:text-[#0B3D91] hover:decoration-[#0B3D91] dark:text-white dark:decoration-slate-600 dark:hover:text-[#8CB8FF] dark:hover:decoration-[#8CB8FF]"
                     >
                       {expandedDescription ? 'See less' : 'See more'}
                     </button>
@@ -246,7 +246,7 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
                     <button
                       type="button"
                       onClick={copyNasaId}
-                      className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white/80 px-2.5 py-1 text-[11px] font-medium text-slate-600 transition hover:border-cyan-400/30 hover:text-cyan-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:text-cyan-300"
+                      className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white/80 px-2.5 py-1 text-[11px] font-medium text-slate-600 transition hover:border-[rgba(11,61,145,0.3)] hover:text-[#0B3D91] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:text-[#8CB8FF]"
                       aria-label="Copy full ID"
                       title="Copy full ID"
                     >

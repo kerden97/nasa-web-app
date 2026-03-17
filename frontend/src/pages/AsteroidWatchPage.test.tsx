@@ -16,6 +16,7 @@ vi.mock('@/context/ThemeContext', () => ({
 
 vi.mock('@/components/NeoWs/AsteroidWatchSkeleton', () => ({
   default: () => <div data-testid="asteroid-watch-skeleton" />,
+  AsteroidWatchSkeletonContent: () => <div data-testid="asteroid-watch-skeleton" />,
 }))
 
 function renderPage() {
@@ -366,10 +367,13 @@ describe('AsteroidWatchPage', () => {
     mockedUseNeows.mockReturnValue({ data: sampleFeed, loading: false, error: null })
     renderPage()
 
-    expect(screen.getByText('Rows per page:')).toBeInTheDocument()
-    // Two dropdown triggers: one at top-right of table, one at bottom
     const dropdowns = screen.getAllByRole('button', { name: 'Rows per page' })
-    expect(dropdowns).toHaveLength(2)
+    expect(dropdowns).toHaveLength(1)
+    expect(
+      screen.getByText(
+        /LD \(Lunar Distance\) = ~384,400 km, the average distance from Earth to the Moon\./,
+      ),
+    ).toBeInTheDocument()
     expect(screen.getByText(/1–2 of 2/)).toBeInTheDocument()
   })
 

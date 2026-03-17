@@ -131,7 +131,9 @@ describe('NasaImagePage', () => {
     render(<NasaImagePage />)
     submitSearch('mars')
 
-    expect(screen.getAllByTestId('image-card-skeleton')).toHaveLength(12)
+    expect(screen.getByText('Search results')).toBeInTheDocument()
+    expect(screen.getByText(/Searching for “mars”\.\.\./i)).toBeInTheDocument()
+    expect(screen.getAllByTestId('image-card-skeleton')).toHaveLength(100)
   })
 
   it('renders an error message when the hook returns an error', () => {

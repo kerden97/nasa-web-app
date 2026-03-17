@@ -17,11 +17,11 @@ export default function FeaturedPanelSkeleton({
 }: FeaturedPanelSkeletonProps) {
   return (
     <section className="relative mb-12 overflow-hidden rounded-[32px] border border-slate-200 bg-white/95 shadow-[0_28px_90px_rgba(15,23,42,0.1)] dark:border-slate-800/80 dark:bg-slate-900/70 dark:shadow-[0_30px_90px_rgba(2,6,23,0.45)]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_30%),radial-gradient(circle_at_85%_85%,rgba(168,85,247,0.12),transparent_28%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(11,61,145,0.14),transparent_30%),radial-gradient(circle_at_85%_85%,rgba(99,102,241,0.12),transparent_28%)]" />
       <div className="relative grid lg:h-[32.5rem] lg:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.95fr)]">
         <div className="relative min-h-[30rem] overflow-hidden bg-slate-200 dark:bg-slate-800 sm:min-h-[21rem] lg:h-[32.5rem]">
           <div className="absolute inset-0 animate-pulse bg-slate-200 dark:bg-slate-800" />
-          <div className="absolute inset-0 bg-linear-to-tr from-slate-950/12 via-transparent to-cyan-400/6" />
+          <div className="absolute inset-0 bg-linear-to-tr from-slate-950/12 via-transparent to-[#0B3D91]/8" />
           <div className="absolute inset-0 bg-linear-to-t from-slate-950/40 via-slate-950/12 to-transparent" />
           <div
             className={`absolute left-5 top-5 h-8 rounded-full border border-amber-300/20 bg-amber-400/10 dark:bg-amber-400/12 ${badgeWidthClass}`}
@@ -29,7 +29,7 @@ export default function FeaturedPanelSkeleton({
         </div>
 
         <div className="relative flex flex-col justify-between overflow-hidden p-6 lg:h-[32.5rem] lg:min-h-0 lg:p-7">
-          <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-cyan-400/10 blur-3xl" />
+          <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-[#0B3D91]/12 blur-3xl" />
           <div className="min-h-0">
             <div className="flex flex-wrap items-center gap-2">
               <div

@@ -47,7 +47,7 @@ export default function SummaryStats({ allNeos }: SummaryStatsProps) {
         label="Total asteroids"
         value={allNeos.length}
         detail={`${hazardous} potentially hazardous`}
-        accent={hazardous > 0 ? 'red' : 'blue'}
+        accent="cyan"
       />
       <StatCard
         label="Closest approach"
@@ -59,13 +59,13 @@ export default function SummaryStats({ allNeos }: SummaryStatsProps) {
         label="Fastest"
         value={`${fastestSpeed.toFixed(1)} km/s`}
         detail={fastest ? formatNeoDisplayName(fastest.name) : '—'}
-        accent="blue"
+        accent="red"
       />
       <StatCard
         label="Largest (est.)"
         value={`${largestSize.toFixed(0)} m`}
         detail={largest ? formatNeoDisplayName(largest.name) : '—'}
-        accent="blue"
+        accent="violet"
       />
     </div>
   )
@@ -80,20 +80,29 @@ function StatCard({
   label: string
   value: string | number
   detail: string
-  accent: 'blue' | 'red' | 'amber'
+  accent: 'cyan' | 'red' | 'amber' | 'violet'
 }) {
   const accentColors = {
-    blue: 'text-blue-600 dark:text-blue-400',
-    red: 'text-red-600 dark:text-red-400',
-    amber: 'text-amber-600 dark:text-amber-400',
+    cyan: 'text-[#0B3D91] dark:text-[#8CB8FF]',
+    red: 'text-rose-600 dark:text-rose-400',
+    amber: 'text-amber-500 dark:text-amber-300',
+    violet: 'text-violet-600 dark:text-violet-400',
   }
+  const accentCard = { cyan: '', red: '', amber: '', violet: '' }
+  const valueGlow = { cyan: '', red: '', amber: '', violet: '' }
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-      <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-        {label}
+    <div
+      className={`relative min-h-[8.5rem] overflow-hidden rounded-[26px] border border-slate-200/80 bg-white/88 p-5 shadow-[0_14px_40px_rgba(15,23,42,0.07)] dark:border-slate-800 dark:bg-slate-900/55 dark:shadow-[0_18px_46px_rgba(2,6,23,0.22)] ${accentCard[accent]}`}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(11,61,145,0.05),transparent_34%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(140,184,255,0.08),transparent_32%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/80 to-transparent dark:via-white/12" />
+      <p className="ui-kicker text-slate-500 dark:text-slate-500">{label}</p>
+      <p
+        className={`font-nasa mt-2 text-3xl tracking-[0.04em] ${accentColors[accent]} ${valueGlow[accent]}`}
+      >
+        {value}
       </p>
-      <p className={`mt-1 text-2xl font-bold ${accentColors[accent]}`}>{value}</p>
-      <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">{detail}</p>
+      <p className="mt-2 truncate text-base text-slate-600 dark:text-slate-400">{detail}</p>
     </div>
   )
 }

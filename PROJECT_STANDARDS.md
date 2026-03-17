@@ -16,10 +16,12 @@ This file defines the agreed tooling and working rules for the NASA web app so i
 frontend/src/
 ├── assets/         # static assets (logo, images)
 ├── components/     # UI components grouped by feature (Header/, Footer/, Apod/)
+├── content/        # route/content configuration and shared static copy
 ├── context/        # React context providers (ThemeContext)
 ├── hooks/          # custom React hooks (useApod, useGridSize)
 ├── lib/            # shared utilities (api client, APOD helpers)
 ├── pages/          # route-level page components
+├── test/           # shared frontend test setup and browser API mocks
 ├── types/          # shared TypeScript types
 ├── App.tsx         # root layout and routing
 ├── main.tsx        # entry point
@@ -32,7 +34,7 @@ frontend/src/
 backend/src/
 ├── config/         # environment config and constants
 ├── controllers/    # request handlers
-├── lib/            # core libraries (logger)
+├── lib/            # core libraries (logger, API error helpers)
 ├── middleware/     # error handler, request logger
 ├── routes/         # route definitions
 ├── services/       # business logic, NASA API communication
@@ -171,6 +173,9 @@ Theme is toggled via Tailwind's `dark:` variant with a `dark` class on `<html>`.
 
 - Skeleton counts match the expected item count to prevent layout shift
 - Frontend uses `AbortController` in data-fetching effects to cancel duplicate requests (React StrictMode)
+- Home, Wonders shell, and Wonders hub are eager-loaded; NASA-backed feature routes remain lazy-loaded
+- Lazy route fallbacks should mirror the final layout closely enough to avoid visible page jumps
+- Mobile date-filter UIs may collapse non-primary presets into a compact overflow control when full chip rows become cramped
 
 ## Working Rules
 
@@ -179,6 +184,7 @@ Theme is toggled via Tailwind's `dark:` variant with a `dark` class on `<html>`.
 - New features should include corresponding tests where appropriate
 - Loading, error, and empty states must be handled deliberately
 - Use skeleton components for loading states — skeletons must mirror the real component's DOM structure and dimensions to prevent layout shift
+- Backend errors should use the shared `{ error, code, status }` response shape
 - Keep implementation simple, readable, and explainable
 - Avoid overengineering early
 
@@ -214,7 +220,7 @@ Use clear, small commits with conventional prefixes where appropriate:
 
 ## Caching & Performance
 
-All three backend services share these resilience patterns:
+All four backend feature services share these resilience patterns:
 
 - **In-flight request deduplication** — concurrent requests for the same key share a single HTTP call
 - **Retry with backoff** — transient NASA errors (500, 502, 503, 504) are retried up to 3 times with increasing delays (1 s, 2 s)

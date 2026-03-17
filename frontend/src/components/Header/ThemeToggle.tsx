@@ -12,9 +12,9 @@ export default function ThemeToggle({ className = '' }: ThemeToggleProps) {
     <button
       onClick={toggleTheme}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-      className={`rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white ${className}`}
+      className={`rounded-lg p-2 text-slate-700 transition-colors hover:bg-slate-200 hover:text-slate-950 dark:text-[#F4C95D] dark:hover:bg-slate-800 dark:hover:text-[#FFD978] ${className}`}
     >
-      {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+      {theme === 'dark' ? <Sun size={20} strokeWidth={2} /> : <Moon size={20} strokeWidth={2} />}
     </button>
   )
 }

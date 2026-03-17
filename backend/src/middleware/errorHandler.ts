@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express'
+import { sendApiError } from '../lib/apiErrors'
 import logger from '../lib/logger'
 
 export function globalErrorHandler(
@@ -14,5 +15,5 @@ export function globalErrorHandler(
     path: req.path,
   })
 
-  res.status(500).json({ error: 'Internal server error' })
+  sendApiError(res, 500, 'internal_server_error', 'Internal server error')
 }

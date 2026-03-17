@@ -54,11 +54,29 @@ const images: EpicImage[] = [
 
 const dates = ['2026-03-12', '2026-03-11', '2026-03-10', '2026-03-09']
 
+function mockMobileMatchMedia(isMobile: boolean) {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    configurable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: query === '(max-width: 639px)' ? isMobile : false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    })),
+  })
+}
+
 describe('EpicPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-16T12:00:00Z'))
+    mockMobileMatchMedia(false)
     mockedUseEpicDates.mockReturnValue({ dates, loading: false })
     mockedUseEpic.mockReturnValue({ images, loading: false, error: null })
   })
@@ -93,7 +111,7 @@ describe('EpicPage', () => {
 
     render(<EpicPage />)
 
-    expect(screen.getAllByTestId('epic-card-skeleton')).toHaveLength(8)
+    expect(screen.getAllByTestId('epic-card-skeleton')).toHaveLength(13)
   })
 
   it('renders loading skeletons when dates are loading', () => {
@@ -102,7 +120,7 @@ describe('EpicPage', () => {
 
     render(<EpicPage />)
 
-    expect(screen.getAllByTestId('epic-card-skeleton')).toHaveLength(8)
+    expect(screen.getAllByTestId('epic-card-skeleton')).toHaveLength(13)
   })
 
   it('renders an error message when the hook returns an error', () => {
@@ -138,8 +156,8 @@ describe('EpicPage', () => {
 
     expect(screen.getByRole('button', { name: 'Latest' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Previous' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Last 7 days' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Last 30 days' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '1 week ago' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '1 month ago' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Custom' })).toBeInTheDocument()
   })
 
@@ -154,7 +172,7 @@ describe('EpicPage', () => {
   it('selects the closest available date when Last 7 days is clicked', () => {
     render(<EpicPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Last 7 days' }))
+    fireEvent.click(screen.getByRole('button', { name: '1 week ago' }))
 
     expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-09')
   })
@@ -243,7 +261,7 @@ describe('EpicPage', () => {
   it('selects the closest available date when Last 30 days is clicked', () => {
     render(<EpicPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Last 30 days' }))
+    fireEvent.click(screen.getByRole('button', { name: '1 month ago' }))
 
     expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-09')
   })
@@ -255,5 +273,20 @@ describe('EpicPage', () => {
     render(<EpicPage />)
 
     expect(screen.getByText('Daily full-disk views of Earth')).toBeInTheDocument()
+  })
+
+  it('collapses date presets into a mobile overflow menu on small screens', () => {
+    mockMobileMatchMedia(true)
+
+    render(<EpicPage />)
+
+    expect(screen.getByRole('button', { name: 'Latest' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'More presets' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Previous' })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'More presets' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Previous' }))
+
+    expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-11')
   })
 })

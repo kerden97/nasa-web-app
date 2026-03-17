@@ -2,18 +2,13 @@ import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { Compass, House, X } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { asteroidDestination } from '@/lib/navigation'
+import { wondersUiConfig } from '@/lib/wondersUi'
 import { useMotion } from '@/context/useMotion'
-
-interface MobileMenuLink {
-  to: string
-  label: string
-  icon: string
-}
 
 interface MobileMenuProps {
   isOpen: boolean
   onClose: () => void
-  navLinks: readonly MobileMenuLink[]
   motionToggle: ReactNode
   themeToggle: ReactNode
 }
@@ -21,13 +16,13 @@ interface MobileMenuProps {
 export default function MobileMenu({
   isOpen,
   onClose,
-  navLinks,
   motionToggle,
   themeToggle,
 }: MobileMenuProps) {
   const { starsPaused } = useMotion()
   const location = useLocation()
   const previousPathnameRef = useRef(location.pathname)
+  const isWondersHubActive = location.pathname === '/wonders-of-the-universe'
 
   useEffect(() => {
     if (!isOpen) {
@@ -47,14 +42,19 @@ export default function MobileMenu({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
     }
+    const handleResize = () => {
+      if (window.innerWidth >= 768) onClose()
+    }
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('resize', handleResize)
 
     return () => {
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('resize', handleResize)
     }
   }, [isOpen, onClose])
 
@@ -71,9 +71,9 @@ export default function MobileMenu({
       >
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
           <div>
-            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+            <div className="flex items-center gap-2 text-[#2563EB] dark:text-[#60A5FA]">
               <Compass size={16} />
-              <p className="font-nasa text-xs uppercase tracking-[0.22em]">Explore</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em]">Explore</p>
             </div>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Pick a destination and keep moving through the app.
@@ -91,9 +91,7 @@ export default function MobileMenu({
 
         <div className="flex-1 overflow-y-auto px-5 py-6">
           <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950/60">
-            <p className="font-nasa text-xs uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-              Home &amp; Beyond
-            </p>
+            <p className="ui-kicker text-slate-500 dark:text-slate-400">Home &amp; Beyond</p>
             <h2 className="mt-3 text-xl font-semibold text-slate-950 dark:text-white">
               Start from the launchpad
             </h2>
@@ -113,7 +111,7 @@ export default function MobileMenu({
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-2xl border px-4 py-3 text-lg font-medium transition ${
                   isActive
-                    ? 'border-blue-200 bg-blue-50 text-blue-700 shadow-sm dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300'
+                    ? 'border-[rgba(37,99,235,0.18)] bg-[rgba(37,99,235,0.08)] text-[#2563EB] shadow-sm dark:border-[rgba(96,165,250,0.26)] dark:bg-[rgba(37,99,235,0.22)] dark:text-[#60A5FA]'
                     : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white'
                 }`
               }
@@ -121,26 +119,69 @@ export default function MobileMenu({
               <House size={18} />
               Home
             </NavLink>
-            {navLinks.map(({ to, label, icon }) => (
+            <div className="rounded-[28px] border border-slate-200 p-4 dark:border-slate-800">
               <NavLink
-                key={to}
-                to={to}
+                to="/wonders-of-the-universe"
                 onClick={(e) => {
-                  if (location.pathname.startsWith(to)) e.preventDefault()
+                  if (location.pathname === '/wonders-of-the-universe') e.preventDefault()
                   onClose()
                 }}
-                className={({ isActive }) =>
+                className={() =>
                   `flex items-center gap-3 rounded-2xl border px-4 py-3 text-lg font-medium transition ${
-                    isActive
-                      ? 'border-blue-200 bg-blue-50 text-blue-700 shadow-sm dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300'
+                    isWondersHubActive
+                      ? 'border-[rgba(37,99,235,0.18)] bg-[rgba(37,99,235,0.08)] text-[#2563EB] shadow-sm dark:border-[rgba(96,165,250,0.26)] dark:bg-[rgba(37,99,235,0.22)] dark:text-[#60A5FA]'
                       : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white'
                   }`
                 }
               >
-                <span aria-hidden="true">{icon}</span>
-                {label}
+                <span aria-hidden="true">✨</span>
+                Wonders
               </NavLink>
-            ))}
+
+              <div className="mt-3 space-y-2 pl-2">
+                {wondersUiConfig.map((destination) => {
+                  const { Icon } = destination
+                  return (
+                    <NavLink
+                      key={destination.to}
+                      to={destination.to}
+                      onClick={(e) => {
+                        if (location.pathname.startsWith(destination.to)) e.preventDefault()
+                        onClose()
+                      }}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 rounded-2xl border px-4 py-3 text-base font-medium transition ${
+                          isActive
+                            ? 'border-[rgba(37,99,235,0.18)] bg-[rgba(37,99,235,0.08)] text-[#2563EB] shadow-sm dark:border-[rgba(96,165,250,0.26)] dark:bg-[rgba(37,99,235,0.22)] dark:text-[#60A5FA]'
+                            : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white'
+                        }`
+                      }
+                    >
+                      <Icon size={16} />
+                      {destination.label}
+                    </NavLink>
+                  )
+                })}
+              </div>
+            </div>
+
+            <NavLink
+              to={asteroidDestination.to}
+              onClick={(e) => {
+                if (location.pathname.startsWith(asteroidDestination.to)) e.preventDefault()
+                onClose()
+              }}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-2xl border px-4 py-3 text-lg font-medium transition ${
+                  isActive
+                    ? 'border-[rgba(37,99,235,0.18)] bg-[rgba(37,99,235,0.08)] text-[#2563EB] shadow-sm dark:border-[rgba(96,165,250,0.26)] dark:bg-[rgba(37,99,235,0.22)] dark:text-[#60A5FA]'
+                    : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white'
+                }`
+              }
+            >
+              <span aria-hidden="true">☄️</span>
+              {asteroidDestination.label}
+            </NavLink>
           </nav>
 
           <div className="mt-6 space-y-3">

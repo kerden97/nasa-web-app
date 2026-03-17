@@ -2,7 +2,17 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTheme } from '@/context/ThemeContext'
 import { useNeows } from '@/hooks/useNeows'
 import Breadcrumbs from '@/components/Breadcrumbs'
-import AsteroidWatchSkeleton from '@/components/NeoWs/AsteroidWatchSkeleton'
+import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
+import { AsteroidWatchSkeletonContent } from '@/components/NeoWs/AsteroidWatchSkeleton'
+import {
+  asteroidWatchChartTitles,
+  asteroidWatchEmptyDescription,
+  asteroidWatchEmptyTitle,
+  asteroidWatchIntroPrimary,
+  asteroidWatchIntroSecondary,
+  asteroidWatchKicker,
+  asteroidWatchTitle,
+} from '@/content/asteroidWatchContent'
 import NeoDateFilter from '@/components/NeoWs/NeoDateFilter'
 import SummaryStats from '@/components/NeoWs/SummaryStats'
 import AsteroidTable from '@/components/NeoWs/AsteroidTable'
@@ -90,35 +100,30 @@ export default function AsteroidWatchPage() {
   }, [allNeos, isDark])
 
   const hasResults = allNeos.length > 0
-
   return (
     <section className="bg-slate-50 dark:bg-transparent">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Asteroid Watch' }]} />
 
-        <div className="mb-8">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl" aria-hidden="true">
-              ☄️
-            </span>
-            <h1 className="font-nasa text-3xl tracking-widest text-slate-900 dark:text-white">
-              Asteroid Watch
-            </h1>
-          </div>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-            Track near-Earth objects approaching our planet. Visualize asteroid count, size,
-            velocity, and miss distance from NASA&apos;s NeoWs data — updated daily.
+        <div className="mb-6 max-w-4xl">
+          <p className="ui-kicker mb-2">{asteroidWatchKicker}</p>
+          <h1 className="ui-page-title text-3xl text-slate-900 dark:text-white">
+            {asteroidWatchTitle}
+          </h1>
+          <p className="mt-3 max-w-4xl text-base leading-8 text-slate-600 dark:text-slate-400">
+            {asteroidWatchIntroPrimary}
+          </p>
+          <p className="mt-4 max-w-4xl text-base leading-8 text-slate-500 dark:text-slate-400">
+            {asteroidWatchIntroSecondary}
           </p>
         </div>
 
         <NeoDateFilter defaultRange={defaultRange} onChange={handleRangeChange} />
 
-        {loading && <AsteroidWatchSkeleton />}
+        {loading && <AsteroidWatchSkeletonContent />}
 
         {error && !loading && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-400">
-            {error}
-          </div>
+          <InlineErrorNotice title="Unable to load asteroid data" message={error} />
         )}
 
         {data && !loading && hasResults && (
@@ -126,15 +131,15 @@ export default function AsteroidWatchPage() {
             <SummaryStats allNeos={allNeos} />
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <ChartCard title="Daily Near-Earth Objects">
+              <ChartCard title={asteroidWatchChartTitles[0]}>
                 <DailyCountChart data={dailyData} isDark={isDark} />
               </ChartCard>
 
-              <ChartCard title="Hazardous Classification">
+              <ChartCard title={asteroidWatchChartTitles[1]}>
                 <HazardousPieChart data={hazardousData} />
               </ChartCard>
 
-              <ChartCard title="Velocity vs. Miss Distance" className="lg:col-span-2">
+              <ChartCard title={asteroidWatchChartTitles[2]} className="lg:col-span-2">
                 <VelocityScatterChart data={scatterData} isDark={isDark} />
               </ChartCard>
             </div>
@@ -144,12 +149,12 @@ export default function AsteroidWatchPage() {
         )}
 
         {data && !loading && !error && !hasResults && (
-          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-[28px] border border-slate-200 bg-white/88 px-6 py-10 text-center shadow-[0_18px_50px_rgba(15,23,42,0.07)] dark:border-slate-800 dark:bg-slate-900/45 dark:shadow-[0_24px_60px_rgba(2,6,23,0.25)]">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-              No near-Earth objects found for this range
+              {asteroidWatchEmptyTitle}
             </h2>
-            <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">
-              Try another date or a broader 7-day window to explore recent NeoWs activity.
+            <p className="mt-2 text-base leading-8 text-slate-600 dark:text-slate-300">
+              {asteroidWatchEmptyDescription}
             </p>
           </div>
         )}

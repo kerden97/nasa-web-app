@@ -9,7 +9,7 @@ export default function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   return (
     <nav
       aria-label="Breadcrumb"
-      className="mb-5 flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"
+      className="mb-5 flex flex-wrap items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400"
     >
       {items.map((item, index) => {
         const isLast = index === items.length - 1
@@ -22,7 +22,9 @@ export default function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
             ) : (
               <span
                 className={
-                  isLast ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'
+                  isLast
+                    ? 'text-[#0B3D91] dark:text-[#8CB8FF]'
+                    : 'text-slate-500 dark:text-slate-400'
                 }
                 aria-current={isLast ? 'page' : undefined}
               >

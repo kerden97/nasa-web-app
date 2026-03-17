@@ -144,7 +144,7 @@ describe('ApodPage', () => {
     render(<ApodPage />)
 
     expect(screen.getByTestId('featured-hero-skeleton')).toBeInTheDocument()
-    expect(screen.getAllByTestId('apod-card-skeleton')).toHaveLength(8)
+    expect(screen.getAllByTestId('apod-card-skeleton')).toHaveLength(20)
     expect(screen.queryByText('No results found for the selected date.')).not.toBeInTheDocument()
   })
 

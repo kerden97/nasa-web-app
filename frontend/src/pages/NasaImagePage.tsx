@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Image as ImageIcon, Play, Search, Shapes, X } from 'lucide-react'
 import { useNasaImage } from '@/hooks/useNasaImage'
+import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
 import ImageCard from '@/components/NasaImage/ImageCard'
 import ImageCardSkeleton from '@/components/NasaImage/ImageCardSkeleton'
 import ImageModal from '@/components/NasaImage/ImageModal'
 import SegmentedControl from '@/components/Wonders/SegmentedControl'
 import FilterChipButton from '@/components/Wonders/FilterChipButton'
+import {
+  nasaImageEmptyDescription,
+  nasaImageEmptyTitle,
+  nasaImageInitialResultSkeletonCount,
+  nasaImageIntro,
+  nasaImagePopularSearchLabel,
+  nasaImageSuggestions,
+} from '@/content/nasaImageContent'
 import type { NasaImageItem } from '@/types/nasaImage'
-
-const SUGGESTIONS = [
-  { label: 'Nebula', query: 'nebula' },
-  { label: 'Apollo 11', query: 'apollo 11' },
-  { label: 'ISS', query: 'international space station' },
-  { label: 'Saturn', query: 'saturn' },
-  { label: 'Hubble', query: 'hubble deep field' },
-]
 
 export default function NasaImagePage() {
   const [searchInput, setSearchInput] = useState('')
@@ -28,6 +29,7 @@ export default function NasaImagePage() {
 
   const [selectedItem, setSelectedItem] = useState<NasaImageItem | null>(null)
   const mediaSelection = (mediaType || 'all') as 'all' | 'image' | 'video'
+  const isSearchingInitialResults = loading && !!activeQuery && items.length === 0
 
   useEffect(() => {
     document.title = 'NASA Image Library | Wonders of the Universe | Home & Beyond'
@@ -51,9 +53,8 @@ export default function NasaImagePage() {
   return (
     <>
       <div className="mb-8">
-        <p className="max-w-4xl text-sm leading-7 text-slate-500 dark:text-slate-400">
-          Search NASA&apos;s vast image and video archive. Explore launches, planets, nebulae,
-          missions, and more from across the history of space exploration.
+        <p className="max-w-4xl text-base leading-8 text-slate-500 dark:text-slate-400">
+          {nasaImageIntro}
         </p>
       </div>
 
@@ -72,7 +73,7 @@ export default function NasaImagePage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="e.g. nebula, apollo 11, saturn..."
-                className="h-12 w-full min-w-50 rounded-2xl border border-slate-200 bg-white/90 px-4 pr-11 text-sm text-slate-700 transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-cyan-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950/55 dark:text-slate-200 dark:placeholder:text-slate-500 dark:hover:border-slate-700 dark:focus:border-cyan-500"
+                className="h-12 w-full min-w-50 rounded-2xl border border-slate-200 bg-white/90 px-4 pr-11 text-base text-slate-700 transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-[#0B3D91] focus:outline-none dark:border-slate-800 dark:bg-slate-950/55 dark:text-slate-200 dark:placeholder:text-slate-500 dark:hover:border-slate-700 dark:focus:border-[#8CB8FF]"
               />
               {searchInput && (
                 <button
@@ -116,20 +117,19 @@ export default function NasaImagePage() {
         <div className="rounded-[28px] border border-slate-200 bg-white/60 px-6 py-12 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900/35 dark:shadow-none">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-lg font-medium text-slate-700 dark:text-slate-300">
-              Search NASA&apos;s image archive
+              {nasaImageEmptyTitle}
             </p>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              Over 140,000 images, videos, and audio files from NASA&apos;s missions and
-              discoveries.
+            <p className="mt-2 text-base leading-7 text-slate-500 dark:text-slate-400">
+              {nasaImageEmptyDescription}
             </p>
           </div>
 
           <div className="mx-auto mt-8 max-w-xl">
             <p className="mb-3 text-center text-xs font-medium uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-              Popular searches
+              {nasaImagePopularSearchLabel}
             </p>
             <div className="flex flex-wrap justify-center gap-2">
-              {SUGGESTIONS.map((s) => (
+              {nasaImageSuggestions.map((s) => (
                 <FilterChipButton key={s.query} onClick={() => handleSuggestion(s.query)}>
                   {s.label}
                 </FilterChipButton>
@@ -140,9 +140,7 @@ export default function NasaImagePage() {
       )}
 
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
-          {error}
-        </div>
+        <InlineErrorNotice className="mb-6" title="Unable to load image results" message={error} />
       )}
 
       {activeQuery && !loading && items.length === 0 && !error && (
@@ -151,19 +149,23 @@ export default function NasaImagePage() {
         </div>
       )}
 
-      {activeQuery && totalHits > 0 && (
+      {activeQuery && (totalHits > 0 || isSearchingInitialResults) && (
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-nasa text-xs uppercase tracking-[0.28em] text-cyan-500 dark:text-cyan-300">
-              Archive
-            </p>
+            <p className="ui-kicker">Archive</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">
               Search results
             </h2>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            {totalHits.toLocaleString()} result{totalHits === 1 ? '' : 's'} for &ldquo;
-            {activeQuery}&rdquo;
+            {isSearchingInitialResults ? (
+              <>Searching for &ldquo;{activeQuery}&rdquo;...</>
+            ) : (
+              <>
+                {totalHits.toLocaleString()} result{totalHits === 1 ? '' : 's'} for &ldquo;
+                {activeQuery}&rdquo;
+              </>
+            )}
           </p>
         </div>
       )}
@@ -173,9 +175,9 @@ export default function NasaImagePage() {
           <ImageCard key={item.nasa_id} item={item} onClick={setSelectedItem} />
         ))}
         {loading &&
-          Array.from({ length: items.length === 0 ? 12 : 4 }).map((_, i) => (
-            <ImageCardSkeleton key={`skeleton-${i}`} />
-          ))}
+          Array.from({ length: items.length === 0 ? nasaImageInitialResultSkeletonCount : 4 }).map(
+            (_, i) => <ImageCardSkeleton key={`skeleton-${i}`} />,
+          )}
       </div>
 
       {!loading && hasMore && items.length > 0 && (

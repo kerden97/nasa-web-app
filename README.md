@@ -1,5 +1,90 @@
 # NASA Web App
 
+## Product Overview
+
+This project is a React + Node/Express NASA data explorer built around four experiences:
+
+- APOD — featured daily imagery plus a recent archive
+- NASA Image Library — searchable media archive with media-type filtering
+- EPIC — full-disk Earth imagery with date presets and collection switching
+- Asteroid Watch — NeoWs-based dashboard with summary stats, charts, and a sortable table
+
+The app is intentionally split into:
+
+- a static presentation layer for the landing and Wonders hub routes
+- lazy-loaded data routes for the NASA-backed feature pages
+- an Express backend that validates requests, talks to NASA, and shields the frontend from upstream quirks
+
+## Architecture
+
+### Frontend
+
+- Routing: `react-router-dom`
+- Entry routes:
+  - `/` — Home & Beyond landing page
+  - `/wonders-of-the-universe` — Wonders shell + hub
+  - `/wonders-of-the-universe/apod`
+  - `/wonders-of-the-universe/nasa-image-library`
+  - `/wonders-of-the-universe/epic`
+  - `/asteroid-watch`
+- Loading strategy:
+  - `HomePage`, `WondersPage`, and `WondersHubPage` are eager-loaded because they are mostly static and part of the primary navigation flow
+  - `ApodPage`, `NasaImagePage`, `EpicPage`, and `AsteroidWatchPage` remain lazy-loaded
+  - route fallbacks for lazy routes are shaped to mirror the real layouts and reduce layout shift
+- Static-content strategy:
+  - homepage card/stat content is extracted into `frontend/src/content/`
+  - Wonders destination metadata is centralized in `frontend/src/lib/wondersUi.ts`
+- Shared UX patterns:
+  - route changes scroll to top
+  - error states use one shared inline error notice
+  - homepage images use eager vs lazy loading based on page priority
+  - APOD and EPIC use compact mobile preset controls to avoid overcrowded filter bars
+
+### Backend
+
+- Structure: route -> controller -> service
+- Controllers handle:
+  - query validation
+  - HTTP status selection
+  - user-facing error payloads
+- Services handle:
+  - NASA API calls
+  - response mapping
+  - retry/backoff for transient upstream failures
+  - in-flight request deduplication
+  - cache and cooldown behavior
+- APOD includes an extra safeguard for "latest" requests:
+  - if NASA has not published the newest day yet, the service falls back to the most recent available APOD instead of failing the UI
+
+## API Contract
+
+The frontend talks only to the backend.
+
+Current backend routes:
+
+- `GET /healthz`
+- `GET /api/apod`
+- `GET /api/nasa-image`
+- `GET /api/epic`
+- `GET /api/epic/dates`
+- `GET /api/neows/feed`
+
+Error responses are standardized as:
+
+```json
+{
+  "error": "Human-readable message",
+  "code": "stable_error_code",
+  "status": 400
+}
+```
+
+Status-code policy:
+
+- `400` — invalid user input or invalid filter combinations
+- `502` — NASA/upstream temporary failure
+- `500` — unexpected internal server failure
+
 ## Live Deployment
 
 | Service        | Platform | URL                                                                                      |
@@ -185,3 +270,18 @@ Workflow file: `.github/workflows/ci.yml`
 - Nginx
 - Playwright
 - Prettier
+
+## Testing Snapshot
+
+- Frontend:
+  - Vitest + React Testing Library for route, component, and utility coverage
+  - targeted regressions for header/mobile-menu behavior, route fallbacks, and loading-state UX
+- Backend:
+  - Jest + Supertest for controller and service coverage
+  - controller tests assert validation, status codes, and structured error payloads
+  - service tests cover caching, retries, cooldowns, deduplication, and fallback behavior
+
+Detailed testing notes live in:
+
+- [frontend/TESTING.md](/c:/Users/User/nasa-web-app/frontend/TESTING.md)
+- [backend/TESTING.md](/c:/Users/User/nasa-web-app/backend/TESTING.md)

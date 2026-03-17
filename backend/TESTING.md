@@ -46,6 +46,16 @@ These backend tests are intentionally split into:
 - controller tests for validation and HTTP response behavior
 - service tests for caching, retries, cooldowns, deduplication, and response mapping
 
+Controller-level errors now use a shared response contract:
+
+```json
+{
+  "error": "Human-readable message",
+  "code": "stable_error_code",
+  "status": 400
+}
+```
+
 ## Controller Tests — APOD (`controllers/apod.test.ts`)
 
 These are HTTP-level tests. The service layer is mocked with `jest.mock()` — the controller is tested in isolation for input validation and response mapping.
@@ -61,7 +71,7 @@ These are HTTP-level tests. The service layer is mocked with `jest.mock()` — t
 | Test                              | Validates                                                  |
 | --------------------------------- | ---------------------------------------------------------- |
 | Valid single-date request         | 200 + correct body + correct args passed to service        |
-| Invalid date format               | 400 — wrong format like `11-03-2026`                       |
+| Invalid date format               | 400 + structured error payload for wrong format            |
 | Invalid start_date format         | 400 — slash-separated like `2026/03/01`                    |
 | Invalid end_date format           | 400 — slash-separated like `2026/03/99`                    |
 | Impossible calendar date          | 400 — `2026-02-31` caught by UTC round-trip validation     |
@@ -75,8 +85,8 @@ These are HTTP-level tests. The service layer is mocked with `jest.mock()` — t
 | Valid date range                  | 200 + start_date and end_date forwarded to service         |
 | Conflicting params (date + count) | 400 — date cannot combine with other query modes           |
 | start_date > end_date             | 400 — invalid range ordering                               |
-| NASA service failure              | 502 — error message containing "NASA API" mapped to 502    |
-| Unexpected error                  | 500 — delegated to global error handler                    |
+| NASA service failure              | 502 + structured upstream error payload                    |
+| Unexpected error                  | 500 + structured internal error payload                    |
 
 ## Service Tests — APOD (`services/apod.test.ts`)
 
@@ -101,6 +111,8 @@ These are unit tests against the service's caching, retry, and deduplication log
 | Cooldown after repeated failures | After 3 retries fail, immediate re-request is blocked without hitting NASA                         |
 | Range fallback                   | When NASA fails for uncached dates in a range, any already-cached items in that range are returned |
 | Retry with backoff               | Transient 500/503 errors are retried up to 3 times and succeed on the third attempt                |
+| Latest-date fallback             | If NASA has not published the newest APOD yet, the service falls back to the previous day          |
+| Latest-range fallback            | If a range ends on an unavailable newest APOD day, the service retries without that newest day     |
 
 ## Controller Tests — NASA Image Library (`controllers/nasaImage.test.ts`)
 
@@ -108,26 +120,26 @@ These are HTTP-level tests for the NASA Image Library search endpoint. The servi
 
 **What is covered:**
 
-| Test                    | Validates                                                 |
-| ----------------------- | --------------------------------------------------------- |
-| Valid search query      | 200 + results returned + correct args passed to service   |
-| Missing query           | 400 — `q` parameter is required                           |
-| Empty query             | 400 — empty string rejected                               |
-| Whitespace-only query   | 400 — whitespace-only string rejected                     |
-| Query over 200 chars    | 400 — length limit enforced                               |
-| Valid media_type filter | 200 + media_type forwarded to service                     |
-| Invalid media_type      | 400 — only image, video, audio accepted                   |
-| Valid year range        | 200 + year_start and year_end forwarded                   |
-| Invalid year_start      | 400 — non-four-digit year rejected                        |
-| Invalid year_end        | 400 — non-four-digit year rejected                        |
-| year_start > year_end   | 400 — invalid year range ordering                         |
-| Valid page parameter    | 200 + parsed page number forwarded to service             |
-| All valid filters       | 200 + all validated filters forwarded together            |
-| Non-numeric page        | 400 — `abc` rejected                                      |
-| Page = 0                | 400 — zero rejected                                       |
-| NASA service failure    | 502 — error containing "NASA Image Library" mapped to 502 |
-| Unexpected error        | 500 — delegated to global error handler                   |
-| Query trimming          | Leading/trailing whitespace stripped before forwarding    |
+| Test                    | Validates                                               |
+| ----------------------- | ------------------------------------------------------- |
+| Valid search query      | 200 + results returned + correct args passed to service |
+| Missing query           | 400 — `q` parameter is required                         |
+| Empty query             | 400 — empty string rejected                             |
+| Whitespace-only query   | 400 — whitespace-only string rejected                   |
+| Query over 200 chars    | 400 — length limit enforced                             |
+| Valid media_type filter | 200 + media_type forwarded to service                   |
+| Invalid media_type      | 400 — only image, video, audio accepted                 |
+| Valid year range        | 200 + year_start and year_end forwarded                 |
+| Invalid year_start      | 400 — non-four-digit year rejected                      |
+| Invalid year_end        | 400 — non-four-digit year rejected                      |
+| year_start > year_end   | 400 — invalid year range ordering                       |
+| Valid page parameter    | 200 + parsed page number forwarded to service           |
+| All valid filters       | 200 + all validated filters forwarded together          |
+| Non-numeric page        | 400 — `abc` rejected                                    |
+| Page = 0                | 400 — zero rejected                                     |
+| NASA service failure    | 502 + structured upstream error payload                 |
+| Unexpected error        | 500 + structured internal error payload                 |
+| Query trimming          | Leading/trailing whitespace stripped before forwarding  |
 
 ## Service Tests — NASA Image Library (`services/nasaImage.test.ts`)
 
@@ -166,8 +178,8 @@ These are HTTP-level tests for both EPIC endpoints (`/api/epic` and `/api/epic/d
 | Invalid date format             | 400 — non-YYYY-MM-DD format rejected                        |
 | Date with extra chars           | 400 — datetime-like strings rejected                        |
 | Impossible calendar date        | 400 — `2026-02-31` rejected by UTC round-trip validation    |
-| NASA service failure            | 502 — error containing "NASA EPIC" mapped to 502            |
-| Unexpected error                | 500 — delegated to global error handler                     |
+| NASA service failure            | 502 + structured upstream error payload                     |
+| Unexpected error                | 500 + structured internal error payload                     |
 
 **What is covered (getEpicDates):**
 
@@ -176,8 +188,8 @@ These are HTTP-level tests for both EPIC endpoints (`/api/epic` and `/api/epic/d
 | Natural dates        | 200 + dates returned + service called with `natural` |
 | Enhanced collection  | `enhanced` forwarded to service                      |
 | Invalid collection   | Defaults to `natural`                                |
-| NASA service failure | 502 — error containing "NASA EPIC" mapped to 502     |
-| Unexpected error     | 500 — delegated to global error handler              |
+| NASA service failure | 502 + structured upstream error payload              |
+| Unexpected error     | 500 + structured internal error payload              |
 
 ## Service Tests — EPIC (`services/epic.test.ts`)
 
@@ -236,8 +248,8 @@ These are HTTP-level tests for the NeoWs feed endpoint. The service layer is moc
 | Range exceeds 7 days  | 400 — more than 7 inclusive days rejected                          |
 | Full 7-day range      | 200 — maximum valid range is accepted                              |
 | 8-day inclusive range | 400 — one day beyond the 7-day limit is rejected                   |
-| NASA service failure  | 502 — NeoWs upstream errors mapped to temporary-unavailable error  |
-| Unexpected error      | 500 — delegated to global error handler                            |
+| NASA service failure  | 502 + structured upstream error payload                            |
+| Unexpected error      | 500 + structured internal error payload                            |
 
 ## Service Tests — NeoWs (`services/neows.test.ts`)
 

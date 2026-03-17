@@ -25,10 +25,18 @@ frontend/src/
 ├── components/
 │   └── Apod/
 │       ├── ApodCard.tsx
-│       └── ApodCard.test.tsx
+│       ├── ApodCard.test.tsx
+│       ├── DateFilter.tsx
+│       └── DateFilter.test.tsx
+├── components/
+│   └── Header/
+│       ├── Navbar.tsx
+│       └── Navbar.test.tsx
 ├── lib/
 │   ├── apodMeta.ts
-│   └── apodMeta.test.ts
+│   ├── apodMeta.test.ts
+│   ├── api.ts
+│   └── api.test.ts
 ├── pages/
 │   ├── HomePage.tsx
 │   ├── HomePage.test.tsx
@@ -130,7 +138,7 @@ These are page-level behavior tests for the NASA Image Library route. The `useNa
 | Initial empty state    | Popular search suggestions render before any query is submitted    |
 | Search submission      | Submitting a query displays result cards                           |
 | Result count display   | Total hit count renders when results are found                     |
-| Loading skeletons      | 12 skeleton cards render during initial search                     |
+| Loading skeletons      | 100 skeleton cards render during the first search-loading state    |
 | Error state            | Hook error renders the error banner                                |
 | No-results state       | Empty search results render a no-results message                   |
 | Load more button click | `loadMore` is called when the button is pressed                    |
@@ -173,6 +181,47 @@ These are page-level behavior tests for the EPIC route. Both `useEpic` and `useE
 | Collection reset behavior    | Switching collection resets back to the latest available date     |
 | Modal open/close             | Clicking a card opens the detail modal, close button dismisses it |
 | Default date selection       | Hook is called with the first available date by default           |
+
+## Component Tests — APOD Date Filter (`components/Apod/DateFilter.test.tsx`)
+
+These tests cover the APOD preset control itself, separate from page-level APOD behavior.
+
+**What is covered:**
+
+| Test                     | Validates                                                                 |
+| ------------------------ | ------------------------------------------------------------------------- |
+| Mobile preset collapse   | On mobile widths, one primary preset chip remains visible                 |
+| Overflow preset menu     | Remaining APOD presets move into a `More` menu instead of a full chip row |
+| Custom button separation | `Custom` remains visible as its own control                               |
+| Preset callback wiring   | Selecting a preset from the overflow menu calls the expected date handler |
+
+## Component Tests — Navbar (`components/Header/Navbar.test.tsx`)
+
+These tests cover the responsive navigation shell and mobile-menu behavior.
+
+**What is covered:**
+
+| Test                    | Validates                                                           |
+| ----------------------- | ------------------------------------------------------------------- |
+| Mobile menu open/close  | Menu opens and closes through the navbar controls                   |
+| Escape handling         | `Escape` closes the mobile menu                                     |
+| Resize close behavior   | Resizing from mobile to desktop closes the menu                     |
+| Body scroll restoration | Closing the mobile menu restores document scroll                    |
+| Wonders active state    | Only one Wonders destination is active at a time in the mobile menu |
+
+## Utility Tests — API Client (`lib/api.test.ts`)
+
+These tests cover frontend-side error normalization in the shared fetch client.
+
+**What is covered:**
+
+| Test                       | Validates                                                            |
+| -------------------------- | -------------------------------------------------------------------- |
+| Network failure mapping    | Raw browser fetch failures become public-friendly network copy       |
+| Upstream error passthrough | Structured backend error messages are preserved                      |
+| Generic 5xx mapping        | Unknown server errors fall back to shared temporary-unavailable copy |
+| Generic 4xx mapping        | Unknown client errors fall back to shared request-adjustment copy    |
+| Abort passthrough          | `AbortError` is rethrown unchanged for request-cancellation flows    |
 
 ## Page Tests — Asteroid Watch (`pages/AsteroidWatchPage.test.tsx`)
 

@@ -3,13 +3,24 @@ import { Calendar, Globe, Sparkles } from 'lucide-react'
 import EpicCard from '@/components/Epic/EpicCard'
 import EpicCardSkeleton from '@/components/Epic/EpicCardSkeleton'
 import EpicModal from '@/components/Epic/EpicModal'
+import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
 import MiniCalendar from '@/components/MiniCalendar'
 import FilterChipButton from '@/components/Wonders/FilterChipButton'
 import ActiveFilterPill from '@/components/Wonders/ActiveFilterPill'
+import PresetOverflowMenu from '@/components/Wonders/PresetOverflowMenu'
 import SegmentedControl from '@/components/Wonders/SegmentedControl'
+import {
+  epicDateOptions,
+  epicInitialCardCount,
+  epicIntro,
+  epicSectionDescription,
+  epicSectionKicker,
+  epicSectionTitle,
+} from '@/content/epicContent'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { formatLabel, todayStr } from '@/lib/calendarUtils'
 import { useEpic, useEpicDates } from '@/hooks/useEpic'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import type { EpicCollection, EpicImage } from '@/types/epic'
 
 type EpicDatePreset = 'latest' | 'previous' | 'week' | 'month' | 'custom'
@@ -25,6 +36,7 @@ export default function EpicPage() {
   const { images, loading, error } = useEpic(collection, effectiveSelectedDate)
   const [selectedItem, setSelectedItem] = useState<EpicImage | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const isMobile = useMediaQuery('(max-width: 639px)')
 
   useEffect(() => {
     document.title = 'EPIC | Wonders of the Universe | Home & Beyond'
@@ -85,38 +97,32 @@ export default function EpicPage() {
   const epicSelectionLabel = (() => {
     if (datePreset === 'latest') return null
     if (datePreset === 'previous') return 'Previous'
-    if (datePreset === 'week') return 'Last 7 days'
-    if (datePreset === 'month') return 'Last 30 days'
+    if (datePreset === 'week') return '1 week ago'
+    if (datePreset === 'month') return '1 month ago'
     if (effectiveSelectedDate) return formatLabel(effectiveSelectedDate)
     return null
   })()
 
-  const dateOptions: { label: string; value: Exclude<EpicDatePreset, 'custom'> }[] = [
-    { label: 'Latest', value: 'latest' },
-    { label: 'Previous', value: 'previous' },
-    { label: 'Last 7 days', value: 'week' },
-    { label: 'Last 30 days', value: 'month' },
-  ]
+  const dateOptions = epicDateOptions
+  const mobilePrimaryOption =
+    datePreset === 'custom'
+      ? dateOptions[0]
+      : (dateOptions.find((option) => option.value === datePreset) ?? dateOptions[0])
+  const shouldShowEpicSelectionPill =
+    isEpicFiltered && epicSelectionLabel && (!isMobile || datePreset === 'custom')
 
   return (
     <>
-      <p className="mb-6 text-sm leading-7 text-slate-500 dark:text-slate-400">
-        EPIC offers full-disk Earth imagery captured from deep space. Switch between natural color
-        and enhanced imagery to compare how cloud structures, landmasses, and atmospheric patterns
-        appear from the DSCOVR mission.
-      </p>
+      <p className="mb-6 text-base leading-8 text-slate-500 dark:text-slate-400">{epicIntro}</p>
 
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="font-nasa text-xs uppercase tracking-[0.28em] text-cyan-500 dark:text-cyan-300">
-            Earth From Deep Space
-          </p>
+          <p className="ui-kicker">{epicSectionKicker}</p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
-            Daily full-disk views of Earth
+            {epicSectionTitle}
           </h2>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-            Switch between the latest Earth views, quick date presets, or a custom day across both
-            EPIC collections.
+          <p className="mt-2 text-base leading-7 text-slate-600 dark:text-slate-400">
+            {epicSectionDescription}
           </p>
         </div>
 
@@ -132,20 +138,33 @@ export default function EpicPage() {
       <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap gap-2">
-            {dateOptions.map((option) => (
-              <FilterChipButton
-                key={option.value}
-                onClick={() => handleDatePreset(option.value)}
-                active={datePreset === option.value}
-              >
-                {option.label}
-              </FilterChipButton>
-            ))}
+            {isMobile ? (
+              <PresetOverflowMenu
+                currentValue={mobilePrimaryOption.value}
+                currentActive={datePreset === mobilePrimaryOption.value}
+                options={dateOptions.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                }))}
+                onSelect={(value) => handleDatePreset(value as Exclude<EpicDatePreset, 'custom'>)}
+              />
+            ) : (
+              dateOptions.map((option) => (
+                <FilterChipButton
+                  key={option.value}
+                  onClick={() => handleDatePreset(option.value)}
+                  active={datePreset === option.value}
+                >
+                  {option.label}
+                </FilterChipButton>
+              ))
+            )}
             <div className="relative" ref={dropdownRef}>
               <FilterChipButton
                 onClick={() => setCalendarOpen(!calendarOpen)}
                 active={datePreset === 'custom' || calendarOpen}
                 className="inline-flex items-center gap-1.5"
+                ariaExpanded={calendarOpen}
               >
                 <Calendar size={13} />
                 Custom
@@ -164,7 +183,7 @@ export default function EpicPage() {
                 </div>
               )}
             </div>
-            {isEpicFiltered && epicSelectionLabel && (
+            {shouldShowEpicSelectionPill && (
               <ActiveFilterPill label={epicSelectionLabel} onClear={handleEpicReset} />
             )}
           </div>
@@ -189,9 +208,7 @@ export default function EpicPage() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
-          {error}
-        </div>
+        <InlineErrorNotice className="mb-6" title="Unable to load EPIC imagery" message={error} />
       )}
 
       {!loading && !error && images.length === 0 && !datesLoading && (
@@ -205,7 +222,9 @@ export default function EpicPage() {
           <EpicCard key={item.identifier} item={item} onClick={setSelectedItem} />
         ))}
         {(loading || datesLoading) &&
-          Array.from({ length: 8 }).map((_, index) => <EpicCardSkeleton key={index} />)}
+          Array.from({ length: epicInitialCardCount }).map((_, index) => (
+            <EpicCardSkeleton key={index} />
+          ))}
       </div>
 
       {selectedItem && <EpicModal item={selectedItem} onClose={() => setSelectedItem(null)} />}

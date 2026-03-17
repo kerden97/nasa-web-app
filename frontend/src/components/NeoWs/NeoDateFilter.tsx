@@ -13,11 +13,11 @@ interface NeoDateFilterProps {
 type NeoPreset = { label: string; getRange: () => [string, string] | [string] }
 
 const chipBase =
-  'whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-200'
+  'whitespace-nowrap rounded-full px-4 py-2 text-xs font-medium transition-all duration-200'
 const chipIdle =
-  'border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:bg-slate-800'
+  'border border-slate-200/80 bg-white/82 text-slate-600 shadow-[0_8px_24px_rgba(15,23,42,0.04)] hover:border-slate-300 hover:bg-white dark:border-slate-700/80 dark:bg-slate-950/35 dark:text-slate-400 dark:shadow-none dark:hover:border-slate-600 dark:hover:bg-slate-900/60'
 const chipActive =
-  'border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300'
+  'border border-[rgba(11,61,145,0.18)] bg-[rgba(11,61,145,0.08)] text-[#0B3D91] shadow-[0_10px_26px_rgba(11,61,145,0.08)] dark:border-[rgba(140,184,255,0.28)] dark:bg-[rgba(11,61,145,0.25)] dark:text-[#8CB8FF] dark:shadow-[0_14px_32px_rgba(11,61,145,0.16)]'
 
 export default function NeoDateFilter({ defaultRange, onChange }: NeoDateFilterProps) {
   const [calendarOpen, setCalendarOpen] = useState(false)
@@ -120,108 +120,109 @@ export default function NeoDateFilter({ defaultRange, onChange }: NeoDateFilterP
   const isFiltered = currentStart !== defaultRange.start || currentEnd !== defaultRange.end
 
   const selectionLabel = (() => {
-    if (activePreset) return `Showing: ${activePreset}`
-    if (rangeStart && rangeEnd)
-      return `Custom range: ${formatLabel(rangeStart)} – ${formatLabel(rangeEnd)}`
-    if (rangeStart) return `Custom date: ${formatLabel(rangeStart)}`
+    if (activePreset) return activePreset
+    if (rangeStart && rangeEnd) return `${formatLabel(rangeStart)} – ${formatLabel(rangeEnd)}`
+    if (rangeStart) return formatLabel(rangeStart)
     return null
   })()
 
   return (
-    <div className="mb-8 flex flex-wrap items-center gap-2">
-      {neoPresets.map((preset) => (
-        <button
-          key={preset.label}
-          type="button"
-          onClick={() => applyPreset(preset)}
-          className={`${chipBase} ${activePreset === preset.label ? chipActive : chipIdle}`}
-        >
-          {preset.label}
-        </button>
-      ))}
+    <div className="relative z-30 mb-8">
+      <div className="flex flex-wrap items-center gap-2">
+        {neoPresets.map((preset) => (
+          <button
+            key={preset.label}
+            type="button"
+            onClick={() => applyPreset(preset)}
+            className={`${chipBase} ${activePreset === preset.label ? chipActive : chipIdle}`}
+          >
+            {preset.label}
+          </button>
+        ))}
 
-      <div className="relative" ref={calendarRef}>
-        <button
-          type="button"
-          onClick={() => setCalendarOpen(!calendarOpen)}
-          className={`${chipBase} inline-flex items-center gap-1.5 ${
-            calendarOpen || (isFiltered && !activePreset) ? chipActive : chipIdle
-          }`}
-        >
-          <Calendar size={13} />
-          Custom
-        </button>
+        <div className="relative" ref={calendarRef}>
+          <button
+            type="button"
+            onClick={() => setCalendarOpen(!calendarOpen)}
+            className={`${chipBase} inline-flex items-center gap-1.5 ${
+              calendarOpen || (isFiltered && !activePreset) ? chipActive : chipIdle
+            }`}
+          >
+            <Calendar size={13} />
+            Custom
+          </button>
 
-        {calendarOpen && (
-          <div className="absolute left-0 top-full z-40 mt-2 rounded-xl border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-900">
-            <div className="mb-3 flex rounded-lg border border-slate-200 dark:border-slate-700">
-              <button
-                type="button"
-                onClick={() => {
-                  setCalendarMode('single')
-                  setRangeStart(null)
-                  setRangeEnd(null)
-                }}
-                className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${
-                  calendarMode === 'single'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                } rounded-l-lg`}
-              >
-                Single date
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setCalendarMode('range')
-                  setRangeStart(null)
-                  setRangeEnd(null)
-                }}
-                className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${
-                  calendarMode === 'range'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                } rounded-r-lg`}
-              >
-                Date range
-              </button>
+          {calendarOpen && (
+            <div className="absolute left-0 top-full z-50 mt-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_24px_60px_rgba(15,23,42,0.16)] dark:border-slate-700 dark:bg-slate-900">
+              <div className="mb-3 flex rounded-xl border border-slate-200 bg-slate-50/80 p-1 dark:border-slate-700 dark:bg-slate-950/55">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCalendarMode('single')
+                    setRangeStart(null)
+                    setRangeEnd(null)
+                  }}
+                  className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                    calendarMode === 'single'
+                      ? 'bg-[#0B3D91] text-white dark:bg-[#8CB8FF] dark:text-slate-950'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                  }`}
+                >
+                  Single date
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCalendarMode('range')
+                    setRangeStart(null)
+                    setRangeEnd(null)
+                  }}
+                  className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                    calendarMode === 'range'
+                      ? 'bg-[#0B3D91] text-white dark:bg-[#8CB8FF] dark:text-slate-950'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                  }`}
+                >
+                  Date range
+                </button>
+              </div>
+
+              {calendarMode === 'range' && (
+                <p className="mb-3 text-[11px] text-slate-500 dark:text-slate-400">
+                  {!rangeStart
+                    ? 'Pick a start date'
+                    : !rangeEnd
+                      ? 'Now pick an end date (max 7 days)'
+                      : 'Range selected'}
+                </p>
+              )}
+
+              <MiniCalendar
+                rangeStart={rangeStart}
+                rangeEnd={rangeEnd}
+                hoveredDate={calendarMode === 'range' ? hoveredDate : null}
+                onSelect={handleCalendarSelect}
+                onHover={setHoveredDate}
+                isDateDisabled={isDateDisabled}
+              />
             </div>
+          )}
+        </div>
 
-            {calendarMode === 'range' && (
-              <p className="mb-3 text-[11px] text-slate-500 dark:text-slate-400">
-                {!rangeStart
-                  ? 'Pick a start date'
-                  : !rangeEnd
-                    ? 'Now pick an end date (max 7 days)'
-                    : 'Range selected'}
-              </p>
-            )}
-
-            <MiniCalendar
-              rangeStart={rangeStart}
-              rangeEnd={rangeEnd}
-              hoveredDate={calendarMode === 'range' ? hoveredDate : null}
-              onSelect={handleCalendarSelect}
-              onHover={setHoveredDate}
-              isDateDisabled={isDateDisabled}
-            />
+        {selectionLabel && isFiltered && (
+          <div className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-[rgba(11,61,145,0.18)] bg-[rgba(11,61,145,0.08)] px-3 py-2 text-xs font-medium text-[#0B3D91] dark:border-[rgba(140,184,255,0.28)] dark:bg-[rgba(11,61,145,0.25)] dark:text-[#8CB8FF]">
+            <span>{selectionLabel}</span>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="rounded-full p-0.5 text-[#0B3D91] transition-colors hover:bg-[rgba(11,61,145,0.12)] hover:text-[#0F4FB8] dark:text-[#8CB8FF] dark:hover:bg-[rgba(11,61,145,0.35)] dark:hover:text-[#B5CFFF]"
+              aria-label="Clear filter"
+            >
+              <X size={14} />
+            </button>
           </div>
         )}
       </div>
-
-      {isFiltered && (
-        <div className="ml-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
-          {selectionLabel && <span>{selectionLabel}</span>}
-          <button
-            type="button"
-            onClick={handleReset}
-            className="rounded-full p-0.5 text-blue-500 transition-colors hover:bg-blue-100 hover:text-blue-700 dark:text-blue-300 dark:hover:bg-blue-900 dark:hover:text-blue-200"
-            aria-label="Clear filter"
-          >
-            <X size={14} />
-          </button>
-        </div>
-      )}
     </div>
   )
 }

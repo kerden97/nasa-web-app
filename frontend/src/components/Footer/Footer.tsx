@@ -1,10 +1,9 @@
 import { Link, NavLink } from 'react-router-dom'
+import { asteroidDestination, wondersDestinations } from '@/lib/navigation'
 
 const footerLinks = [
-  { to: '/wonders-of-the-universe/apod', label: 'APOD' },
-  { to: '/wonders-of-the-universe/nasa-image-library', label: 'Image Library' },
-  { to: '/wonders-of-the-universe/epic', label: 'EPIC' },
-  { to: '/asteroid-watch', label: 'Asteroid Watch' },
+  ...wondersDestinations.map(({ to, shortLabel }) => ({ to, label: shortLabel })),
+  { to: asteroidDestination.to, label: asteroidDestination.label },
 ] as const
 
 export default function Footer() {
@@ -36,7 +35,7 @@ export default function Footer() {
                     className={({ isActive }) =>
                       `rounded-full px-2 py-1 transition-colors ${
                         isActive
-                          ? 'bg-cyan-400/10 text-cyan-700 dark:text-cyan-300'
+                          ? 'bg-[rgba(11,61,145,0.1)] text-[#0B3D91] dark:text-[#8CB8FF]'
                           : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                       }`
                     }
@@ -58,7 +57,7 @@ export default function Footer() {
               href="https://api.nasa.gov/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-2.5 py-0.5 text-xs font-medium text-blue-600 transition-colors hover:border-blue-400 hover:text-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-blue-400 dark:hover:border-blue-700 dark:hover:text-blue-300"
+              className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-2.5 py-0.5 text-xs font-medium text-[#0B3D91] transition-colors hover:border-[#0B3D91]/40 hover:text-[#0F4FB8] dark:border-slate-700 dark:bg-slate-900 dark:text-[#8CB8FF] dark:hover:border-[#8CB8FF]/40 dark:hover:text-[#B5CFFF]"
             >
               <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />

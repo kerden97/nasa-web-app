@@ -23,9 +23,7 @@ export default function ExternalLinkPrompt({
         className="w-full max-w-md rounded-[24px] border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
         onClick={(event) => event.stopPropagation()}
       >
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-cyan-600 dark:text-cyan-400">
-          Leaving Home &amp; Beyond
-        </p>
+        <p className="ui-kicker">Leaving Home &amp; Beyond</p>
         <h3 className="mt-3 text-xl font-semibold text-slate-900 dark:text-white">
           Open {label} media?
         </h3>

@@ -44,6 +44,8 @@ describe('APOD controller', () => {
 
     expect(response.status).toBe(400)
     expect(response.body.error).toContain('Invalid date format')
+    expect(response.body.code).toBe('invalid_date')
+    expect(response.body.status).toBe(400)
     expect(mockedFetchApod).not.toHaveBeenCalled()
   })
 
@@ -123,6 +125,8 @@ describe('APOD controller', () => {
 
     expect(response.status).toBe(502)
     expect(response.body.error).toContain("NASA's API is temporarily unavailable")
+    expect(response.body.code).toBe('upstream_service_unavailable')
+    expect(response.body.status).toBe(502)
   })
 
   it('passes unexpected errors to the global error handler', async () => {
@@ -132,6 +136,8 @@ describe('APOD controller', () => {
 
     expect(response.status).toBe(500)
     expect(response.body.error).toBe('Internal server error')
+    expect(response.body.code).toBe('internal_server_error')
+    expect(response.body.status).toBe(500)
   })
 
   it('returns 400 when date is combined with other params', async () => {

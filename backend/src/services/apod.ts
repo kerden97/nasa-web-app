@@ -60,6 +60,21 @@ function subtractDays(iso: string, days: number): string {
   return formatDate(d)
 }
 
+function clampApodDate(iso: string): string {
+  const today = todayUTC()
+  if (iso < APOD_EPOCH) return APOD_EPOCH
+  if (iso > today) return today
+  return iso
+}
+
+function isNasaApiError(error: unknown): error is Error {
+  return error instanceof Error && error.message.includes('NASA API')
+}
+
+function shouldFallbackLatestDate(date: string, error: unknown): boolean {
+  return isNasaApiError(error) && date >= todayUTC() && date > APOD_EPOCH
+}
+
 // In-flight request deduplication — prevents concurrent identical NASA API calls
 const inflight = new Map<string, Promise<ApodItem[]>>()
 
@@ -129,39 +144,58 @@ async function fetchFromNasa(query: ApodQuery): Promise<ApodItem[]> {
 export async function fetchApod(query: ApodQuery): Promise<ApodItem | ApodItem[]> {
   // Single date — check cache and cooldown first
   if (query.date) {
-    const cached = getCached(query.date)
-    if (cached) {
-      logger.info('APOD cache hit', { date: query.date })
-      return cached
-    }
-
-    // Don't retry a date that recently failed — error instantly
-    const lastFail = failedDates.get(query.date)
-    if (lastFail && Date.now() - lastFail.timestamp < FAIL_COOLDOWN_MS) {
-      logger.info('Skipping fetch — date in cooldown', { date: query.date })
-      throw new Error(lastFail.message)
-    }
-
-    try {
-      const items = await fetchFromNasa(query)
-      failedDates.delete(query.date) // success — clear cooldown
-      return items[0]!
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'NASA API error'
-      failedDates.set(query.date, { timestamp: Date.now(), message })
-      throw error
-    }
+    return fetchSingleDate(query.date)
   }
 
   // Explicit range without count — serve as-is
   if (query.start_date && !query.count) {
-    return fetchRange(query.start_date, query.end_date ?? todayUTC())
+    const startDate = clampApodDate(query.start_date)
+    const endDate = clampApodDate(query.end_date ?? todayUTC())
+    return fetchRange(startDate, endDate)
   }
 
   // Fill to exact count (default load or load-more with end_date + count)
   const target = query.count ?? DEFAULT_COUNT
-  const endDate = query.end_date ?? todayUTC()
+  const endDate = clampApodDate(query.end_date ?? todayUTC())
   return fetchExactCount(endDate, target)
+}
+
+async function fetchSingleDate(date: string, allowLatestFallback = true): Promise<ApodItem> {
+  const normalizedDate = clampApodDate(date)
+  const cached = getCached(normalizedDate)
+  if (cached) {
+    logger.info('APOD cache hit', { date: normalizedDate })
+    return cached
+  }
+
+  const lastFail = failedDates.get(normalizedDate)
+  if (lastFail && Date.now() - lastFail.timestamp < FAIL_COOLDOWN_MS) {
+    logger.info('Skipping fetch — date in cooldown', { date: normalizedDate })
+    if (allowLatestFallback && normalizedDate > APOD_EPOCH && normalizedDate >= todayUTC()) {
+      return fetchSingleDate(subtractDays(normalizedDate, 1), false)
+    }
+    throw new Error(lastFail.message)
+  }
+
+  try {
+    const items = await fetchFromNasa({ date: normalizedDate })
+    failedDates.delete(normalizedDate)
+    return items[0]!
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'NASA API error'
+    failedDates.set(normalizedDate, { timestamp: Date.now(), message })
+
+    if (allowLatestFallback && shouldFallbackLatestDate(normalizedDate, error)) {
+      const fallbackDate = subtractDays(normalizedDate, 1)
+      logger.warn('Latest APOD date unavailable, falling back to previous day', {
+        requestedDate: normalizedDate,
+        fallbackDate,
+      })
+      return fetchSingleDate(fallbackDate, false)
+    }
+
+    throw error
+  }
 }
 
 async function fetchRange(startDate: string, endDate: string): Promise<ApodItem[]> {
@@ -207,6 +241,19 @@ async function fetchRange(startDate: string, endDate: string): Promise<ApodItem[
       .filter((item): item is ApodItem => !!item)
       .reverse()
   } catch (error) {
+    if (shouldFallbackLatestDate(endDate, error)) {
+      const fallbackEnd = subtractDays(endDate, 1)
+      logger.warn('Latest APOD range end unavailable, retrying without newest day', {
+        start_date: startDate,
+        requestedEnd: endDate,
+        fallbackEnd,
+      })
+      if (fallbackEnd < startDate) {
+        return [await fetchSingleDate(fallbackEnd, false)]
+      }
+      return fetchRange(startDate, fallbackEnd)
+    }
+
     // Fallback: serve any cached items we already have for the range
     const staleItems = dates.map((d) => cache.get(d)).filter((item): item is ApodItem => !!item)
     if (staleItems.length > 0) {

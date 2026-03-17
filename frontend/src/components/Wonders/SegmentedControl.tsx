@@ -32,7 +32,7 @@ export default function SegmentedControl<T extends string>({
             onClick={() => onChange(option.value)}
             className={`inline-flex h-8 min-w-22 items-center justify-center gap-1.5 rounded-xl px-4 text-sm font-medium leading-none transition-all ${
               active
-                ? 'bg-cyan-400/12 text-cyan-700 shadow-[0_0_0_1px_rgba(34,211,238,0.15),0_10px_24px_rgba(34,211,238,0.12)] dark:bg-cyan-400/14 dark:text-cyan-300'
+                ? 'bg-[rgba(11,61,145,0.1)] text-[#0B3D91] shadow-[0_0_0_1px_rgba(11,61,145,0.12),0_10px_24px_rgba(15,23,42,0.08)] dark:bg-[rgba(140,184,255,0.12)] dark:text-[#8CB8FF]'
                 : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/80 dark:hover:text-slate-200'
             }`}
           >

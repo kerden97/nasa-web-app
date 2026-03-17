@@ -68,12 +68,14 @@ export default function AsteroidTable({ neos }: AsteroidTableProps) {
 
   return (
     <div className="mt-8">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Near-Earth Objects</h2>
-        <RowsPerPageDropdown id="neo-rows-top" value={rowsPerPage} onChange={handleRowsPerPage} />
-      </div>
+      <div className="scrollbar-thin overflow-x-auto rounded-[28px] border border-slate-200/80 bg-white/82 shadow-[0_18px_48px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900/45 dark:shadow-[0_20px_52px_rgba(2,6,23,0.2)]">
+        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4 dark:border-slate-800">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+            Near-Earth Objects
+          </h2>
+          <RowsPerPageDropdown id="neo-rows-top" value={rowsPerPage} onChange={handleRowsPerPage} />
+        </div>
 
-      <div className="scrollbar-thin overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
         <table className="min-w-215 w-full table-fixed text-left text-sm">
           <colgroup>
             <col className="w-45" />
@@ -84,7 +86,7 @@ export default function AsteroidTable({ neos }: AsteroidTableProps) {
             <col className="w-30" />
           </colgroup>
           <thead>
-            <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50/95 shadow-sm backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/92">
               <SortableHeader
                 label="Name"
                 sortKey="name"
@@ -144,7 +146,7 @@ export default function AsteroidTable({ neos }: AsteroidTableProps) {
               return (
                 <tr
                   key={neo.id}
-                  className="border-b border-slate-100 transition odd:bg-white even:bg-slate-50/55 hover:bg-slate-100 dark:border-slate-800/50 dark:odd:bg-slate-950 dark:even:bg-slate-900/70 dark:hover:bg-slate-800/70"
+                  className="border-b border-slate-100 transition odd:bg-white/88 even:bg-slate-50/68 hover:bg-[rgba(11,61,145,0.05)] dark:border-slate-800/50 dark:odd:bg-slate-950/60 dark:even:bg-slate-900/66 dark:hover:bg-slate-800/72"
                 >
                   <td
                     className="truncate px-4 py-3 font-medium text-slate-900 dark:text-white"
@@ -152,22 +154,22 @@ export default function AsteroidTable({ neos }: AsteroidTableProps) {
                   >
                     {formatNeoDisplayName(neo.name)}
                   </td>
-                  <td className="px-4 py-3 text-right text-slate-600 dark:text-slate-300">
+                  <td className="px-4 py-3 text-right font-medium text-[#0B3D91] dark:text-[#8CB8FF]">
                     {avgD.toFixed(0)}
                   </td>
-                  <td className="px-4 py-3 text-right text-slate-600 dark:text-slate-300">
+                  <td className="px-4 py-3 text-right font-medium text-[#0B3D91] dark:text-[#8CB8FF]">
                     {ca ? parseFloat(ca.relative_velocity.kilometers_per_second).toFixed(1) : '—'}
                   </td>
-                  <td className="px-4 py-3 text-right text-slate-600 dark:text-slate-300">
+                  <td className="px-4 py-3 text-right font-medium text-[#0B3D91] dark:text-[#8CB8FF]">
                     {ca ? parseFloat(ca.miss_distance.lunar).toFixed(2) : '—'}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {neo.is_potentially_hazardous_asteroid ? (
-                      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                      <span className="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-700 dark:bg-rose-900/30 dark:text-rose-400">
                         Yes
                       </span>
                     ) : (
-                      <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                      <span className="inline-flex items-center rounded-full bg-[rgba(11,61,145,0.1)] px-2.5 py-0.5 text-xs font-medium text-[#0B3D91] dark:bg-[rgba(11,61,145,0.28)] dark:text-[#8CB8FF]">
                         No
                       </span>
                     )}
@@ -180,45 +182,34 @@ export default function AsteroidTable({ neos }: AsteroidTableProps) {
             })}
           </tbody>
         </table>
-      </div>
-
-      <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
-        LD (Lunar Distance) = ~384,400 km, the average distance from Earth to the Moon.
-      </p>
-
-      {/* Pagination */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300">
-          <span>Rows per page:</span>
-          <RowsPerPageDropdown
-            id="neo-rows-bottom"
-            value={rowsPerPage}
-            onChange={handleRowsPerPage}
-          />
-        </div>
-        <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-300">
-          <span>
-            {clampedPage * rowsPerPage + 1}–
-            {Math.min((clampedPage + 1) * rowsPerPage, sortedNeos.length)} of {sortedNeos.length}
-          </span>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            disabled={clampedPage === 0}
-            className="rounded-md p-1.5 transition hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-slate-800"
-            aria-label="Previous page"
-          >
-            <ChevronIcon direction="left" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-            disabled={clampedPage >= totalPages - 1}
-            className="rounded-md p-1.5 transition hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-slate-800"
-            aria-label="Next page"
-          >
-            <ChevronIcon direction="right" />
-          </button>
+        <div className="flex items-center justify-between gap-4 border-t border-slate-200 px-4 py-3 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-500">
+            LD (Lunar Distance) = ~384,400 km, the average distance from Earth to the Moon.
+          </p>
+          <div className="flex items-center gap-3 whitespace-nowrap">
+            <span>
+              {clampedPage * rowsPerPage + 1}–
+              {Math.min((clampedPage + 1) * rowsPerPage, sortedNeos.length)} of {sortedNeos.length}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={clampedPage === 0}
+              className="rounded-md p-1.5 transition hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-slate-800"
+              aria-label="Previous page"
+            >
+              <ChevronIcon direction="left" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={clampedPage >= totalPages - 1}
+              className="rounded-md p-1.5 transition hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-slate-800"
+              aria-label="Next page"
+            >
+              <ChevronIcon direction="right" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -254,10 +245,10 @@ function SortableHeader({
       >
         {label}
         <span className="inline-flex flex-col text-[10px] leading-none">
-          <span className={active && asc ? 'text-blue-600 dark:text-blue-400' : 'opacity-30'}>
+          <span className={active && asc ? 'text-[#0B3D91] dark:text-[#8CB8FF]' : 'opacity-30'}>
             ▲
           </span>
-          <span className={active && !asc ? 'text-blue-600 dark:text-blue-400' : 'opacity-30'}>
+          <span className={active && !asc ? 'text-[#0B3D91] dark:text-[#8CB8FF]' : 'opacity-30'}>
             ▼
           </span>
         </span>
@@ -292,7 +283,7 @@ function RowsPerPageDropdown({
         aria-controls={menuId}
         aria-label="Rows per page"
         onClick={() => setOpen((p) => !p)}
-        className="inline-flex min-h-8 items-center justify-center rounded-lg border border-slate-300 bg-white/80 px-2 py-1.5 text-xs font-medium text-slate-700 shadow-sm backdrop-blur-md transition hover:border-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-slate-500 sm:text-sm"
+        className="inline-flex min-h-8 items-center justify-center rounded-xl border border-slate-300 bg-white/80 px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm backdrop-blur-md transition hover:border-slate-400 dark:border-slate-700 dark:bg-slate-950/55 dark:text-slate-200 dark:hover:border-slate-500 sm:text-sm"
       >
         <span>{value}</span>
         <svg
@@ -313,7 +304,7 @@ function RowsPerPageDropdown({
       {open && (
         <div
           id={menuId}
-          className="absolute right-0 z-10 mt-1 w-14 origin-top-right rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
+          className="absolute right-0 z-10 mt-1 w-14 origin-top-right rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900"
           role="menu"
           aria-labelledby={id}
         >
@@ -328,7 +319,7 @@ function RowsPerPageDropdown({
               }}
               className={`block w-full rounded px-2 py-1.5 text-center text-xs font-medium transition sm:text-sm ${
                 n === value
-                  ? 'text-blue-600 dark:text-blue-400'
+                  ? 'text-[#0B3D91] dark:text-[#8CB8FF]'
                   : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
               }`}
             >

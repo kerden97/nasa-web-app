@@ -319,4 +319,90 @@ describe('APOD service', () => {
     expect((result as unknown as Record<string, unknown>).title).toBe('Recovered')
     expect(fetchMock).toHaveBeenCalledTimes(3)
   })
+
+  it('falls back to the previous APOD when the latest date is unavailable', async () => {
+    const failResponse = {
+      ok: false,
+      status: 500,
+      text: async () => 'Internal Service Error',
+    }
+
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(failResponse)
+      .mockResolvedValueOnce(failResponse)
+      .mockResolvedValueOnce(failResponse)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          date: '2026-03-12',
+          title: 'Previous day APOD',
+          explanation: 'Fallback payload',
+          url: 'https://example.com/previous.jpg',
+          media_type: 'image',
+          service_version: 'v1',
+        }),
+      })
+
+    global.fetch = fetchMock as typeof fetch
+
+    const promise = fetchApod({ date: '2026-03-13' })
+    await jest.advanceTimersByTimeAsync(1000)
+    await jest.advanceTimersByTimeAsync(2000)
+
+    const result = await promise
+
+    expect((result as { date: string }).date).toBe('2026-03-12')
+    expect(fetchMock).toHaveBeenCalledTimes(4)
+  })
+
+  it('falls back to the previous available range when the newest APOD day is unavailable', async () => {
+    const failResponse = {
+      ok: false,
+      status: 500,
+      text: async () => 'Internal Service Error',
+    }
+
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce(failResponse)
+      .mockResolvedValueOnce(failResponse)
+      .mockResolvedValueOnce(failResponse)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          {
+            date: '2026-03-11',
+            title: 'APOD 11',
+            explanation: 'Test',
+            url: 'https://example.com/11.jpg',
+            media_type: 'image' as const,
+            service_version: 'v1',
+          },
+          {
+            date: '2026-03-12',
+            title: 'APOD 12',
+            explanation: 'Test',
+            url: 'https://example.com/12.jpg',
+            media_type: 'image' as const,
+            service_version: 'v1',
+          },
+        ],
+      })
+
+    global.fetch = fetchMock as typeof fetch
+
+    const promise = fetchApod({ start_date: '2026-03-11', end_date: '2026-03-13' })
+    await jest.advanceTimersByTimeAsync(1000)
+    await jest.advanceTimersByTimeAsync(2000)
+
+    const result = await promise
+
+    expect(Array.isArray(result)).toBe(true)
+    expect((result as { date: string }[]).map((item) => item.date)).toEqual([
+      '2026-03-12',
+      '2026-03-11',
+    ])
+    expect(fetchMock).toHaveBeenCalledTimes(4)
+  })
 })

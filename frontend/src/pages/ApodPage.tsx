@@ -4,10 +4,11 @@ import { useApod } from '@/hooks/useApod'
 import { useGridSize } from '@/hooks/useGridSize'
 import ApodCard from '@/components/Apod/ApodCard'
 import ApodCardSkeleton from '@/components/Apod/ApodCardSkeleton'
+import ApodInitialLoadingState from '@/components/Apod/ApodInitialLoadingState'
 import ApodModal from '@/components/Apod/ApodModal'
 import DateFilter from '@/components/Apod/DateFilter'
 import FeaturedApodHero from '@/components/Apod/FeaturedApodHero'
-import FeaturedApodHeroSkeleton from '@/components/Apod/FeaturedApodHeroSkeleton'
+import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
 import SegmentedControl from '@/components/Wonders/SegmentedControl'
 import type { ApodItem } from '@/types/apod'
 
@@ -38,6 +39,10 @@ export default function ApodPage() {
   const featuredItem = visibleItems[0] ?? null
   const archiveItems = featuredItem && !isFiltered ? visibleItems.slice(1) : visibleItems
 
+  if (loading && items.length === 0 && !isFiltered) {
+    return <ApodInitialLoadingState />
+  }
+
   return (
     <>
       {!loading && items.length === 0 && !error && (
@@ -46,8 +51,6 @@ export default function ApodPage() {
         </div>
       )}
 
-      {loading && items.length === 0 && !isFiltered && <FeaturedApodHeroSkeleton />}
-
       {featuredItem && !loading && !error && !isFiltered && (
         <FeaturedApodHero item={featuredItem} onOpen={setSelectedItem} />
       )}
@@ -55,13 +58,11 @@ export default function ApodPage() {
       {(archiveItems.length > 0 || loading || error) && (
         <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="font-nasa text-xs uppercase tracking-[0.28em] text-cyan-500 dark:text-cyan-300">
-              Archive
-            </p>
+            <p className="ui-kicker">Archive</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
               Browse recent discoveries
             </h2>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+            <p className="mt-2 text-base leading-7 text-slate-600 dark:text-slate-400">
               Jump through recent APOD entries with quick presets or a custom date range.
             </p>
           </div>
@@ -100,9 +101,11 @@ export default function ApodPage() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/60 dark:text-red-400">
-          {error}
-        </div>
+        <InlineErrorNotice
+          className="mb-6"
+          title="Unable to load the APOD archive"
+          message={error}
+        />
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">

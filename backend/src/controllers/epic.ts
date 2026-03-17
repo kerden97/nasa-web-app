@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express'
+import { sendApiError } from '../lib/apiErrors'
 import { fetchEpicImages, fetchEpicDates } from '../services/epic'
 import type { EpicCollection } from '../types/epic'
 import { isValidDate } from '../lib/validation'
@@ -19,7 +20,7 @@ export async function getEpicImages(
         : 'natural'
 
     if (typeof date === 'string' && !isValidDate(date)) {
-      res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD.' })
+      sendApiError(res, 400, 'invalid_date', 'Invalid date format. Use YYYY-MM-DD.')
       return
     }
 
@@ -28,9 +29,12 @@ export async function getEpicImages(
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
     if (message.includes('NASA EPIC')) {
-      res.status(502).json({
-        error: "NASA's EPIC API is temporarily unavailable. Please try again shortly.",
-      })
+      sendApiError(
+        res,
+        502,
+        'upstream_service_unavailable',
+        "NASA's EPIC API is temporarily unavailable. Please try again shortly.",
+      )
       return
     }
     next(error)
@@ -51,9 +55,12 @@ export async function getEpicDates(req: Request, res: Response, next: NextFuncti
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
     if (message.includes('NASA EPIC')) {
-      res.status(502).json({
-        error: "NASA's EPIC API is temporarily unavailable. Please try again shortly.",
-      })
+      sendApiError(
+        res,
+        502,
+        'upstream_service_unavailable',
+        "NASA's EPIC API is temporarily unavailable. Please try again shortly.",
+      )
       return
     }
     next(error)

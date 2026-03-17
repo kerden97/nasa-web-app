@@ -28,9 +28,12 @@ export function ChartCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 ${className ?? ''}`}
+      className={`relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/88 p-5 shadow-[0_18px_48px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900/52 dark:shadow-[0_22px_58px_rgba(2,6,23,0.22)] ${className ?? ''}`}
     >
-      <h2 className="mb-4 text-base font-semibold text-slate-900 dark:text-white">{title}</h2>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(11,61,145,0.05),transparent_24%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(140,184,255,0.08),transparent_22%)]" />
+      <h2 className="relative mb-4 text-xl font-semibold text-slate-900 dark:text-white">
+        {title}
+      </h2>
       {children}
     </div>
   )
@@ -83,13 +86,13 @@ function DailyCountTooltip({
 }
 
 export function DailyCountChart({ data, isDark }: { data: DailyCountItem[]; isDark: boolean }) {
-  const gridColor = isDark ? '#334155' : '#e2e8f0'
-  const textColor = isDark ? '#94a3b8' : '#64748b'
+  const gridColor = isDark ? '#243041' : '#dbe4f0'
+  const textColor = isDark ? '#8ea2c5' : '#64748b'
 
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+        <CartesianGrid vertical={false} strokeDasharray="4 6" stroke={gridColor} />
         <XAxis dataKey="date" tick={{ fontSize: 12, fill: textColor }} />
         <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: textColor }} />
         <Tooltip content={<DailyCountTooltip />} />
@@ -98,11 +101,12 @@ export function DailyCountChart({ data, isDark }: { data: DailyCountItem[]; isDa
           stackId="a"
           fill={isDark ? '#60a5fa' : '#3b82f6'}
           name="Not Hazardous"
+          radius={[4, 4, 0, 0]}
         />
         <Bar
           dataKey="hazardous"
           stackId="a"
-          fill="#ef4444"
+          fill={isDark ? '#f87171' : '#ef4444'}
           radius={[4, 4, 0, 0]}
           name="Hazardous"
         />
@@ -139,7 +143,7 @@ export function HazardousPieChart({ data }: { data: HazardousDataItem[] }) {
           />
         </PieChart>
       </ResponsiveContainer>
-      <p className="mt-2 text-center text-xs text-slate-400 dark:text-slate-500">
+      <p className="mt-2 text-center text-sm leading-6 text-slate-500 dark:text-slate-500">
         NASA classifies an asteroid as potentially hazardous when its minimum orbit intersection
         distance is ≤ 0.05 AU and its diameter is ≥ ~140 m (H ≤ 22).
       </p>
@@ -176,14 +180,14 @@ export function VelocityScatterChart({
   data: ScatterDataItem[]
   isDark: boolean
 }) {
-  const gridColor = isDark ? '#334155' : '#e2e8f0'
-  const textColor = isDark ? '#94a3b8' : '#64748b'
+  const gridColor = isDark ? '#243041' : '#dbe4f0'
+  const textColor = isDark ? '#8ea2c5' : '#64748b'
 
   return (
     <>
       <ResponsiveContainer width="100%" height={350}>
         <ScatterChart>
-          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+          <CartesianGrid strokeDasharray="4 6" stroke={gridColor} />
           <XAxis
             type="number"
             dataKey="distance"
@@ -220,14 +224,22 @@ export function VelocityScatterChart({
             {data.map((entry) => (
               <Cell
                 key={entry.name}
-                fill={entry.hazardous ? '#ef4444' : isDark ? '#60a5fa' : '#3b82f6'}
-                fillOpacity={0.7}
+                fill={
+                  entry.hazardous
+                    ? isDark
+                      ? '#f87171'
+                      : '#ef4444'
+                    : isDark
+                      ? '#8cb8ff'
+                      : '#0b3d91'
+                }
+                fillOpacity={0.78}
               />
             ))}
           </Scatter>
         </ScatterChart>
       </ResponsiveContainer>
-      <p className="mt-2 pl-20 text-center text-xs text-slate-400 dark:text-slate-500">
+      <p className="mt-2 text-center text-sm leading-6 text-slate-500 dark:text-slate-500">
         Dot size represents estimated diameter. Red = potentially hazardous.
       </p>
     </>

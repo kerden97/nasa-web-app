@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express'
+import { sendApiError } from '../lib/apiErrors'
 import { fetchNeoFeed } from '../services/neows'
 import { isValidDate } from '../lib/validation'
 
@@ -12,12 +13,12 @@ export async function getNeoFeed(req: Request, res: Response, next: NextFunction
     const { start_date, end_date } = req.query
 
     if (typeof start_date !== 'string' || !isValidDate(start_date)) {
-      res.status(400).json({ error: 'Invalid or missing start_date. Use YYYY-MM-DD.' })
+      sendApiError(res, 400, 'invalid_start_date', 'Invalid or missing start_date. Use YYYY-MM-DD.')
       return
     }
 
     if (typeof end_date !== 'string' || !isValidDate(end_date)) {
-      res.status(400).json({ error: 'Invalid or missing end_date. Use YYYY-MM-DD.' })
+      sendApiError(res, 400, 'invalid_end_date', 'Invalid or missing end_date. Use YYYY-MM-DD.')
       return
     }
 
@@ -27,12 +28,17 @@ export async function getNeoFeed(req: Request, res: Response, next: NextFunction
     const diffDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
 
     if (diffDays < 0) {
-      res.status(400).json({ error: 'start_date must be before or equal to end_date.' })
+      sendApiError(
+        res,
+        400,
+        'invalid_date_range',
+        'start_date must be before or equal to end_date.',
+      )
       return
     }
 
     if (diffDays > 6) {
-      res.status(400).json({ error: 'Date range cannot exceed 7 days.' })
+      sendApiError(res, 400, 'invalid_date_range', 'Date range cannot exceed 7 days.')
       return
     }
 
@@ -41,9 +47,12 @@ export async function getNeoFeed(req: Request, res: Response, next: NextFunction
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
     if (message.includes('NASA NeoWs')) {
-      res.status(502).json({
-        error: "NASA's NeoWs API is temporarily unavailable. Please try again shortly.",
-      })
+      sendApiError(
+        res,
+        502,
+        'upstream_service_unavailable',
+        "NASA's NeoWs API is temporarily unavailable. Please try again shortly.",
+      )
       return
     }
     next(error)

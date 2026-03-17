@@ -20,12 +20,12 @@ export default function MediaBadge({ kind, className = '', cardStyle = false }: 
 
   return (
     <span
-      className={`cosmic-pill-media ${toneClass} ${cardStyle ? 'cosmic-card-badge' : 'px-3 py-1.5 text-xs font-medium tracking-[0.12em]'} inline-flex items-center gap-1.5 rounded-full uppercase ${className}`.trim()}
+      className={`cosmic-pill-media ${toneClass} ${cardStyle ? 'cosmic-card-badge' : 'px-3 py-1.5 text-xs font-medium tracking-[0.12em]'} inline-flex items-center gap-1.5 rounded-full uppercase leading-none ${className}`.trim()}
     >
-      <span className="flex h-3.5 w-3.5 items-center justify-center">
+      <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
         <Icon size={cardStyle ? 11 : 12} strokeWidth={2.1} />
       </span>
-      <span>{kind}</span>
+      <span className="block translate-y-[0.5px]">{kind}</span>
     </span>
   )
 }

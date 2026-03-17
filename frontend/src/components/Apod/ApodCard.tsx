@@ -41,7 +41,7 @@ export default function ApodCard({ item, onClick }: ApodCardProps) {
     <button
       ref={cardRef}
       onClick={() => onClick(item)}
-      className="card-glow card-glow--blue group relative flex aspect-9/16 w-full flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white/90 text-left shadow-[0_18px_50px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-1.5 hover:border-cyan-300/30 dark:border-slate-800/80 dark:bg-slate-900/70 dark:shadow-[0_22px_56px_rgba(2,6,23,0.35)]"
+      className="card-glow card-glow--blue group relative flex aspect-9/16 w-full flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white/90 text-left shadow-[0_18px_50px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[rgba(11,61,145,0.3)] dark:border-slate-800/80 dark:bg-slate-900/70 dark:hover:border-[rgba(140,184,255,0.28)] dark:shadow-[0_22px_56px_rgba(2,6,23,0.35)]"
     >
       {thumbnail && !readyToShow && (
         <div className="absolute inset-0">
@@ -85,18 +85,16 @@ export default function ApodCard({ item, onClick }: ApodCardProps) {
 
       <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/78 via-45% to-slate-950/6" />
       <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-20">
-        <p className="font-nasa text-[11px] tracking-[0.18em] text-slate-400">
-          {formatApodLongDate(item.date)}
-        </p>
+        <p className="text-sm font-medium text-slate-400">{formatApodLongDate(item.date)}</p>
         <p className="mt-2 text-xl font-semibold leading-tight text-white line-clamp-2">
           {item.title}
         </p>
-        <p className="mt-3 text-xs leading-6 text-slate-300 line-clamp-2">
+        <p className="mt-3 text-sm leading-6 text-slate-300 line-clamp-2">
           {getApodTeaser(item.explanation)}
         </p>
         <div className="mt-3 flex items-center justify-between gap-3 text-[11px]">
           <span className="truncate text-slate-400">{credit}</span>
-          <span className="whitespace-nowrap rounded-full border border-cyan-300/18 bg-white/5 px-2.5 py-1 font-medium text-white/90 transition-colors group-hover:border-cyan-300/30 group-hover:bg-cyan-400/10">
+          <span className="whitespace-nowrap rounded-full border border-white/14 bg-white/5 px-2.5 py-1 font-medium text-white/90 transition-colors group-hover:border-[rgba(140,184,255,0.3)] group-hover:bg-[rgba(11,61,145,0.22)]">
             View details
           </span>
         </div>

@@ -4,8 +4,10 @@ import { APOD_EPOCH } from '@/lib/apodMeta'
 import MiniCalendar from '@/components/MiniCalendar'
 import FilterChipButton from '@/components/Wonders/FilterChipButton'
 import ActiveFilterPill from '@/components/Wonders/ActiveFilterPill'
+import PresetOverflowMenu from '@/components/Wonders/PresetOverflowMenu'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { addDays, formatLabel, todayStr } from '@/lib/calendarUtils'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 interface DateFilterProps {
   onSingleDate: (date: string) => void
@@ -79,6 +81,7 @@ export default function DateFilter({
   const [hoveredDate, setHoveredDate] = useState<string | null>(null)
   const [activePreset, setActivePreset] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const isMobile = useMediaQuery('(max-width: 639px)')
 
   const isDateDisabled = (iso: string) => iso > todayStr() || iso < APOD_EPOCH
 
@@ -134,19 +137,33 @@ export default function DateFilter({
     if (rangeStart) return formatLabel(rangeStart)
     return null
   })()
+  const mobilePrimaryPreset = presets.find((preset) => preset.label === activePreset) ?? presets[0]
+  const shouldShowSelectionPill = isFiltered && (!isMobile || !activePreset)
 
   return (
     <div className="flex flex-wrap items-center gap-2.5">
       {/* Preset chips */}
-      {presets.map((preset) => (
-        <FilterChipButton
-          key={preset.label}
-          onClick={() => applyPreset(preset)}
-          active={activePreset === preset.label}
-        >
-          {preset.label}
-        </FilterChipButton>
-      ))}
+      {isMobile ? (
+        <PresetOverflowMenu
+          currentValue={mobilePrimaryPreset.label}
+          currentActive={activePreset === mobilePrimaryPreset.label}
+          options={presets.map((preset) => ({ value: preset.label, label: preset.label }))}
+          onSelect={(value) => {
+            const preset = presets.find((entry) => entry.label === value)
+            if (preset) applyPreset(preset)
+          }}
+        />
+      ) : (
+        presets.map((preset) => (
+          <FilterChipButton
+            key={preset.label}
+            onClick={() => applyPreset(preset)}
+            active={activePreset === preset.label}
+          >
+            {preset.label}
+          </FilterChipButton>
+        ))
+      )}
 
       {/* Custom calendar trigger */}
       <div className="relative" ref={dropdownRef}>
@@ -154,6 +171,7 @@ export default function DateFilter({
           onClick={() => setCalendarOpen(!calendarOpen)}
           active={calendarOpen || (isFiltered && !activePreset)}
           className="inline-flex items-center gap-1.5"
+          ariaExpanded={calendarOpen}
         >
           <Calendar size={13} />
           Custom
@@ -172,7 +190,7 @@ export default function DateFilter({
                 }}
                 className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${
                   mode === 'single'
-                    ? 'rounded-lg bg-linear-to-r from-cyan-500 to-sky-500 text-white'
+                    ? 'rounded-lg bg-[#0B3D91] text-white dark:bg-[#8CB8FF] dark:text-slate-950'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 } rounded-lg`}
               >
@@ -187,7 +205,7 @@ export default function DateFilter({
                 }}
                 className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${
                   mode === 'range'
-                    ? 'rounded-lg bg-linear-to-r from-cyan-500 to-sky-500 text-white'
+                    ? 'rounded-lg bg-[#0B3D91] text-white dark:bg-[#8CB8FF] dark:text-slate-950'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 } rounded-lg`}
               >
@@ -218,7 +236,7 @@ export default function DateFilter({
       </div>
 
       {/* Active selection label + clear */}
-      {isFiltered && (
+      {shouldShowSelectionPill && (
         <div className="ml-1">
           <ActiveFilterPill label={selectionLabel ?? 'Custom'} onClear={handleReset} />
         </div>
