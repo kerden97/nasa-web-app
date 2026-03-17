@@ -1,4 +1,5 @@
 import { Calendar } from 'lucide-react'
+import FilterChipButton from '@/components/Wonders/FilterChipButton'
 import {
   asteroidWatchChartTitles,
   asteroidWatchDatePresets,
@@ -13,6 +14,7 @@ import {
   asteroidWatchTableTitle,
   asteroidWatchTitle,
 } from '@/content/asteroidWatchContent'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 const chipBase =
   'whitespace-nowrap rounded-full px-4 py-2 text-xs font-medium transition-all duration-200'
@@ -39,28 +41,33 @@ function HeaderSkeleton() {
 }
 
 function FilterRowSkeleton() {
+  const isMobile = useMediaQuery('(max-width: 639px)')
+
   return (
     <div className="relative z-30 mb-8">
       <div className="flex flex-wrap items-center gap-2">
-        {asteroidWatchDatePresets.map((label) => (
-          <button
-            key={label}
-            type="button"
-            disabled
-            className={`${chipBase} ${label === 'Last 7 days' ? chipActive : chipIdle} cursor-default`}
-          >
-            {label}
-          </button>
-        ))}
+        {isMobile ? (
+          <div className="flex items-center gap-2.5">
+            <FilterChipButton active>{asteroidWatchDatePresets[3]}</FilterChipButton>
+            <FilterChipButton className="inline-flex items-center gap-1.5">More</FilterChipButton>
+          </div>
+        ) : (
+          asteroidWatchDatePresets.map((label) => (
+            <button
+              key={label}
+              type="button"
+              disabled
+              className={`${chipBase} ${label === 'Last 7 days' ? chipActive : chipIdle} cursor-default`}
+            >
+              {label}
+            </button>
+          ))
+        )}
 
-        <button
-          type="button"
-          disabled
-          className={`${chipBase} ${chipIdle} inline-flex cursor-default items-center gap-1.5`}
-        >
+        <FilterChipButton className="inline-flex items-center gap-1.5">
           <Calendar size={13} />
           Custom
-        </button>
+        </FilterChipButton>
       </div>
     </div>
   )

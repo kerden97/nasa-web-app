@@ -29,6 +29,8 @@ export default function FeaturedApodHeroSkeleton() {
               <div className="h-4 w-full animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
               <div className="h-4 w-full animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
               <div className="h-4 w-full animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-4 w-full animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-4 w-full animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
               <div className="h-4 w-10/12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
             </div>
           </div>

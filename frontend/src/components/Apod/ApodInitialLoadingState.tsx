@@ -1,11 +1,16 @@
+import { Calendar, ChevronDown } from 'lucide-react'
 import ApodCardSkeleton from '@/components/Apod/ApodCardSkeleton'
 import FeaturedApodHeroSkeleton from '@/components/Apod/FeaturedApodHeroSkeleton'
+import FilterChipButton from '@/components/Wonders/FilterChipButton'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 interface ApodInitialLoadingStateProps {
   cardCount?: number
 }
 
 export default function ApodInitialLoadingState({ cardCount = 20 }: ApodInitialLoadingStateProps) {
+  const isMobile = useMediaQuery('(max-width: 639px)')
+
   return (
     <>
       <FeaturedApodHeroSkeleton />
@@ -20,25 +25,44 @@ export default function ApodInitialLoadingState({ cardCount = 20 }: ApodInitialL
             Jump through recent APOD entries with quick presets or a custom date range.
           </p>
         </div>
+        <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+          <p>
+            {cardCount} item{cardCount === 1 ? '' : 's'}
+          </p>
+        </div>
       </div>
 
       <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2.5">
-            {[
-              'w-[4.5rem]',
-              'w-[6rem]',
-              'w-[6.25rem]',
-              'w-[6.5rem]',
-              'w-[6.9rem]',
-              'w-[6.25rem]',
-              'w-[6.2rem]',
-            ].map((widthClass, index) => (
-              <div
-                key={index}
-                className={`h-10 animate-pulse rounded-2xl border border-slate-200 bg-white/82 dark:border-slate-800 dark:bg-slate-900/58 ${widthClass}`}
-              />
-            ))}
+            {isMobile ? (
+              <>
+                <FilterChipButton>Today</FilterChipButton>
+                <FilterChipButton className="inline-flex items-center gap-1.5">
+                  More
+                  <ChevronDown size={14} />
+                </FilterChipButton>
+                <FilterChipButton className="inline-flex items-center gap-1.5">
+                  <Calendar size={13} />
+                  Custom
+                </FilterChipButton>
+              </>
+            ) : (
+              [
+                'w-[4.5rem]',
+                'w-[6rem]',
+                'w-[6.25rem]',
+                'w-[6.5rem]',
+                'w-[6.9rem]',
+                'w-[6.25rem]',
+                'w-[6.2rem]',
+              ].map((widthClass, index) => (
+                <div
+                  key={index}
+                  className={`h-10 animate-pulse rounded-2xl border border-slate-200 bg-white/82 dark:border-slate-800 dark:bg-slate-900/58 ${widthClass}`}
+                />
+              ))
+            )}
           </div>
         </div>
 

@@ -238,24 +238,22 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
                     {item.center ?? 'NASA'}
                   </p>
                 </div>
-                <div className="min-w-0 rounded-2xl border border-slate-200 bg-slate-50/85 p-3 dark:border-slate-800 dark:bg-slate-950/60">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                      ID
-                    </p>
-                    <button
-                      type="button"
-                      onClick={copyNasaId}
-                      className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white/80 px-2.5 py-1 text-[11px] font-medium text-slate-600 transition hover:border-[rgba(11,61,145,0.3)] hover:text-[#0B3D91] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:text-[#8CB8FF]"
-                      aria-label="Copy full ID"
-                      title="Copy full ID"
-                    >
-                      {copiedId ? <Check size={12} /> : <Copy size={12} />}
-                      <span>{copiedId ? 'Copied' : 'Copy'}</span>
-                    </button>
-                  </div>
+                <div className="relative min-w-0 rounded-2xl border border-slate-200 bg-slate-50/85 p-3 dark:border-slate-800 dark:bg-slate-950/60">
+                  <p className="pr-20 text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                    ID
+                  </p>
+                  <button
+                    type="button"
+                    onClick={copyNasaId}
+                    className="absolute right-3 top-3 inline-flex h-6 shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white/80 px-2 text-[10px] font-medium leading-none text-slate-600 transition hover:border-[rgba(11,61,145,0.3)] hover:text-[#0B3D91] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:text-[#8CB8FF]"
+                    aria-label="Copy full ID"
+                    title="Copy full ID"
+                  >
+                    {copiedId ? <Check size={11} /> : <Copy size={11} />}
+                    <span>{copiedId ? 'Copied' : 'Copy'}</span>
+                  </button>
                   <p
-                    className="mt-2 truncate text-sm leading-6 font-medium text-slate-800 dark:text-slate-200"
+                    className="mt-1 truncate text-sm leading-6 font-medium text-slate-800 dark:text-slate-200"
                     title={item.nasa_id}
                   >
                     {item.nasa_id}

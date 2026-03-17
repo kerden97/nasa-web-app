@@ -82,15 +82,6 @@ export default function EpicModal({ item, onClose }: EpicModalProps) {
                 </div>
               </div>
 
-              <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/85 p-3 dark:border-slate-800 dark:bg-slate-950/60">
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                  Mission
-                </p>
-                <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
-                  Earth Polychromatic Imaging Camera aboard DSCOVR
-                </p>
-              </div>
-
               <div className="mt-6 grid gap-5 border-t border-slate-200 pt-5 dark:border-slate-800">
                 <button
                   type="button"
@@ -102,6 +93,15 @@ export default function EpicModal({ item, onClose }: EpicModalProps) {
                   </span>
                   <span>Original</span>
                 </button>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/85 p-3 dark:border-slate-800 dark:bg-slate-950/60">
+                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                    Mission
+                  </p>
+                  <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
+                    Earth Polychromatic Imaging Camera aboard DSCOVR
+                  </p>
+                </div>
 
                 <div className="grid gap-4 sm:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
                   <div className="rounded-2xl border border-slate-200 bg-slate-50/85 p-3 dark:border-slate-800 dark:bg-slate-950/60">

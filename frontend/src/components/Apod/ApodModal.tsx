@@ -4,7 +4,7 @@ import type { ApodItem } from '@/types/apod'
 import ModalFrame from '@/components/Wonders/ModalFrame'
 import ExternalLinkPrompt from '@/components/Wonders/ExternalLinkPrompt'
 import MediaBadge from '@/components/Wonders/MediaBadge'
-import { formatApodLongDate, formatApodRelativeDate, isDirectVideo } from '@/lib/apodMeta'
+import { formatApodLongDate, isDirectVideo } from '@/lib/apodMeta'
 
 interface ApodModalProps {
   item: ApodItem
@@ -131,26 +131,6 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
                 ) : (
                   <div className="hidden sm:block" />
                 )}
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50/85 p-4 text-sm dark:border-slate-800 dark:bg-slate-950/60">
-                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                    Published
-                  </p>
-                  <p className="mt-2 font-medium text-slate-800 dark:text-slate-200">
-                    {formatApodRelativeDate(item.date)}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-slate-50/85 p-4 text-sm dark:border-slate-800 dark:bg-slate-950/60">
-                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                    Media
-                  </p>
-                  <p className="mt-2 font-medium uppercase text-slate-800 dark:text-slate-200">
-                    {item.media_type}
-                  </p>
-                </div>
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-800 dark:bg-slate-950/60">

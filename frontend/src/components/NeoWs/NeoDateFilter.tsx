@@ -1,7 +1,11 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { Calendar, X } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import MiniCalendar from '@/components/MiniCalendar'
+import ActiveFilterPill from '@/components/Wonders/ActiveFilterPill'
+import FilterChipButton from '@/components/Wonders/FilterChipButton'
+import PresetOverflowMenu from '@/components/Wonders/PresetOverflowMenu'
 import { useClickOutside } from '@/hooks/useClickOutside'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { addDays, formatLabel, todayStr } from '@/lib/calendarUtils'
 import { getDefaultRange } from '@/lib/neoUtils'
 
@@ -11,13 +15,6 @@ interface NeoDateFilterProps {
 }
 
 type NeoPreset = { label: string; getRange: () => [string, string] | [string] }
-
-const chipBase =
-  'whitespace-nowrap rounded-full px-4 py-2 text-xs font-medium transition-all duration-200'
-const chipIdle =
-  'border border-slate-200/80 bg-white/82 text-slate-600 shadow-[0_8px_24px_rgba(15,23,42,0.04)] hover:border-slate-300 hover:bg-white dark:border-slate-700/80 dark:bg-slate-950/35 dark:text-slate-400 dark:shadow-none dark:hover:border-slate-600 dark:hover:bg-slate-900/60'
-const chipActive =
-  'border border-[rgba(11,61,145,0.18)] bg-[rgba(11,61,145,0.08)] text-[#0B3D91] shadow-[0_10px_26px_rgba(11,61,145,0.08)] dark:border-[rgba(140,184,255,0.28)] dark:bg-[rgba(11,61,145,0.25)] dark:text-[#8CB8FF] dark:shadow-[0_14px_32px_rgba(11,61,145,0.16)]'
 
 export default function NeoDateFilter({ defaultRange, onChange }: NeoDateFilterProps) {
   const [calendarOpen, setCalendarOpen] = useState(false)
@@ -29,6 +26,7 @@ export default function NeoDateFilter({ defaultRange, onChange }: NeoDateFilterP
   const [currentStart, setCurrentStart] = useState(defaultRange.start)
   const [currentEnd, setCurrentEnd] = useState(defaultRange.end)
   const calendarRef = useRef<HTMLDivElement>(null)
+  const isMobile = useMediaQuery('(max-width: 639px)')
 
   const closeCalendar = useCallback(() => setCalendarOpen(false), [])
   useClickOutside(calendarRef, closeCalendar)
@@ -125,32 +123,45 @@ export default function NeoDateFilter({ defaultRange, onChange }: NeoDateFilterP
     if (rangeStart) return formatLabel(rangeStart)
     return null
   })()
+  const mobilePrimaryPreset =
+    neoPresets.find((preset) => preset.label === activePreset) ?? neoPresets[0]
+  const shouldShowSelectionPill = isFiltered && (!isMobile || !activePreset)
 
   return (
     <div className="relative z-30 mb-8">
       <div className="flex flex-wrap items-center gap-2">
-        {neoPresets.map((preset) => (
-          <button
-            key={preset.label}
-            type="button"
-            onClick={() => applyPreset(preset)}
-            className={`${chipBase} ${activePreset === preset.label ? chipActive : chipIdle}`}
-          >
-            {preset.label}
-          </button>
-        ))}
+        {isMobile ? (
+          <PresetOverflowMenu
+            currentValue={mobilePrimaryPreset.label}
+            currentActive={activePreset === mobilePrimaryPreset.label}
+            options={neoPresets.map((preset) => ({ value: preset.label, label: preset.label }))}
+            onSelect={(value) => {
+              const preset = neoPresets.find((entry) => entry.label === value)
+              if (preset) applyPreset(preset)
+            }}
+          />
+        ) : (
+          neoPresets.map((preset) => (
+            <FilterChipButton
+              key={preset.label}
+              onClick={() => applyPreset(preset)}
+              active={activePreset === preset.label}
+            >
+              {preset.label}
+            </FilterChipButton>
+          ))
+        )}
 
         <div className="relative" ref={calendarRef}>
-          <button
-            type="button"
+          <FilterChipButton
             onClick={() => setCalendarOpen(!calendarOpen)}
-            className={`${chipBase} inline-flex items-center gap-1.5 ${
-              calendarOpen || (isFiltered && !activePreset) ? chipActive : chipIdle
-            }`}
+            active={calendarOpen || (isFiltered && !activePreset)}
+            className="inline-flex items-center gap-1.5"
+            ariaExpanded={calendarOpen}
           >
             <Calendar size={13} />
             Custom
-          </button>
+          </FilterChipButton>
 
           {calendarOpen && (
             <div className="absolute left-0 top-full z-50 mt-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_24px_60px_rgba(15,23,42,0.16)] dark:border-slate-700 dark:bg-slate-900">
@@ -209,17 +220,9 @@ export default function NeoDateFilter({ defaultRange, onChange }: NeoDateFilterP
           )}
         </div>
 
-        {selectionLabel && isFiltered && (
-          <div className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-[rgba(11,61,145,0.18)] bg-[rgba(11,61,145,0.08)] px-3 py-2 text-xs font-medium text-[#0B3D91] dark:border-[rgba(140,184,255,0.28)] dark:bg-[rgba(11,61,145,0.25)] dark:text-[#8CB8FF]">
-            <span>{selectionLabel}</span>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="rounded-full p-0.5 text-[#0B3D91] transition-colors hover:bg-[rgba(11,61,145,0.12)] hover:text-[#0F4FB8] dark:text-[#8CB8FF] dark:hover:bg-[rgba(11,61,145,0.35)] dark:hover:text-[#B5CFFF]"
-              aria-label="Clear filter"
-            >
-              <X size={14} />
-            </button>
+        {shouldShowSelectionPill && selectionLabel && (
+          <div className="ml-1">
+            <ActiveFilterPill label={selectionLabel} onClear={handleReset} />
           </div>
         )}
       </div>
