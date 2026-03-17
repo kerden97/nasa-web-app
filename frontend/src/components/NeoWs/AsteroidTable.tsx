@@ -304,7 +304,7 @@ function RowsPerPageDropdown({
       {open && (
         <div
           id={menuId}
-          className="absolute right-0 z-10 mt-1 w-14 origin-top-right rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+          className="absolute right-0 z-100 mt-1 w-14 origin-top-right rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900"
           role="menu"
           aria-labelledby={id}
         >
