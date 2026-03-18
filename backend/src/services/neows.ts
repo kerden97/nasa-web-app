@@ -1,4 +1,5 @@
 import { config } from '../config'
+import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
 import logger from '../lib/logger'
 import type { NeoFeedResult, NeoObject, NeoCloseApproach } from '../types/neows'
 
@@ -9,6 +10,8 @@ const failedKeys = new Map<string, { timestamp: number; message: string }>()
 const FAIL_COOLDOWN_MS = 10 * 60 * 1000
 const MAX_RETRIES = 3
 const RETRY_STATUSES = new Set([500, 502, 503, 504])
+const NEOWS_FRESH_TTL_SECONDS = 15 * 60
+const NEOWS_HISTORICAL_TTL_SECONDS = 24 * 60 * 60
 
 const inflight = new Map<string, Promise<NeoFeedResult>>()
 
@@ -169,6 +172,13 @@ async function fetchFromNasa(
 
 export async function fetchNeoFeed(startDate: string, endDate: string): Promise<NeoFeedResult> {
   const key = cacheKey(startDate, endDate)
+  const durableKey = buildDurableCacheKey('neows', 'feed', startDate, endDate)
+  const durableHit = await durableCache.get<NeoFeedResult>(durableKey)
+  if (durableHit) {
+    logger.info('NeoWs durable cache hit', { key: durableKey })
+    feedCache.set(key, { result: durableHit, cachedDate: todayUTC() })
+    return durableHit
+  }
 
   // Past date ranges are stable; ranges including today or later
   // invalidate daily since new close approach data can appear
@@ -195,6 +205,11 @@ export async function fetchNeoFeed(startDate: string, endDate: string): Promise<
   try {
     const result = await fetchFromNasa(startDate, endDate, key)
     failedKeys.delete(key)
+    await durableCache.set(
+      durableKey,
+      result,
+      endDate >= todayUTC() ? NEOWS_FRESH_TTL_SECONDS : NEOWS_HISTORICAL_TTL_SECONDS,
+    )
     return result
   } catch (error) {
     const message = error instanceof Error ? error.message : 'NASA NeoWs API error'

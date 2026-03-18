@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchApi } from '@/lib/api'
+import {
+  createPersistedCacheKey,
+  readPersistedCache,
+  writePersistedCache,
+} from '@/lib/persistedClientCache'
 import type { NeoFeedResult } from '@/types/neows'
 
 interface UseNeowsResult {
@@ -21,6 +26,20 @@ export function useNeows(startDate: string, endDate: string): UseNeowsResult {
 
     const controller = new AbortController()
     const id = ++requestId.current
+    const cacheKey = createPersistedCacheKey('neows', 'feed', startDate, endDate)
+    const cachedData = readPersistedCache<NeoFeedResult>(cacheKey)
+    const usedCachedData = Boolean(cachedData)
+
+    if (usedCachedData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setData(cachedData)
+      setError(null)
+      setFetchedKey(`${startDate}:${endDate}`)
+    } else {
+      setData(null)
+      setError(null)
+      setFetchedKey(null)
+    }
 
     fetchApi<NeoFeedResult>(
       '/api/neows/feed',
@@ -32,11 +51,12 @@ export function useNeows(startDate: string, endDate: string): UseNeowsResult {
           setData(result)
           setError(null)
           setFetchedKey(`${startDate}:${endDate}`)
+          writePersistedCache(cacheKey, result)
         }
       })
       .catch((err: Error) => {
         if (err.name !== 'AbortError' && id === requestId.current) {
-          setError(err.message)
+          if (!usedCachedData) setError(err.message)
           setFetchedKey(`${startDate}:${endDate}`)
         }
       })

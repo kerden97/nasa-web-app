@@ -13,4 +13,14 @@ export const config = {
     apiKey: process.env.NASA_API_KEY || 'DEMO_KEY',
     baseUrl: process.env.NASA_API_BASE_URL || 'https://api.nasa.gov',
   },
+  redis: {
+    url: process.env.UPSTASH_REDIS_REST_URL || '',
+    token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+    enabled:
+      process.env.ENABLE_REDIS_CACHE?.toLowerCase() === 'true' ||
+      (process.env.ENABLE_REDIS_CACHE?.toLowerCase() !== 'false' &&
+        process.env.NODE_ENV === 'production' &&
+        !!process.env.UPSTASH_REDIS_REST_URL &&
+        !!process.env.UPSTASH_REDIS_REST_TOKEN),
+  },
 }

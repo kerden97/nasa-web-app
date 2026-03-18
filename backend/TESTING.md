@@ -46,6 +46,12 @@ These backend tests are intentionally split into:
 - controller tests for validation and HTTP response behavior
 - service tests for caching, retries, cooldowns, deduplication, and response mapping
 
+Current backend cache behavior combines:
+
+- per-process in-memory caches inside the service modules
+- durable Upstash Redis persistence in production
+- graceful bypass when Redis is unavailable or disabled
+
 Controller-level errors now use a shared response contract:
 
 ```json
@@ -113,6 +119,7 @@ These are unit tests against the service's caching, retry, and deduplication log
 | Retry with backoff               | Transient 500/503 errors are retried up to 3 times and succeed on the third attempt                |
 | Latest-date fallback             | If NASA has not published the newest APOD yet, the service falls back to the previous day          |
 | Latest-range fallback            | If a range ends on an unavailable newest APOD day, the service retries without that newest day     |
+| Durable-cache precheck           | A durable cache hit is checked before rebuilding the same APOD response from NASA                  |
 
 ## Controller Tests — NASA Image Library (`controllers/nasaImage.test.ts`)
 
@@ -154,6 +161,7 @@ These are unit tests for the NASA Image Library service's search, mapping, and c
 | Cache hit                        | Second identical query returns cached data — `fetch` called once                              |
 | Separate cache (query)           | Different search terms get separate cache entries                                             |
 | Separate cache (page)            | Same query on different pages gets separate cache entries                                     |
+| Durable-cache precheck           | Persisted query/filter/page keys can be served before a fresh NASA call                       |
 | URL parameter forwarding         | media_type, year_start, year_end included in fetch URL                                        |
 | Retry with backoff               | Transient 500/502/503/504 errors are retried up to 3 times and may succeed on a later attempt |
 | Retry exhaustion                 | Persistent transient failures throw after max retries                                         |
@@ -197,22 +205,23 @@ These are unit tests for the EPIC service's image fetching, URL building, date l
 
 **What is covered (fetchEpicImages):**
 
-| Test                            | Validates                                                     |
-| ------------------------------- | ------------------------------------------------------------- |
-| Image mapping + URL building    | API items mapped with correct archive image URLs              |
-| Enhanced collection URLs        | Image URLs use `/enhanced/` path segment                      |
-| Date path appended              | Date parameter adds `/date/YYYY-MM-DD` to API URL             |
-| Cache hit (dated request)       | Second identical dated request returns cached data            |
-| Cache hit (latest request)      | Latest request is cached and reused within the same UTC day   |
-| Latest cache invalidation       | Latest request re-fetches after UTC midnight rollover         |
-| Stale latest-image fallback     | Stale latest images are served when NASA fails after rollover |
-| Empty results not cached        | Empty responses are not cached (allows retry)                 |
-| Separate cache (collection)     | Different collections get separate cache entries              |
-| Retry with backoff              | Transient 500/502/503/504 errors are retried and can succeed  |
-| Retry exhaustion                | Persistent transient failures throw after max retries         |
-| In-flight deduplication         | Concurrent identical image requests share one `fetch` call    |
-| Cooldown after repeated failure | Immediate re-request is blocked without hitting NASA          |
-| Non-transient error             | 400-type responses are not retried                            |
+| Test                            | Validates                                                              |
+| ------------------------------- | ---------------------------------------------------------------------- |
+| Image mapping + URL building    | API items mapped with correct archive image URLs                       |
+| Enhanced collection URLs        | Image URLs use `/enhanced/` path segment                               |
+| Date path appended              | Date parameter adds `/date/YYYY-MM-DD` to API URL                      |
+| Cache hit (dated request)       | Second identical dated request returns cached data                     |
+| Cache hit (latest request)      | Latest request is cached and reused within the same UTC day            |
+| Durable-cache precheck          | Persisted latest/dated results can be served before a fresh NASA fetch |
+| Latest cache invalidation       | Latest request re-fetches after UTC midnight rollover                  |
+| Stale latest-image fallback     | Stale latest images are served when NASA fails after rollover          |
+| Empty results not cached        | Empty responses are not cached (allows retry)                          |
+| Separate cache (collection)     | Different collections get separate cache entries                       |
+| Retry with backoff              | Transient 500/502/503/504 errors are retried and can succeed           |
+| Retry exhaustion                | Persistent transient failures throw after max retries                  |
+| In-flight deduplication         | Concurrent identical image requests share one `fetch` call             |
+| Cooldown after repeated failure | Immediate re-request is blocked without hitting NASA                   |
+| Non-transient error             | 400-type responses are not retried                                     |
 
 **What is covered (fetchEpicDates):**
 
@@ -265,6 +274,7 @@ These are unit tests for the NeoWs feed service's mapping, cache policy, retry h
 | Cache hit (past range)              | Stable past ranges return cached data on second request                    |
 | Past-range cache after rollover     | A range that becomes fully historical after UTC midnight stays cached      |
 | Non-historical range cache policy   | Ranges including today or later use same-day cache and invalidate daily    |
+| Durable-cache precheck              | Persisted range keys can be served before a fresh NASA fetch               |
 | Retry with backoff                  | Transient 500/502/503/504 failures retry and can later succeed             |
 | Transient HTTP retry exhaustion     | Persistent retryable HTTP failures throw after max retries                 |
 | Network-error retry success         | Thrown `fetch` errors are retried and may later succeed                    |

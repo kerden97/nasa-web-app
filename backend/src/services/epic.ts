@@ -1,3 +1,4 @@
+import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
 import logger from '../lib/logger'
 import type { EpicImage, EpicCollection } from '../types/epic'
 
@@ -7,6 +8,8 @@ const cache = new Map<string, { images: EpicImage[]; cachedDate: string }>()
 const datesCache = new Map<string, { dates: string[]; cachedDate: string }>()
 const failedKeys = new Map<string, { timestamp: number; message: string }>()
 const FAIL_COOLDOWN_MS = 10 * 60 * 1000 // don't retry a failed key for 10 minutes
+const EPIC_LATEST_TTL_SECONDS = 15 * 60
+const EPIC_HISTORICAL_TTL_SECONDS = 30 * 24 * 60 * 60
 
 const EPIC_API_BASE_URL = 'https://epic.gsfc.nasa.gov/api'
 const EPIC_ARCHIVE_BASE_URL = 'https://epic.gsfc.nasa.gov/archive'
@@ -160,6 +163,13 @@ export async function fetchEpicImages(
   date?: string,
 ): Promise<EpicImage[]> {
   const key = `${collection}:${date ?? 'latest'}`
+  const durableKey = buildDurableCacheKey('epic', 'images', collection, date ?? 'latest')
+  const durableHit = await durableCache.get<EpicImage[]>(durableKey)
+  if (durableHit?.length) {
+    logger.info('EPIC durable cache hit', { key: durableKey })
+    cache.set(key, { images: durableHit, cachedDate: todayUTC() })
+    return durableHit
+  }
 
   // "latest" (no date) invalidates daily — new images appear each day
   const cached = cache.get(key)
@@ -181,6 +191,11 @@ export async function fetchEpicImages(
   try {
     const images = await fetchImagesFromNasa(collection, date, key)
     failedKeys.delete(key)
+    await durableCache.set(
+      durableKey,
+      images,
+      date ? EPIC_HISTORICAL_TTL_SECONDS : EPIC_LATEST_TTL_SECONDS,
+    )
     return images
   } catch (error) {
     const message = error instanceof Error ? error.message : 'NASA EPIC API error'
@@ -198,6 +213,14 @@ export async function fetchEpicImages(
 }
 
 export async function fetchEpicDates(collection: EpicCollection): Promise<string[]> {
+  const durableKey = buildDurableCacheKey('epic', 'dates', collection)
+  const durableHit = await durableCache.get<string[]>(durableKey)
+  if (durableHit?.length) {
+    logger.info('EPIC dates durable cache hit', { collection })
+    datesCache.set(collection, { dates: durableHit, cachedDate: todayUTC() })
+    return durableHit
+  }
+
   // Dates cache invalidates daily — new dates appear each day
   const cached = datesCache.get(collection)
   if (cached && cached.cachedDate === todayUTC()) {
@@ -215,6 +238,7 @@ export async function fetchEpicDates(collection: EpicCollection): Promise<string
   try {
     const dates = await fetchDatesFromNasa(collection)
     failedKeys.delete(failKey)
+    await durableCache.set(durableKey, dates, EPIC_LATEST_TTL_SECONDS)
     return dates
   } catch (error) {
     const message = error instanceof Error ? error.message : 'NASA EPIC dates error'

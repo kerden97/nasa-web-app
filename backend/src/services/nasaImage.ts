@@ -1,3 +1,4 @@
+import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
 import logger from '../lib/logger'
 import type { NasaImageItem, NasaImageQuery } from '../types/nasaImage'
 
@@ -9,6 +10,7 @@ const failedQueries = new Map<string, { timestamp: number; message: string }>()
 const FAIL_COOLDOWN_MS = 10 * 60 * 1000 // don't retry a failed query for 10 minutes
 const MAX_RETRIES = 3
 const RETRY_STATUSES = new Set([500, 502, 503, 504])
+const NASA_IMAGE_TTL_SECONDS = 60 * 60
 
 // In-flight request deduplication — prevents concurrent identical API calls
 const inflight = new Map<string, Promise<{ items: NasaImageItem[]; totalHits: number }>>()
@@ -161,6 +163,22 @@ export async function searchNasaImages(
   query: NasaImageQuery,
 ): Promise<{ items: NasaImageItem[]; totalHits: number }> {
   const key = cacheKey(query)
+  const durableKey = buildDurableCacheKey(
+    'nasa-image',
+    query.q,
+    query.media_type ?? '',
+    query.year_start ?? '',
+    query.year_end ?? '',
+    String(query.page ?? 1),
+  )
+  const durableHit = await durableCache.get<{ items: NasaImageItem[]; totalHits: number }>(
+    durableKey,
+  )
+  if (durableHit) {
+    logger.info('NASA Image Library durable cache hit', { key: durableKey })
+    searchCache.set(key, durableHit)
+    return durableHit
+  }
 
   const cached = searchCache.get(key)
   if (cached) {
@@ -178,6 +196,7 @@ export async function searchNasaImages(
   try {
     const result = await fetchFromNasa(query, key)
     failedQueries.delete(key) // success — clear cooldown
+    await durableCache.set(durableKey, result, NASA_IMAGE_TTL_SECONDS)
     return result
   } catch (error) {
     const message = error instanceof Error ? error.message : 'NASA Image Library error'

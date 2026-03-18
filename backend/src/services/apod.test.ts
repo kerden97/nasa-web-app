@@ -172,6 +172,7 @@ describe('APOD service', () => {
 
     const p1 = fetchApod({ date: '2026-03-08' })
     const p2 = fetchApod({ date: '2026-03-08' })
+    await Promise.resolve()
 
     resolveFetch({
       ok: true,

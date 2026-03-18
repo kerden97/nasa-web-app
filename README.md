@@ -53,6 +53,7 @@ The app is intentionally split into:
   - retry/backoff for transient upstream failures
   - in-flight request deduplication
   - cache and cooldown behavior
+  - durable Redis-backed response persistence in production
 - APOD includes an extra safeguard for "latest" requests:
   - if NASA has not published the newest day yet, the service falls back to the most recent available APOD instead of failing the UI
 
@@ -85,6 +86,24 @@ Status-code policy:
 - `502` — NASA/upstream temporary failure
 - `500` — unexpected internal server failure
 
+## Caching Strategy
+
+The app now uses two cache layers:
+
+- Frontend persisted stale cache for high-value revisit flows:
+  - APOD latest feed
+  - EPIC dates and date-specific image sets
+  - Asteroid Watch date-range feeds
+- Backend cache layers:
+  - in-memory cache and in-flight deduplication inside each NASA service
+  - durable Upstash Redis response cache in production
+
+Why both:
+
+- frontend cache improves repeat visits and can render stale data immediately while the backend wakes up
+- Redis survives Render cold boots and helps first-time visitors too
+- local in-memory cache still keeps hot-process reads fast and preserves the existing stale-fallback logic
+
 ## Live Deployment
 
 | Service        | Platform | URL                                                                                      |
@@ -114,6 +133,9 @@ NASA_API_KEY=
 NASA_API_BASE_URL=
 PORT=4000
 FRONTEND_ORIGIN=https://nasa-web-app-iota.vercel.app
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+ENABLE_REDIS_CACHE=true
 ```
 
 ### Frontend (Vercel)
@@ -176,6 +198,14 @@ Fill in `backend/.env` with your NASA API key. Set `frontend/.env` with:
 ```env
 VITE_API_URL=http://localhost:4000
 ```
+
+For local backend development, leave Redis disabled:
+
+```env
+ENABLE_REDIS_CACHE=false
+```
+
+This avoids stale-data confusion while iterating locally.
 
 #### 2. Install dependencies
 
@@ -285,3 +315,13 @@ Detailed testing notes live in:
 
 - [frontend/TESTING.md](/c:/Users/User/nasa-web-app/frontend/TESTING.md)
 - [backend/TESTING.md](/c:/Users/User/nasa-web-app/backend/TESTING.md)
+
+# Decisions
+
+I considered modern package-manager options including `pnpm`. For this project, I kept `npm` because it was sufficient for the repository size, aligned cleanly with the existing `Node.js + Express` stack, and minimized setup, CI, and deployment friction for the assessment. If the repository evolved into a larger multi-package workspace, `pnpm` would be the most likely next step.
+
+I considered using a client-side query library such as TanStack Query. For this project, I kept data fetching in feature-specific hooks over a shared API client because the backend already centralizes caching, retries, deduplication, and error normalization. Given the scope of the assessment, this kept the frontend data layer explicit and easier to reason about. If the frontend grew into a larger multi-view application with more shared query state, TanStack Query would be a strong next step.
+
+I added a durable Redis cache through Upstash in production, while keeping Redis disabled by default in local development. That split keeps reviewer-facing cold starts and repeat fetches faster without introducing stale-data friction during day-to-day local work. Because the backend is hosted in Frankfurt, Redis was placed in Frankfurt too so cache reads stay close to the server rather than the browser.
+
+For APOD, EPIC, and Asteroid Watch, I also added a persisted client-side stale cache on top of the backend cache. The goal was not to replace the backend, but to improve repeat-visit UX: render the last known good payload immediately, then revalidate in the background. This is especially useful when the backend is waking from a free-tier cold start.

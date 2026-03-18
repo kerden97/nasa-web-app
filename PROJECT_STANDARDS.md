@@ -225,7 +225,8 @@ All four backend feature services share these resilience patterns:
 - **In-flight request deduplication** — concurrent requests for the same key share a single HTTP call
 - **Retry with backoff** — transient NASA errors (500, 502, 503, 504) are retried up to 3 times with increasing delays (1 s, 2 s)
 - **Failure cooldown** — after retries are exhausted, the same key is blocked from re-fetching for 10 minutes to avoid hammering a failing upstream
-- Cache resets on server restart — acceptable for this project's scale
+- **Durable production cache** — Upstash Redis persists hot responses across Render cold boots
+- Local development keeps Redis disabled by default to avoid stale-data confusion during iteration
 
 ### APOD caching
 
@@ -238,7 +239,9 @@ All four backend feature services share these resilience patterns:
 ### NASA Image Library caching
 
 - Search results are cached by query + filters + page number
-- Cache does not expire (search results are stable) — on fetch failure after cache miss, a 502 error is returned directly
+- In-memory search cache remains process-local
+- Redis persists popular query/filter/page combinations in production
+- On fetch failure after cache miss, a 502 error is returned directly
 
 ### EPIC caching
 
@@ -260,3 +263,4 @@ All four backend feature services share these resilience patterns:
 - Backend CORS supports comma-separated origins via `FRONTEND_ORIGIN`
 - Frontend uses `@/` path alias for imports
 - Icons use `lucide-react`
+- Production durable cache uses Upstash Redis REST; Redis stays off by default in local development

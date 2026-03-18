@@ -1,4 +1,5 @@
 import { config } from '../config'
+import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
 import logger from '../lib/logger'
 import type { ApodItem, ApodQuery } from '../types/apod'
 
@@ -53,6 +54,8 @@ function formatDate(d: Date): string {
 
 const APOD_EPOCH = '1995-06-16'
 const DEFAULT_COUNT = 20
+const APOD_LATEST_TTL_SECONDS = 15 * 60
+const APOD_HISTORICAL_TTL_SECONDS = 30 * 24 * 60 * 60
 
 function subtractDays(iso: string, days: number): string {
   const d = new Date(iso + 'T00:00:00Z')
@@ -65,6 +68,38 @@ function clampApodDate(iso: string): string {
   if (iso < APOD_EPOCH) return APOD_EPOCH
   if (iso > today) return today
   return iso
+}
+
+function buildApodDurableKey(query: ApodQuery): string {
+  if (query.date) {
+    return buildDurableCacheKey('apod', 'date', clampApodDate(query.date))
+  }
+
+  if (query.start_date && !query.count) {
+    const startDate = clampApodDate(query.start_date)
+    const endDate = clampApodDate(query.end_date ?? todayUTC())
+    return buildDurableCacheKey('apod', 'range', startDate, endDate)
+  }
+
+  const target = query.count ?? DEFAULT_COUNT
+  const endDate = clampApodDate(query.end_date ?? todayUTC())
+  return buildDurableCacheKey('apod', 'count', String(target), endDate)
+}
+
+function getApodDurableTtlSeconds(query: ApodQuery): number {
+  if (query.date) {
+    return clampApodDate(query.date) >= todayUTC()
+      ? APOD_LATEST_TTL_SECONDS
+      : APOD_HISTORICAL_TTL_SECONDS
+  }
+
+  const effectiveEndDate = clampApodDate(query.end_date ?? todayUTC())
+  return effectiveEndDate >= todayUTC() ? APOD_LATEST_TTL_SECONDS : APOD_HISTORICAL_TTL_SECONDS
+}
+
+function hydrateApodLocalCache(result: ApodItem | ApodItem[]): void {
+  const list = Array.isArray(result) ? result : [result]
+  list.forEach(setCached)
 }
 
 function isNasaApiError(error: unknown): error is Error {
@@ -142,22 +177,33 @@ async function fetchFromNasa(query: ApodQuery): Promise<ApodItem[]> {
 }
 
 export async function fetchApod(query: ApodQuery): Promise<ApodItem | ApodItem[]> {
+  const durableKey = buildApodDurableKey(query)
+  const durableHit = await durableCache.get<ApodItem | ApodItem[]>(durableKey)
+  if (durableHit) {
+    logger.info('APOD durable cache hit', { key: durableKey })
+    hydrateApodLocalCache(durableHit)
+    return durableHit
+  }
+
+  let result: ApodItem | ApodItem[]
+
   // Single date — check cache and cooldown first
   if (query.date) {
-    return fetchSingleDate(query.date)
-  }
-
-  // Explicit range without count — serve as-is
-  if (query.start_date && !query.count) {
+    result = await fetchSingleDate(query.date)
+  } else if (query.start_date && !query.count) {
+    // Explicit range without count — serve as-is
     const startDate = clampApodDate(query.start_date)
     const endDate = clampApodDate(query.end_date ?? todayUTC())
-    return fetchRange(startDate, endDate)
+    result = await fetchRange(startDate, endDate)
+  } else {
+    // Fill to exact count (default load or load-more with end_date + count)
+    const target = query.count ?? DEFAULT_COUNT
+    const endDate = clampApodDate(query.end_date ?? todayUTC())
+    result = await fetchExactCount(endDate, target)
   }
 
-  // Fill to exact count (default load or load-more with end_date + count)
-  const target = query.count ?? DEFAULT_COUNT
-  const endDate = clampApodDate(query.end_date ?? todayUTC())
-  return fetchExactCount(endDate, target)
+  await durableCache.set(durableKey, result, getApodDurableTtlSeconds(query))
+  return result
 }
 
 async function fetchSingleDate(date: string, allowLatestFallback = true): Promise<ApodItem> {
