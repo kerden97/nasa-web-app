@@ -1,9 +1,8 @@
 import { Globe, Image, Radar, Telescope, type LucideIcon } from 'lucide-react'
-import heroNebula from '@/assets/home/hero-nebula.jpg'
-import cardApod from '@/assets/home/card-apod.jpg'
-import cardLibrary from '@/assets/home/card-library.jpg'
-import cardEpic from '@/assets/home/card-epic.jpg'
-import cardNeows from '@/assets/home/card-neows.jpg'
+import cardApod from '@/assets/home/card-apod.webp'
+import cardLibrary from '@/assets/home/card-library.webp'
+import cardEpic from '@/assets/home/card-epic.webp'
+import cardNeows from '@/assets/home/card-neows.webp'
 
 export interface HomeFeature {
   to: string
@@ -24,7 +23,7 @@ export interface HomeStat {
   label: string
 }
 
-export const homeHeroImage = heroNebula
+export const homeHeroImage = '/home/hero-nebula.webp'
 
 export const homeFeatures: HomeFeature[] = [
   {

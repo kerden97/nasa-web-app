@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { ChevronDown, Menu } from 'lucide-react'
-import logo from '@/assets/logo.png'
+import logo from '@/assets/logo.webp'
 import { asteroidDestination, wondersDestinations } from '@/lib/navigation'
 import { wondersUiConfig } from '@/lib/wondersUi'
 import MotionToggle from './MotionToggle'
