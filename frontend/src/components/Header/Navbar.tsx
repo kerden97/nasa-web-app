@@ -59,16 +59,20 @@ export default function Navbar() {
     <header className="relative z-50 border-b border-slate-200 bg-white py-3 dark:border-slate-800 dark:bg-slate-950">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-6">
-          <Link to="/" className="flex items-center gap-3">
+          <Link
+            to="/"
+            aria-label="Go to Home & Beyond homepage"
+            className="relative z-10 inline-flex shrink-0 items-center gap-3 rounded-xl p-1 -m-1"
+          >
             <img
               src={logo}
               alt="Home & Beyond"
-              className="h-12 w-12"
+              className="pointer-events-none h-12 w-12"
               width="48"
               height="48"
               decoding="async"
             />
-            <span className="font-nasa text-xl tracking-widest text-slate-900 dark:text-white">
+            <span className="pointer-events-none whitespace-nowrap font-nasa text-xl tracking-widest text-slate-900 dark:text-white">
               Home & Beyond
             </span>
           </Link>
