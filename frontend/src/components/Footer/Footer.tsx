@@ -19,7 +19,7 @@ export default function Footer() {
             >
               Home &amp; Beyond
             </Link>
-            <p className="mt-2 max-w-xs text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-2 max-w-xs text-sm text-slate-600 dark:text-slate-300">
               Exploring the cosmos through NASA imagery, Earth observation, and asteroid tracking in
               one place.
             </p>
@@ -49,7 +49,7 @@ export default function Footer() {
         </div>
 
         {/* Divider + bottom row */}
-        <div className="mt-8 flex flex-col items-center gap-3 border-t border-slate-200 pt-6 text-xs text-slate-500 dark:border-slate-800 sm:flex-row sm:justify-between">
+        <div className="mt-8 flex flex-col items-center gap-3 border-t border-slate-200 pt-6 text-xs text-slate-600 dark:border-slate-800 dark:text-slate-300 sm:flex-row sm:justify-between">
           <p>&copy; {new Date().getFullYear()} Home &amp; Beyond</p>
           <p className="flex items-center gap-1.5">
             Powered by{' '}

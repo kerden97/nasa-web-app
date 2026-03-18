@@ -16,6 +16,8 @@ cd frontend
 npm test -- --run
 ```
 
+This document covers the frontend Vitest + React Testing Library layer. Separate Playwright smoke tests live at the repository root in `e2e/` and run through `npm run test:e2e` from the root.
+
 ## Test Files
 
 Tests are co-located next to their source files, with shared setup under `src/test`.

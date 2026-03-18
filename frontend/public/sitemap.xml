@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://nasa-web-app-iota.vercel.app/</loc>
+  </url>
+  <url>
+    <loc>https://nasa-web-app-iota.vercel.app/wonders-of-the-universe</loc>
+  </url>
+  <url>
+    <loc>https://nasa-web-app-iota.vercel.app/wonders-of-the-universe/apod</loc>
+  </url>
+  <url>
+    <loc>https://nasa-web-app-iota.vercel.app/wonders-of-the-universe/nasa-image-library</loc>
+  </url>
+  <url>
+    <loc>https://nasa-web-app-iota.vercel.app/wonders-of-the-universe/epic</loc>
+  </url>
+  <url>
+    <loc>https://nasa-web-app-iota.vercel.app/asteroid-watch</loc>
+  </url>
+</urlset>

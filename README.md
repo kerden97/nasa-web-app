@@ -260,8 +260,9 @@ GitHub Actions runs on every push to `main` and on pull requests:
 - **Backend Tests** — `npm test` (Jest) in `backend/`
 - **Frontend Tests** — `npm test` (Vitest) in `frontend/`
 - **Frontend Build** — `npm run build` in `frontend/`
+- **E2E Smoke Tests** — `npm run test:e2e` (Playwright) at the repo root
 
-Formatting is enforced before backend/frontend jobs run. Render (backend) is configured to deploy only after CI checks pass. Vercel (frontend) deploys on every push independently.
+Formatting is enforced before backend/frontend jobs run. The Playwright job runs after backend and frontend verification complete and exercises a small mocked smoke layer for the homepage/APOD flow and the Asteroid Watch Radar Brief flow. Render (backend) is configured to deploy only after CI checks pass. Vercel (frontend) deploys on every push independently.
 
 Workflow file: `.github/workflows/ci.yml`
 
@@ -309,6 +310,9 @@ Workflow file: `.github/workflows/ci.yml`
 - Frontend:
   - Vitest + React Testing Library for route, component, and utility coverage
   - targeted regressions for header/mobile-menu behavior, route fallbacks, and loading-state UX
+- E2E:
+  - Playwright smoke coverage for homepage -> APOD navigation
+  - Playwright smoke coverage for Asteroid Watch loading and Radar Brief modal flow
 - Backend:
   - Jest + Supertest for controller and service coverage
   - controller tests assert validation, status codes, and structured error payloads

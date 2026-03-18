@@ -66,7 +66,8 @@ export default function Navbar() {
           >
             <img
               src={logo}
-              alt="Home & Beyond"
+              alt=""
+              aria-hidden="true"
               className="pointer-events-none h-12 w-12"
               width="48"
               height="48"
