@@ -47,9 +47,9 @@ export default function FeaturedApodHero({ item, onOpen }: FeaturedApodHeroProps
           </div>
         </div>
 
-        <div className="relative flex flex-col justify-between overflow-hidden p-6 lg:h-[32.5rem] lg:min-h-0 lg:p-7">
+        <div className="relative flex flex-col overflow-hidden p-6 lg:h-[32.5rem] lg:min-h-0 lg:p-7">
           <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-[#0B3D91]/12 blur-3xl" />
-          <div className="min-h-0">
+          <div className="min-h-0 flex-1 overflow-hidden">
             <div className="flex flex-wrap items-center gap-2">
               <span className="cosmic-pill-date rounded-full px-3 py-1.5 text-xs font-medium tracking-[0.12em]">
                 {formatApodLongDate(item.date)}
@@ -63,17 +63,19 @@ export default function FeaturedApodHero({ item, onOpen }: FeaturedApodHeroProps
             <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
               {formatApodRelativeDate(item.date)}
             </p>
-            <p className="mt-4 line-clamp-8 max-w-xl text-base leading-8 text-slate-600 dark:text-slate-300">
+            <p className="mt-4 max-w-xl overflow-hidden line-clamp-6 text-base leading-8 text-slate-600 dark:text-slate-300">
               {item.explanation}
             </p>
           </div>
 
-          <div className="mt-6 flex shrink-0 flex-col gap-4 border-t border-slate-200 pt-4 dark:border-slate-800 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+          <div className="mt-6 flex shrink-0 flex-col gap-4 border-t border-slate-200 pt-4 dark:border-slate-800 sm:mt-auto sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+            <div className="min-w-0 flex-1">
               <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                 Credit
               </p>
-              <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">{credit}</p>
+              <p className="mt-2 text-sm text-slate-700 dark:text-slate-300 [overflow-wrap:anywhere]">
+                {credit}
+              </p>
             </div>
             <button
               type="button"
@@ -82,9 +84,9 @@ export default function FeaturedApodHero({ item, onOpen }: FeaturedApodHeroProps
                 handleOpen()
               }}
               aria-label="Explore details"
-              className="cosmic-btn-primary rounded-full px-6 py-3 text-sm font-semibold"
+              className="cosmic-btn-primary shrink-0 whitespace-nowrap rounded-full px-6 py-3 text-sm font-semibold"
             >
-              View full detail
+              View details
             </button>
           </div>
         </div>
