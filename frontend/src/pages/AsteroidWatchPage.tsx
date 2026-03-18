@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Sparkles } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 import { useNeows } from '@/hooks/useNeows'
 import Breadcrumbs from '@/components/Breadcrumbs'
@@ -7,6 +8,7 @@ import { AsteroidWatchSkeletonContent } from '@/components/NeoWs/AsteroidWatchSk
 import {
   asteroidWatchChartTitles,
   asteroidWatchEmptyDescription,
+  asteroidWatchRadarBriefButton,
   asteroidWatchEmptyTitle,
   asteroidWatchIntroPrimary,
   asteroidWatchIntroSecondary,
@@ -14,6 +16,7 @@ import {
   asteroidWatchTitle,
 } from '@/content/asteroidWatchContent'
 import NeoDateFilter from '@/components/NeoWs/NeoDateFilter'
+import RadarBriefModal from '@/components/NeoWs/RadarBriefModal'
 import SummaryStats from '@/components/NeoWs/SummaryStats'
 import AsteroidTable from '@/components/NeoWs/AsteroidTable'
 import {
@@ -40,6 +43,7 @@ export default function AsteroidWatchPage() {
   const defaultRange = useMemo(() => getDefaultRange(), [])
   const [startDate, setStartDate] = useState(defaultRange.start)
   const [endDate, setEndDate] = useState(defaultRange.end)
+  const [isRadarBriefOpen, setIsRadarBriefOpen] = useState(false)
 
   const handleRangeChange = useCallback((start: string, end: string) => {
     setStartDate(start)
@@ -118,7 +122,23 @@ export default function AsteroidWatchPage() {
           </p>
         </div>
 
-        <NeoDateFilter defaultRange={defaultRange} onChange={handleRangeChange} />
+        <NeoDateFilter
+          defaultRange={defaultRange}
+          onChange={handleRangeChange}
+          trailingAction={
+            <div className="w-full sm:w-auto sm:shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsRadarBriefOpen(true)}
+                disabled={loading || !data || !hasResults}
+                className="cosmic-btn-primary inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto sm:min-w-[10.5rem]"
+              >
+                <Sparkles size={15} />
+                <span>{asteroidWatchRadarBriefButton}</span>
+              </button>
+            </div>
+          }
+        />
 
         {loading && <AsteroidWatchSkeletonContent />}
 
@@ -157,6 +177,15 @@ export default function AsteroidWatchPage() {
               {asteroidWatchEmptyDescription}
             </p>
           </div>
+        )}
+
+        {isRadarBriefOpen && hasResults && (
+          <RadarBriefModal
+            key={`${startDate}:${endDate}`}
+            startDate={startDate}
+            endDate={endDate}
+            onClose={() => setIsRadarBriefOpen(false)}
+          />
         )}
       </div>
     </section>

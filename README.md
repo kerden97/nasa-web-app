@@ -7,7 +7,7 @@ This project is a React + Node/Express NASA data explorer built around four expe
 - APOD — featured daily imagery plus a recent archive
 - NASA Image Library — searchable media archive with media-type filtering
 - EPIC — full-disk Earth imagery with date presets and collection switching
-- Asteroid Watch — NeoWs-based dashboard with summary stats, charts, and a sortable table
+- Asteroid Watch — NeoWs-based dashboard with summary stats, charts, a sortable table, and an AI-assisted Radar Brief
 
 The app is intentionally split into:
 
@@ -69,6 +69,7 @@ Current backend routes:
 - `GET /api/epic`
 - `GET /api/epic/dates`
 - `GET /api/neows/feed`
+- `GET /api/neows/radar-brief`
 
 Error responses are standardized as:
 
@@ -136,6 +137,8 @@ FRONTEND_ORIGIN=https://nasa-web-app-iota.vercel.app
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 ENABLE_REDIS_CACHE=true
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4o-mini
 ```
 
 ### Frontend (Vercel)
@@ -325,3 +328,5 @@ I considered using a client-side query library such as TanStack Query. For this 
 I added a durable Redis cache through Upstash in production, while keeping Redis disabled by default in local development. That split keeps reviewer-facing cold starts and repeat fetches faster without introducing stale-data friction during day-to-day local work. Because the backend is hosted in Frankfurt, Redis was placed in Frankfurt too so cache reads stay close to the server rather than the browser.
 
 For APOD, EPIC, and Asteroid Watch, I also added a persisted client-side stale cache on top of the backend cache. The goal was not to replace the backend, but to improve repeat-visit UX: render the last known good payload immediately, then revalidate in the background. This is especially useful when the backend is waking from a free-tier cold start.
+
+The `Radar Brief` feature uses `gpt-4o-mini` rather than `gpt-5-nano` because `gpt-5-nano` frequently exhausted the request’s output budget on reasoning before producing the final structured JSON, while `gpt-4o-mini` returned reliable low-latency structured summaries for this use case.

@@ -3,7 +3,7 @@ export const asteroidWatchKicker = 'Near-Earth Radar'
 export const asteroidWatchTitle = 'Asteroid Watch'
 
 export const asteroidWatchIntroPrimary =
-  "Track near-Earth objects approaching our planet. Visualize asteroid count, size, velocity, and miss distance from NASA's NeoWs data."
+  "Track near-Earth objects approaching our planet. Visualize asteroid count, size, velocity, and miss distance from NASA's NeoWs data, then open an AI-generated radar brief for the selected range."
 
 export const asteroidWatchIntroSecondary =
   'A few million years earlier, a dashboard like this might have been the most important screen on Earth.'
@@ -52,3 +52,13 @@ export const asteroidWatchEmptyTitle = 'No near-Earth objects found for this ran
 
 export const asteroidWatchEmptyDescription =
   'Try another date or a broader 7-day window to explore recent NeoWs activity.'
+
+export const asteroidWatchRadarBriefButton = 'Radar Brief'
+export const asteroidWatchRadarBriefKicker = 'AI Mission Summary'
+export const asteroidWatchRadarBriefTitle = 'Radar Brief'
+export const asteroidWatchRadarBriefLoading = 'Generating the latest radar brief...'
+export const asteroidWatchRadarBriefOverviewLabel = 'Range snapshot'
+export const asteroidWatchRadarBriefScenarioLabel = 'Impact scenario'
+export const asteroidWatchRadarBriefFactsLabel = 'Facts used'
+export const asteroidWatchRadarBriefNotesLabel = 'Watch notes'
+export const asteroidWatchRadarBriefDisclaimerLabel = 'Important context'

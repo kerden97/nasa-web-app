@@ -76,7 +76,7 @@ export const homeFeatures: HomeFeature[] = [
     label: 'NeoWs',
     title: 'Asteroid Watch',
     description:
-      'Track near-Earth objects with interactive charts, hazard classification, and a sortable data table.',
+      'Track near-Earth objects with interactive charts, hazard classification, and an AI radar brief.',
     Icon: Radar,
     glow: 'card-glow--amber',
     borderHover: 'hover:border-amber-500/40',

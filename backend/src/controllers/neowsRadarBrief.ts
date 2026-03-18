@@ -1,0 +1,65 @@
+import type { NextFunction, Request, Response } from 'express'
+import { sendApiError } from '../lib/apiErrors'
+import { isValidDate } from '../lib/validation'
+import { fetchNeoRadarBrief } from '../services/neowsRadarBrief'
+
+function toUtcDate(value: string): Date {
+  const [yearStr, monthStr, dayStr] = value.split('-')
+  return new Date(Date.UTC(Number(yearStr), Number(monthStr) - 1, Number(dayStr)))
+}
+
+export async function getNeoRadarBrief(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const { start_date, end_date } = req.query
+
+    if (typeof start_date !== 'string' || !isValidDate(start_date)) {
+      sendApiError(res, 400, 'invalid_start_date', 'Invalid or missing start_date. Use YYYY-MM-DD.')
+      return
+    }
+
+    if (typeof end_date !== 'string' || !isValidDate(end_date)) {
+      sendApiError(res, 400, 'invalid_end_date', 'Invalid or missing end_date. Use YYYY-MM-DD.')
+      return
+    }
+
+    const start = toUtcDate(start_date)
+    const end = toUtcDate(end_date)
+    const diffDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+
+    if (diffDays < 0) {
+      sendApiError(
+        res,
+        400,
+        'invalid_date_range',
+        'start_date must be before or equal to end_date.',
+      )
+      return
+    }
+
+    if (diffDays > 6) {
+      sendApiError(res, 400, 'invalid_date_range', 'Date range cannot exceed 7 days.')
+      return
+    }
+
+    const data = await fetchNeoRadarBrief(start_date, end_date)
+    res.json(data)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+
+    if (message.includes('NASA NeoWs')) {
+      sendApiError(
+        res,
+        502,
+        'upstream_service_unavailable',
+        "NASA's NeoWs API is temporarily unavailable. Please try again shortly.",
+      )
+      return
+    }
+
+    next(error)
+  }
+}

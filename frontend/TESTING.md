@@ -244,6 +244,7 @@ These are page-level behavior tests for the NeoWs asteroid route. The `useNeows`
 | Heading and description      | Hero title and intro copy render correctly                              |
 | Loading skeleton             | NeoWs skeleton renders during initial loading                           |
 | Error state                  | Hook error renders the error banner                                     |
+| Radar Brief action           | The Asteroid Watch toolbar renders the Radar Brief action               |
 | Empty valid feed             | A valid empty NeoWs response renders the dedicated empty state          |
 | Summary stats                | Total, hazardous, closest, fastest, and largest cards render            |
 | Chart rendering              | Bar, pie, and scatter chart containers render                           |
@@ -335,6 +336,10 @@ The real skeletons are purely visual and do not expose accessible labels. Small 
 ### Why fake timers in `apodMeta.test.ts`, `EpicPage.test.tsx`, and `AsteroidWatchPage.test.tsx`?
 
 `apodMeta.test.ts`, `EpicPage.test.tsx`, and `AsteroidWatchPage.test.tsx` all rely on date-sensitive logic, so fake timers are used to keep assertions deterministic.
+
+### Why is the Radar Brief feature not deeply mocked in frontend tests?
+
+The Radar Brief modal depends on a backend-generated AI/system summary rather than a purely local UI transformation. Frontend coverage currently focuses on the deterministic page shell, filter behavior, tables, and charts, while the summary generation contract is documented and handled server-side.
 
 ### Why wrap `HomePage` in `MemoryRouter`?
 

@@ -43,11 +43,16 @@ class DurableCache {
     }
   }
 
-  async set(key: string, value: unknown, ttlSeconds: number): Promise<void> {
-    if (!this.enabled || !this.client || ttlSeconds <= 0) return
+  async set(key: string, value: unknown, ttlSeconds?: number | null): Promise<void> {
+    if (!this.enabled || !this.client) return
 
     try {
-      await this.client.set(key, value, { ex: ttlSeconds })
+      if (typeof ttlSeconds === 'number' && ttlSeconds > 0) {
+        await this.client.set(key, value, { ex: ttlSeconds })
+        return
+      }
+
+      await this.client.set(key, value)
     } catch (error) {
       logger.warn('Durable cache set failed', { key, error })
     }

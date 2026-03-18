@@ -29,6 +29,7 @@ backend/src/
 │   ├── epic.ts
 │   ├── epic.test.ts
 │   ├── neows.ts
+│   ├── neowsRadarBrief.ts
 │   └── neows.test.ts
 ├── services/
 │   ├── apod.ts
@@ -38,6 +39,7 @@ backend/src/
 │   ├── epic.ts
 │   ├── epic.test.ts
 │   ├── neows.ts
+│   ├── neowsRadarBrief.ts
 │   └── neows.test.ts
 ```
 
@@ -51,6 +53,7 @@ Current backend cache behavior combines:
 - per-process in-memory caches inside the service modules
 - durable Upstash Redis persistence in production
 - graceful bypass when Redis is unavailable or disabled
+- long-lived AI brief reuse in Redis for identical NeoWs date ranges
 
 Controller-level errors now use a shared response contract:
 
@@ -242,6 +245,8 @@ These are unit tests for the EPIC service's image fetching, URL building, date l
 
 These are HTTP-level tests for the NeoWs feed endpoint. The service layer is mocked so the controller is tested in isolation for required-parameter checks, date validation, range validation, and error mapping.
 
+The backend also exposes `GET /api/neows/radar-brief`, which reuses the same date-range validation rules and the same structured error contract. Current automated controller coverage is still focused on the deterministic feed route.
+
 **What is covered:**
 
 | Test                  | Validates                                                          |
@@ -263,6 +268,8 @@ These are HTTP-level tests for the NeoWs feed endpoint. The service layer is moc
 ## Service Tests — NeoWs (`services/neows.test.ts`)
 
 These are unit tests for the NeoWs feed service's mapping, cache policy, retry handling for both HTTP and network failures, cooldown behavior, in-flight deduplication, stale-cache fallback, and date-range cache invalidation. `global.fetch` is mocked directly.
+
+The AI-assisted Radar Brief is built as an additional service layer on top of the NeoWs feed. It derives deterministic facts from the selected range, uses OpenAI to write a public-facing summary, and falls back to a deterministic system summary when model generation is unavailable. That service is intentionally isolated from the base NeoWs feed logic.
 
 **What is covered:**
 
@@ -336,3 +343,7 @@ The controller uses `/^\d+$/.test(count)` instead of `parseInt()`. This matters 
 ### NeoWs retry behavior
 
 NeoWs retries both retryable HTTP responses and thrown `fetch()` network errors. The service tests cover pure HTTP retry sequences, pure network-failure sequences, and mixed sequences to ensure both retry paths behave consistently.
+
+### Radar Brief generation model
+
+The Radar Brief feature uses `gpt-4o-mini` rather than `gpt-5-nano` because `gpt-5-nano` frequently exhausted the request's output budget on reasoning before producing the final structured JSON, while `gpt-4o-mini` returned reliable low-latency structured summaries for this use case.

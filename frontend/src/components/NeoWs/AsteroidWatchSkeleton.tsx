@@ -1,4 +1,4 @@
-import { Calendar } from 'lucide-react'
+import { Calendar, ChevronDown, Sparkles } from 'lucide-react'
 import FilterChipButton from '@/components/Wonders/FilterChipButton'
 import {
   asteroidWatchChartTitles,
@@ -7,6 +7,7 @@ import {
   asteroidWatchIntroPrimary,
   asteroidWatchIntroSecondary,
   asteroidWatchKicker,
+  asteroidWatchRadarBriefButton,
   asteroidWatchScatterNote,
   asteroidWatchSummaryLabels,
   asteroidWatchTableHeaders,
@@ -15,13 +16,6 @@ import {
   asteroidWatchTitle,
 } from '@/content/asteroidWatchContent'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-
-const chipBase =
-  'whitespace-nowrap rounded-full px-4 py-2 text-xs font-medium transition-all duration-200'
-const chipIdle =
-  'border border-slate-200/80 bg-white/82 text-slate-600 shadow-[0_8px_24px_rgba(15,23,42,0.04)] dark:border-slate-700/80 dark:bg-slate-950/35 dark:text-slate-400 dark:shadow-none'
-const chipActive =
-  'border border-[rgba(11,61,145,0.18)] bg-[rgba(11,61,145,0.08)] text-[#0B3D91] shadow-[0_10px_26px_rgba(11,61,145,0.08)] dark:border-[rgba(140,184,255,0.28)] dark:bg-[rgba(11,61,145,0.25)] dark:text-[#8CB8FF] dark:shadow-[0_14px_32px_rgba(11,61,145,0.16)]'
 
 function HeaderSkeleton() {
   return (
@@ -45,29 +39,47 @@ function FilterRowSkeleton() {
 
   return (
     <div className="relative z-30 mb-8">
-      <div className="flex flex-wrap items-center gap-2">
-        {isMobile ? (
-          <div className="flex items-center gap-2.5">
-            <FilterChipButton active>{asteroidWatchDatePresets[3]}</FilterChipButton>
-            <FilterChipButton className="inline-flex items-center gap-1.5">More</FilterChipButton>
-          </div>
-        ) : (
-          asteroidWatchDatePresets.map((label) => (
-            <button
-              key={label}
-              type="button"
-              disabled
-              className={`${chipBase} ${label === 'Last 7 days' ? chipActive : chipIdle} cursor-default`}
-            >
-              {label}
-            </button>
-          ))
-        )}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          {isMobile ? (
+            <div className="flex items-center gap-2.5">
+              <FilterChipButton active className="pointer-events-none">
+                {asteroidWatchDatePresets[3]}
+              </FilterChipButton>
 
-        <FilterChipButton className="inline-flex items-center gap-1.5">
-          <Calendar size={13} />
-          Custom
-        </FilterChipButton>
+              <FilterChipButton className="pointer-events-none inline-flex items-center gap-1.5">
+                More
+                <ChevronDown size={14} />
+              </FilterChipButton>
+            </div>
+          ) : (
+            asteroidWatchDatePresets.map((label) => (
+              <FilterChipButton
+                key={label}
+                active={label === 'Last 7 days'}
+                className="pointer-events-none"
+              >
+                {label}
+              </FilterChipButton>
+            ))
+          )}
+
+          <FilterChipButton className="pointer-events-none inline-flex items-center gap-1.5">
+            <Calendar size={13} />
+            Custom
+          </FilterChipButton>
+        </div>
+
+        <div className="w-full sm:w-auto sm:shrink-0">
+          <button
+            type="button"
+            disabled
+            className="cosmic-btn-primary inline-flex h-11 w-full cursor-default items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold opacity-55 sm:w-auto sm:min-w-[10.5rem]"
+          >
+            <Sparkles size={15} />
+            {asteroidWatchRadarBriefButton}
+          </button>
+        </div>
       </div>
     </div>
   )

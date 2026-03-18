@@ -97,6 +97,7 @@ Use backend tests for:
 - request validation
 - API error handling
 - NASA integration edge cases where practical
+- AI-assisted summary fallback behavior where practical
 
 ### End-to-End
 
@@ -176,6 +177,7 @@ Theme is toggled via Tailwind's `dark:` variant with a `dark` class on `<html>`.
 - Home, Wonders shell, and Wonders hub are eager-loaded; NASA-backed feature routes remain lazy-loaded
 - Lazy route fallbacks should mirror the final layout closely enough to avoid visible page jumps
 - Mobile date-filter UIs may collapse non-primary presets into a compact overflow control when full chip rows become cramped
+- Asteroid Watch includes a Radar Brief action whose loading, error, and success modal states should preserve the same overall modal footprint to avoid UI jumps
 
 ## Working Rules
 
@@ -250,6 +252,13 @@ All four backend feature services share these resilience patterns:
 - Empty image responses are not cached (allows retry on next request)
 - **Stale fallback** — when NASA fails after cache expiry, stale cached images and dates are served instead of erroring
 
+### NeoWs caching and Radar Brief generation
+
+- NeoWs feed data is cached by exact date range
+- The Radar Brief feature derives deterministic facts from the NeoWs feed, then generates a reusable summary keyed by date range and prompt version
+- Historical date ranges can be reused long-term; ranges including today may be regenerated if the underlying facts fingerprint changes
+- Frontend may reuse the most recent brief for the same open date range within the same browser session to avoid unnecessary repeat requests
+
 ## Decision Notes
 
 - Frontend uses plain React with Vite, not Next.js
@@ -264,3 +273,5 @@ All four backend feature services share these resilience patterns:
 - Frontend uses `@/` path alias for imports
 - Icons use `lucide-react`
 - Production durable cache uses Upstash Redis REST; Redis stays off by default in local development
+- AI-assisted Radar Brief generation uses OpenAI from the backend only; the frontend never calls the model directly
+- `gpt-4o-mini` is the current Radar Brief model because it produced reliable structured summaries with lower latency than `gpt-5-nano` for this use case

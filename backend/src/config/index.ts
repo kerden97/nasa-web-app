@@ -23,4 +23,8 @@ export const config = {
         !!process.env.UPSTASH_REDIS_REST_URL &&
         !!process.env.UPSTASH_REDIS_REST_TOKEN),
   },
+  ai: {
+    apiKey: process.env.OPENAI_API_KEY || '',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  },
 }
