@@ -30,10 +30,10 @@ export default function ModalFrame({
 
   return createPortal(
     <div className="fixed inset-0 z-50 bg-slate-950/88 backdrop-blur-sm" onClick={onClose}>
-      <div className="absolute inset-0 overflow-y-auto">
-        <div className="flex min-h-full items-start justify-center px-4 pb-4 pt-[89px]">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="flex h-full items-start justify-center px-4 pb-4 pt-[89px]">
           <div
-            className={`relative flex max-h-full w-full ${maxWidthClass} flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_36px_120px_rgba(15,23,42,0.24)] dark:border-slate-800 dark:bg-slate-900`}
+            className={`relative flex h-[calc(100dvh-89px-1rem)] min-h-0 w-full ${maxWidthClass} max-h-[calc(100dvh-89px-1rem)] flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_36px_120px_rgba(15,23,42,0.24)] dark:border-slate-800 dark:bg-slate-900 lg:h-auto lg:max-h-[calc(100dvh-89px-1rem)]`}
             onClick={(event) => event.stopPropagation()}
           >
             <button

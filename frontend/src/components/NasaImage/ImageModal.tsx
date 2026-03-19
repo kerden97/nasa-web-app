@@ -118,9 +118,9 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
 
   return (
     <ModalFrame onClose={onClose} maxWidthClass="max-w-6xl">
-      <div className="max-h-full overflow-y-auto lg:overflow-hidden">
-        <div className="grid lg:h-[48rem] lg:max-h-[calc(100vh-73px-2rem)] lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.9fr)]">
-          <div className="flex min-h-[18rem] max-h-[46svh] items-center justify-center bg-black sm:min-h-[20rem] sm:max-h-[52svh] lg:max-h-none">
+      <div className="h-full overflow-hidden">
+        <div className="flex h-full flex-col lg:grid lg:h-[48rem] lg:max-h-[calc(100vh-73px-2rem)] lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.9fr)]">
+          <div className="flex shrink-0 min-h-[14rem] max-h-[36svh] items-center justify-center bg-black sm:min-h-[18rem] sm:max-h-[46svh] lg:max-h-none">
             {item.media_type === 'image' && item.href && (
               <img src={item.href} alt={item.title} className="h-full w-full object-contain" />
             )}
@@ -156,34 +156,26 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
             )}
           </div>
 
-          <div className="relative flex flex-col border-t border-slate-200 bg-white/98 p-5 dark:border-slate-800 dark:bg-slate-900/96 lg:min-h-0 lg:border-l lg:border-t-0 lg:p-8">
+          <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden border-t border-slate-200 bg-white/98 p-4 dark:border-slate-800 dark:bg-slate-900/96 lg:border-l lg:border-t-0 lg:p-8">
             <div className="pointer-events-none absolute right-0 top-0 h-36 w-36 rounded-full bg-[#0B3D91]/12 blur-3xl" />
-            <div className="relative flex flex-1 flex-col lg:min-h-0">
-              <div className="sticky top-0 z-10 -mx-5 -mt-5 border-b border-slate-200 bg-white/96 px-5 pb-5 pt-5 backdrop-blur dark:border-slate-800 dark:bg-slate-900/96 lg:-mx-8 lg:-mt-8 lg:px-8 lg:pt-8">
+            <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="sticky top-0 z-10 -mx-4 -mt-4 border-b border-slate-200 bg-white/96 px-4 pb-4 pt-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/96 lg:-mx-8 lg:-mt-8 lg:px-8 lg:pb-5 lg:pt-8">
                 <div className="flex flex-wrap items-center gap-2 pr-12">
                   <span className="cosmic-pill-date rounded-full px-3 py-1.5 text-xs font-medium tracking-[0.12em]">
                     {date}
                   </span>
                   <MediaBadge kind={item.media_type} />
                 </div>
-                <h2 className="ui-page-title mt-5 pr-12 text-2xl leading-[1.08] text-slate-900 dark:text-white sm:text-3xl">
+                <h2 className="ui-page-title mt-4 pr-12 text-xl leading-[1.08] text-slate-900 dark:text-white sm:text-3xl">
                   {item.title}
                 </h2>
               </div>
 
-              <div
-                className={`mt-5 ${expandedDescription || (item.keywords?.length ?? 0) > 0 ? 'lg:min-h-0 lg:flex-1 lg:overflow-hidden' : ''}`}
-              >
-                <div
-                  className={
-                    expandedDescription || (item.keywords?.length ?? 0) > 0
-                      ? 'lg:scrollbar-thin lg:h-full lg:overflow-y-auto lg:pr-2'
-                      : ''
-                  }
-                >
+              <div className="mt-4 min-h-0 flex-1 overflow-hidden lg:mt-5">
+                <div className="scrollbar-thin h-full overflow-y-auto overscroll-contain pr-1 lg:pr-2">
                   {descriptionText && (
                     <p
-                      className={`text-[15px] leading-8 text-slate-600 dark:text-slate-300 ${
+                      className={`text-[15px] leading-7 text-slate-600 dark:text-slate-300 sm:leading-8 ${
                         expandedDescription ? '' : 'line-clamp-5'
                       }`}
                     >
@@ -194,7 +186,7 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
                     <button
                       type="button"
                       onClick={() => setExpandedDescription((current) => !current)}
-                      className="mt-3 text-sm font-semibold text-slate-900 underline decoration-slate-400 decoration-2 underline-offset-4 transition hover:text-[#0B3D91] hover:decoration-[#0B3D91] dark:text-white dark:decoration-slate-600 dark:hover:text-[#8CB8FF] dark:hover:decoration-[#8CB8FF]"
+                      className="mt-2 text-sm font-semibold text-slate-900 underline decoration-slate-400 decoration-2 underline-offset-4 transition hover:text-[#0B3D91] hover:decoration-[#0B3D91] dark:text-white dark:decoration-slate-600 dark:hover:text-[#8CB8FF] dark:hover:decoration-[#8CB8FF] lg:mt-3"
                     >
                       {expandedDescription ? 'See less' : 'See more'}
                     </button>
@@ -211,11 +203,67 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
                       ))}
                     </div>
                   )}
+
+                  <div className="mt-5 grid gap-4 border-t border-slate-200 pt-4 dark:border-slate-800 lg:hidden">
+                    {originalHref && (
+                      <button
+                        type="button"
+                        onClick={() => queueExternalLink(originalHref)}
+                        className="cosmic-btn-primary flex h-10 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-medium"
+                      >
+                        <span className="flex h-4 w-4 items-center justify-center">
+                          <ExternalLink size={14} />
+                        </span>
+                        <span>Original</span>
+                      </button>
+                    )}
+
+                    <div className="grid gap-3 text-sm">
+                      <div className="min-w-0 rounded-2xl border border-slate-200 bg-slate-50/85 p-3 dark:border-slate-800 dark:bg-slate-950/60">
+                        <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                          Center
+                        </p>
+                        <p className="mt-1 text-sm leading-6 font-medium text-slate-800 dark:text-slate-200 [overflow-wrap:anywhere]">
+                          {item.center ?? 'NASA'}
+                        </p>
+                      </div>
+                      <div className="relative min-w-0 rounded-2xl border border-slate-200 bg-slate-50/85 p-3 dark:border-slate-800 dark:bg-slate-950/60">
+                        <p className="pr-20 text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                          ID
+                        </p>
+                        <button
+                          type="button"
+                          onClick={copyNasaId}
+                          className="absolute right-3 top-3 inline-flex h-6 shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white/80 px-2 text-[10px] font-medium leading-none text-slate-600 transition hover:border-[rgba(11,61,145,0.3)] hover:text-[#0B3D91] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:text-[#8CB8FF]"
+                          aria-label="Copy full ID"
+                          title="Copy full ID"
+                        >
+                          {copiedId ? <Check size={11} /> : <Copy size={11} />}
+                          <span>{copiedId ? 'Copied' : 'Copy'}</span>
+                        </button>
+                        <p
+                          className="mt-1 truncate text-sm leading-6 font-medium text-slate-800 dark:text-slate-200"
+                          title={item.nasa_id}
+                        >
+                          {item.nasa_id}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-800 dark:bg-slate-950/60">
+                      <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                        Source
+                      </p>
+                      <p className="mt-2 font-medium text-slate-800 dark:text-slate-200">
+                        NASA Image and Video Library
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 grid gap-5 border-t border-slate-200 pt-5 dark:border-slate-800">
+            <div className="mt-6 hidden shrink-0 gap-5 border-t border-slate-200 pt-5 dark:border-slate-800 lg:grid">
               {originalHref && (
                 <button
                   type="button"
