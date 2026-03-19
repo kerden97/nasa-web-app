@@ -12,12 +12,13 @@ interface ApodCardProps {
 export default function ApodCard({ item, onClick }: ApodCardProps) {
   const isVideo = item.media_type === 'video'
   const hasDirectVideo = isVideo && isDirectVideo(item.url)
-  const thumbnail = isVideo ? item.thumbnail_url : item.url
+  const thumbnail = isVideo ? item.thumbnail_url : (item.card_url ?? item.url)
   const [loaded, setLoaded] = useState(false)
   const [inView, setInView] = useState(false)
   const cardRef = useRef<HTMLButtonElement>(null)
   const credit = item.copyright ?? 'NASA APOD'
   const readyToShow = loaded && inView
+  const shouldLoadImage = inView && Boolean(thumbnail)
 
   useEffect(() => {
     const el = cardRef.current
@@ -53,7 +54,7 @@ export default function ApodCard({ item, onClick }: ApodCardProps) {
         </div>
       )}
 
-      {thumbnail ? (
+      {shouldLoadImage && thumbnail ? (
         <img
           src={thumbnail}
           alt={item.title}
@@ -64,6 +65,8 @@ export default function ApodCard({ item, onClick }: ApodCardProps) {
           decoding="async"
           onLoad={() => setLoaded(true)}
         />
+      ) : thumbnail ? (
+        <div aria-hidden="true" className="h-full w-full" />
       ) : hasDirectVideo ? (
         <video
           src={item.url}

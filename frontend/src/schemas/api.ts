@@ -14,6 +14,8 @@ export const apodItemSchema = z.object({
   explanation: z.string(),
   url: z.string(),
   hdurl: z.string().optional(),
+  hero_url: z.string().optional(),
+  card_url: z.string().optional(),
   media_type: apodMediaTypeSchema,
   copyright: z.string().optional(),
   thumbnail_url: z.string().optional(),

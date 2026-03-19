@@ -3,12 +3,27 @@ import request from 'supertest'
 import apodRoutes from '../routes/apod'
 import { globalErrorHandler } from '../middleware/errorHandler'
 import { fetchApod } from '../services/apod'
+import { getOptimizedApodImage } from '../services/apodImageProxy'
 
 jest.mock('../services/apod', () => ({
   fetchApod: jest.fn(),
 }))
 
+jest.mock('../services/apodImageProxy', () => ({
+  getOptimizedApodImage: jest.fn(),
+  isOptimizableApodImageSource: jest.fn(() => true),
+  normalizeApodImageWidth: jest.fn(
+    (value: number | undefined, fallback: number) => value ?? fallback,
+  ),
+  normalizeApodImageQuality: jest.fn(
+    (value: number | undefined, fallback: number) => value ?? fallback,
+  ),
+}))
+
 const mockedFetchApod = fetchApod as jest.MockedFunction<typeof fetchApod>
+const mockedGetOptimizedApodImage = getOptimizedApodImage as jest.MockedFunction<
+  typeof getOptimizedApodImage
+>
 
 function createApp() {
   const app = express()
@@ -37,6 +52,23 @@ describe('APOD controller', () => {
     expect(response.status).toBe(200)
     expect(response.body.title).toBe('CG 4')
     expect(mockedFetchApod).toHaveBeenCalledWith({ date: '2026-03-11' })
+  })
+
+  it('adds optimized image URLs for APOD image responses', async () => {
+    mockedFetchApod.mockResolvedValue({
+      date: '2026-03-11',
+      title: 'CG 4',
+      explanation: 'Cosmic cloud',
+      url: 'https://apod.nasa.gov/apod/image/2603/cg4.jpg',
+      media_type: 'image',
+      service_version: 'v1',
+    })
+
+    const response = await request(createApp()).get('/api/apod?date=2026-03-11')
+
+    expect(response.status).toBe(200)
+    expect(response.body.hero_url).toContain('/api/apod/image?')
+    expect(response.body.card_url).toContain('/api/apod/image?')
   })
 
   it('returns 400 for an invalid date', async () => {
@@ -186,5 +218,28 @@ describe('APOD controller', () => {
     expect(response.status).toBe(400)
     expect(response.body.error).toContain('start_date cannot be later than end_date')
     expect(mockedFetchApod).not.toHaveBeenCalled()
+  })
+
+  it('returns optimized APOD image assets for valid proxy requests', async () => {
+    mockedGetOptimizedApodImage.mockResolvedValue({
+      buffer: Buffer.from('optimized-image'),
+      contentType: 'image/webp',
+      etag: 'asset-tag',
+    })
+
+    const response = await request(createApp()).get('/api/apod/image').query({
+      src: 'https://apod.nasa.gov/apod/image/2603/cg4.jpg',
+      w: '640',
+      q: '68',
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.headers['content-type']).toContain('image/webp')
+    expect(response.headers['cache-control']).toContain('immutable')
+    expect(mockedGetOptimizedApodImage).toHaveBeenCalledWith(
+      'https://apod.nasa.gov/apod/image/2603/cg4.jpg',
+      640,
+      68,
+    )
   })
 })

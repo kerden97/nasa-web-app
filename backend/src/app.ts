@@ -14,7 +14,11 @@ import neowsRoutes from './routes/neows'
 export function createApp() {
   const app = express()
 
-  app.use(helmet())
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  )
   app.use(cors({ origin: config.frontendOrigins }))
   app.use(compression())
   app.use(express.json())

@@ -2,7 +2,14 @@ import type { Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
 import { sendApiError } from '../lib/apiErrors'
 import { fetchApod } from '../services/apod'
+import {
+  getOptimizedApodImage,
+  isOptimizableApodImageSource,
+  normalizeApodImageQuality,
+  normalizeApodImageWidth,
+} from '../services/apodImageProxy'
 import type { ApodQuery } from '../types/apod'
+import type { ApodItem } from '../types/apod'
 import { isValidDate } from '../lib/validation'
 
 function dateField(errorCode: string, fieldName: string) {
@@ -77,6 +84,17 @@ const apodQuerySchema = z
     }),
   )
 
+const apodImageProxyQuerySchema = z.object({
+  src: z.string().url(),
+  w: z.coerce.number().optional(),
+  q: z.coerce.number().optional(),
+})
+
+const APOD_HERO_WIDTH = 1280
+const APOD_HERO_QUALITY = 78
+const APOD_CARD_WIDTH = 640
+const APOD_CARD_QUALITY = 68
+
 function sendValidationError(res: Response, error: z.ZodError): void {
   const [issue] = error.issues
   const apiCode =
@@ -91,6 +109,49 @@ function sendValidationError(res: Response, error: z.ZodError): void {
   sendApiError(res, 400, apiCode, issue?.message ?? 'Invalid query parameters.')
 }
 
+function getRequestBaseUrl(req: Request): string {
+  const forwardedProto = req.get('x-forwarded-proto')?.split(',')[0]?.trim()
+  const forwardedHost = req.get('x-forwarded-host')
+  const protocol = forwardedProto || req.protocol || 'http'
+  const host = forwardedHost || req.get('host')
+
+  return `${protocol}://${host}`
+}
+
+function buildApodImageProxyUrl(
+  req: Request,
+  sourceUrl: string | undefined,
+  width: number,
+  quality: number,
+): string | undefined {
+  if (!isOptimizableApodImageSource(sourceUrl)) return undefined
+
+  const url = new URL('/api/apod/image', getRequestBaseUrl(req))
+  url.searchParams.set('src', sourceUrl)
+  url.searchParams.set('w', String(width))
+  url.searchParams.set('q', String(quality))
+  return url.toString()
+}
+
+function decorateApodItem(req: Request, item: ApodItem): ApodItem {
+  if (item.media_type !== 'image') return item
+
+  const heroUrl = buildApodImageProxyUrl(req, item.url, APOD_HERO_WIDTH, APOD_HERO_QUALITY)
+  const cardUrl = buildApodImageProxyUrl(req, item.url, APOD_CARD_WIDTH, APOD_CARD_QUALITY)
+
+  return {
+    ...item,
+    ...(heroUrl ? { hero_url: heroUrl } : {}),
+    ...(cardUrl ? { card_url: cardUrl } : {}),
+  }
+}
+
+function decorateApodResponse(req: Request, data: ApodItem | ApodItem[]): ApodItem | ApodItem[] {
+  return Array.isArray(data)
+    ? data.map((item) => decorateApodItem(req, item))
+    : decorateApodItem(req, data)
+}
+
 export async function getApod(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const parsedQuery = apodQuerySchema.safeParse(req.query)
@@ -101,7 +162,7 @@ export async function getApod(req: Request, res: Response, next: NextFunction): 
     }
 
     const data = await fetchApod(parsedQuery.data)
-    res.json(data)
+    res.json(decorateApodResponse(req, data))
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
     if (message.includes('NASA API')) {
@@ -113,6 +174,58 @@ export async function getApod(req: Request, res: Response, next: NextFunction): 
       )
       return
     }
+    next(error)
+  }
+}
+
+export async function getApodImage(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const parsedQuery = apodImageProxyQuerySchema.safeParse(req.query)
+    if (!parsedQuery.success) {
+      sendValidationError(res, parsedQuery.error)
+      return
+    }
+
+    const width = normalizeApodImageWidth(parsedQuery.data.w, APOD_HERO_WIDTH)
+    const quality = normalizeApodImageQuality(parsedQuery.data.q, APOD_HERO_QUALITY)
+    const optimized = await getOptimizedApodImage(parsedQuery.data.src, width, quality)
+
+    if (req.get('if-none-match') === optimized.etag) {
+      res.status(304).end()
+      return
+    }
+
+    res.setHeader('Content-Type', optimized.contentType)
+    res.setHeader('Content-Length', String(optimized.buffer.length))
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+    res.setHeader('ETag', optimized.etag)
+    res.end(optimized.buffer)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+
+    if (message === 'Unsupported APOD image source') {
+      sendApiError(
+        res,
+        400,
+        'unsupported_image_source',
+        'Only APOD-hosted image assets can be optimized.',
+      )
+      return
+    }
+
+    if (
+      message.startsWith('NASA APOD image responded with') ||
+      message === 'APOD asset is not an image'
+    ) {
+      sendApiError(
+        res,
+        502,
+        'upstream_image_unavailable',
+        "NASA's APOD image asset is temporarily unavailable. Please try again shortly.",
+      )
+      return
+    }
+
     next(error)
   }
 }

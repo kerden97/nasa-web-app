@@ -4,6 +4,8 @@ export interface ApodItem {
   explanation: string
   url: string
   hdurl?: string
+  hero_url?: string
+  card_url?: string
   media_type: 'image' | 'video'
   copyright?: string
   thumbnail_url?: string

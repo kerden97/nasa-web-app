@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react'
 import type { ApodItem } from '@/types/apod'
 import MediaBadge from '@/components/Wonders/MediaBadge'
 import { formatApodLongDate, formatApodRelativeDate, isDirectVideo } from '@/lib/apodMeta'
@@ -9,14 +10,24 @@ interface FeaturedApodHeroProps {
 
 export default function FeaturedApodHero({ item, onOpen }: FeaturedApodHeroProps) {
   const isVideo = item.media_type === 'video'
-  const heroImage = isVideo ? item.thumbnail_url : item.url
+  const heroImage = isVideo ? item.thumbnail_url : (item.hero_url ?? item.url)
   const hasDirectVideo = isVideo && isDirectVideo(item.url)
   const credit = item.copyright ?? 'NASA APOD'
   const handleOpen = () => onOpen(item)
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handleOpen()
+    }
+  }
+
   return (
-    <button
-      type="button"
+    <article
+      role="button"
+      tabIndex={0}
+      aria-label={`Open details for ${item.title}`}
       onClick={handleOpen}
+      onKeyDown={handleKeyDown}
       className="card-glow card-glow--blue relative mb-12 block w-full overflow-hidden rounded-[32px] border border-slate-200 bg-white/95 text-left shadow-[0_28px_90px_rgba(15,23,42,0.1)] transition-transform duration-300 hover:-translate-y-0.5 dark:border-slate-800/80 dark:bg-slate-900/70 dark:shadow-[0_30px_90px_rgba(2,6,23,0.45)]"
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(11,61,145,0.16),transparent_30%),radial-gradient(circle_at_85%_85%,rgba(99,102,241,0.12),transparent_28%)]" />
@@ -91,6 +102,6 @@ export default function FeaturedApodHero({ item, onOpen }: FeaturedApodHeroProps
           </div>
         </div>
       </div>
-    </button>
+    </article>
   )
 }

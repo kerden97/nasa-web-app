@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ApodCard from './ApodCard'
 import type { ApodItem } from '@/types/apod'
 
@@ -12,10 +12,51 @@ const baseItem: ApodItem = {
 }
 
 describe('ApodCard', () => {
-  it('renders an image card with title', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class ImmediateIntersectionObserver implements IntersectionObserver {
+        readonly root: Element | Document | null = null
+        readonly rootMargin = ''
+        readonly thresholds: ReadonlyArray<number> = []
+
+        constructor(private readonly callback: IntersectionObserverCallback) {}
+
+        observe(target: Element) {
+          this.callback(
+            [
+              {
+                isIntersecting: true,
+                target,
+                boundingClientRect: target.getBoundingClientRect(),
+                intersectionRatio: 1,
+                intersectionRect: target.getBoundingClientRect(),
+                isVisible: true,
+                rootBounds: null,
+                time: 0,
+              } as IntersectionObserverEntry,
+            ],
+            this,
+          )
+        }
+
+        unobserve() {}
+        disconnect() {}
+        takeRecords(): IntersectionObserverEntry[] {
+          return []
+        }
+      },
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('renders an image card with title', async () => {
     render(<ApodCard item={baseItem} onClick={() => {}} />)
 
-    const image = screen.getByAltText('Test Image')
+    const image = await screen.findByAltText('Test Image')
     expect(image).toBeInTheDocument()
     expect(image).toHaveAttribute('src', baseItem.url)
     expect(screen.getByText('Test Image')).toBeInTheDocument()
@@ -44,6 +85,18 @@ describe('ApodCard', () => {
     render(<ApodCard item={baseItem} onClick={() => {}} />)
 
     expect(screen.getByText('A cosmic test image.')).toBeInTheDocument()
+  })
+
+  it('prefers card_url for image cards when available', async () => {
+    const optimizedItem: ApodItem = {
+      ...baseItem,
+      card_url: 'https://backend.example.com/api/apod/image?src=optimized',
+    }
+
+    render(<ApodCard item={optimizedItem} onClick={() => {}} />)
+
+    const image = await screen.findByAltText('Test Image')
+    expect(image).toHaveAttribute('src', optimizedItem.card_url)
   })
 
   it('renders the view details call to action', () => {
@@ -83,7 +136,7 @@ describe('ApodCard', () => {
     expect(screen.queryByAltText('Test Image')).not.toBeInTheDocument()
   })
 
-  it('renders an image when video has a thumbnail_url', () => {
+  it('renders an image when video has a thumbnail_url', async () => {
     const videoWithThumb: ApodItem = {
       ...baseItem,
       media_type: 'video',
@@ -93,7 +146,7 @@ describe('ApodCard', () => {
 
     render(<ApodCard item={videoWithThumb} onClick={() => {}} />)
 
-    const image = screen.getByAltText('Test Image')
+    const image = await screen.findByAltText('Test Image')
     expect(image).toBeInTheDocument()
     expect(image).toHaveAttribute('src', videoWithThumb.thumbnail_url)
   })
