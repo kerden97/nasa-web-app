@@ -183,7 +183,7 @@ export default function AsteroidTable({ neos }: AsteroidTableProps) {
           </tbody>
         </table>
         <div className="flex items-center justify-between gap-4 border-t border-slate-200 px-4 py-3 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
-          <p className="text-xs text-slate-500 dark:text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             LD (Lunar Distance) = ~384,400 km, the average distance from Earth to the Moon.
           </p>
           <div className="flex items-center gap-3 whitespace-nowrap">

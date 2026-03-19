@@ -129,7 +129,7 @@ export default function AsteroidWatchPage() {
                 type="button"
                 onClick={() => setIsRadarBriefOpen(true)}
                 disabled={loading || !data || !hasResults}
-                className="cosmic-btn-primary inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto sm:min-w-[10.5rem]"
+                className="cosmic-btn-primary inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto sm:min-w-42"
               >
                 <Sparkles size={15} />
                 <span>{asteroidWatchRadarBriefButton}</span>

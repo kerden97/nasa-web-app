@@ -143,7 +143,7 @@ export function HazardousPieChart({ data }: { data: HazardousDataItem[] }) {
           />
         </PieChart>
       </ResponsiveContainer>
-      <p className="mt-2 text-center text-sm leading-6 text-slate-500 dark:text-slate-500">
+      <p className="mt-2 text-center text-sm leading-6 text-slate-500 dark:text-slate-400">
         NASA classifies an asteroid as potentially hazardous when its minimum orbit intersection
         distance is ≤ 0.05 AU and its diameter is ≥ ~140 m (H ≤ 22).
       </p>
@@ -239,7 +239,7 @@ export function VelocityScatterChart({
           </Scatter>
         </ScatterChart>
       </ResponsiveContainer>
-      <p className="mt-2 text-center text-sm leading-6 text-slate-500 dark:text-slate-500">
+      <p className="mt-2 text-center text-sm leading-6 text-slate-500 dark:text-slate-400">
         Dot size represents estimated diameter. Red = potentially hazardous.
       </p>
     </>

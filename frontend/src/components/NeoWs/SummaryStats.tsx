@@ -96,7 +96,7 @@ function StatCard({
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(11,61,145,0.05),transparent_34%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(140,184,255,0.08),transparent_32%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/80 to-transparent dark:via-white/12" />
-      <p className="ui-kicker text-slate-500 dark:text-slate-500">{label}</p>
+      <p className="ui-kicker text-slate-500 dark:text-slate-400">{label}</p>
       <p
         className={`font-nasa mt-2 text-3xl tracking-[0.04em] ${accentColors[accent]} ${valueGlow[accent]}`}
       >

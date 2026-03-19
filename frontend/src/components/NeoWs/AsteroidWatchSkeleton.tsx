@@ -98,7 +98,7 @@ function StatCardSkeleton({
     <div className="relative min-h-[8.5rem] overflow-hidden rounded-[26px] border border-slate-200/80 bg-white/88 p-5 shadow-[0_14px_40px_rgba(15,23,42,0.07)] dark:border-slate-800 dark:bg-slate-900/55 dark:shadow-[0_18px_46px_rgba(2,6,23,0.22)]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(11,61,145,0.05),transparent_34%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(140,184,255,0.08),transparent_32%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/80 to-transparent dark:via-white/12" />
-      <p className="ui-kicker text-slate-500 dark:text-slate-500">{label}</p>
+      <p className="ui-kicker text-slate-500 dark:text-slate-400">{label}</p>
       <div
         className={`mt-2 h-9 animate-pulse rounded bg-slate-200 dark:bg-slate-700 ${valueWidthClass}`}
       />
@@ -130,7 +130,7 @@ function ChartCardSkeleton({
       </h2>
       <div className="animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" style={{ height }} />
       {note ? (
-        <p className="mt-2 text-center text-sm leading-6 text-slate-500 dark:text-slate-500">
+        <p className="mt-2 text-center text-sm leading-6 text-slate-500 dark:text-slate-400">
           {note}
         </p>
       ) : null}
@@ -141,7 +141,7 @@ function ChartCardSkeleton({
 function TableSkeleton() {
   return (
     <div className="mt-8">
-      <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/82 shadow-[0_18px_48px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900/45 dark:shadow-[0_20px_52px_rgba(2,6,23,0.2)]">
+      <div className="scrollbar-thin overflow-x-auto rounded-[28px] border border-slate-200/80 bg-white/82 shadow-[0_18px_48px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900/45 dark:shadow-[0_20px_52px_rgba(2,6,23,0.2)]">
         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4 dark:border-slate-800">
           <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
             {asteroidWatchTableTitle}
@@ -168,46 +168,72 @@ function TableSkeleton() {
             </svg>
           </button>
         </div>
-        <div className="border-b border-slate-200 bg-slate-50/95 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/92">
-          <div className="grid grid-cols-[2.4fr_1fr_1.15fr_1.25fr_.95fr_1fr] items-center gap-4 text-sm font-medium text-slate-600 dark:text-slate-400">
-            {asteroidWatchTableHeaders.map((label, index) => (
-              <div key={label} className={index === 0 ? '' : 'ml-auto'}>
-                <span
-                  className={`inline-flex items-center gap-1 ${index === 0 ? '' : 'justify-end'}`}
+        <table className="min-w-215 w-full table-fixed text-left text-sm">
+          <colgroup>
+            <col className="w-45" />
+            <col className="w-30" />
+            <col className="w-32.5" />
+            <col className="w-40" />
+            <col className="w-27.5" />
+            <col className="w-30" />
+          </colgroup>
+          <thead>
+            <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50/95 shadow-sm backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/92">
+              {asteroidWatchTableHeaders.map((label, index) => (
+                <th
+                  key={label}
+                  className={`whitespace-nowrap px-4 py-3 font-medium text-slate-600 dark:text-slate-400${index === 0 ? '' : ' text-right'}`}
                 >
-                  {label}
-                  <span className="inline-flex flex-col text-[10px] leading-none opacity-30">
-                    <span>▲</span>
-                    <span>▼</span>
+                  <span
+                    className={`inline-flex items-center gap-1 ${index === 0 ? '' : 'ml-auto'}`}
+                  >
+                    {label}
+                    <span className="inline-flex flex-col text-[10px] leading-none opacity-30">
+                      <span>▲</span>
+                      <span>▼</span>
+                    </span>
                   </span>
-                </span>
-              </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: 25 }).map((_, i) => (
+              <tr
+                key={i}
+                className="border-b border-slate-100 transition odd:bg-white/88 even:bg-slate-50/68 dark:border-slate-800/50 dark:odd:bg-slate-950/60 dark:even:bg-slate-900/66"
+              >
+                <td className="px-4 py-3">
+                  <div className="h-5 w-40 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="ml-auto h-5 w-8 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="ml-auto h-5 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="ml-auto h-5 w-14 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="ml-auto h-5 w-10 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="ml-auto h-5 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                </td>
+              </tr>
             ))}
-          </div>
-        </div>
-        {Array.from({ length: 25 }).map((_, i) => (
-          <div key={i} className="border-b border-slate-100 px-4 py-3.5 dark:border-slate-800/50">
-            <div className="grid grid-cols-[2.4fr_1fr_1.15fr_1.25fr_.95fr_1fr] items-center gap-4">
-              <div className="h-5 w-40 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-              <div className="ml-auto h-4 w-8 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-              <div className="ml-auto h-4 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-              <div className="ml-auto h-4 w-14 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-              <div className="ml-auto flex justify-end">
-                <div className="h-5 w-10 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
-              </div>
-              <div className="ml-auto h-4 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-            </div>
-          </div>
-        ))}
+          </tbody>
+        </table>
         <div className="flex items-center justify-between gap-4 border-t border-slate-200 px-4 py-3 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
-          <p className="text-xs text-slate-500 dark:text-slate-500">{asteroidWatchTableNote}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{asteroidWatchTableNote}</p>
           <div className="flex items-center gap-3 whitespace-nowrap">
             <div className="h-4 w-18 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
             <button
               type="button"
               disabled
               aria-label="Previous page"
-              className="rounded-md p-1.5 opacity-30"
+              className="rounded-md p-1.5 transition hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-slate-800"
             >
               <ChevronIcon direction="left" />
             </button>
@@ -215,7 +241,7 @@ function TableSkeleton() {
               type="button"
               disabled
               aria-label="Next page"
-              className="rounded-md p-1.5 opacity-30"
+              className="rounded-md p-1.5 transition hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent dark:hover:bg-slate-800"
             >
               <ChevronIcon direction="right" />
             </button>
