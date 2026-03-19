@@ -28,7 +28,7 @@ export default function WondersPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <Breadcrumbs items={breadcrumbs} />
 
-        {isHub && (
+        {isHub ? (
           <div className="mb-6">
             <p className="ui-kicker mb-2">Space Stories Hub</p>
             <h1 className="ui-page-title text-3xl text-slate-900 dark:text-white">
@@ -38,6 +38,8 @@ export default function WondersPage() {
               Explore NASA&apos;s featured daily stories, image archive, and Earth imagery
             </p>
           </div>
+        ) : (
+          <h1 className="sr-only">{activeTabLabel ?? 'Wonders of the Universe'}</h1>
         )}
 
         <Outlet />

@@ -11,6 +11,7 @@ interface SegmentedControlProps<T extends string> {
   value: T
   onChange: (value: T) => void
   className?: string
+  legend?: string
 }
 
 export default function SegmentedControl<T extends string>({
@@ -18,9 +19,12 @@ export default function SegmentedControl<T extends string>({
   value,
   onChange,
   className = '',
+  legend,
 }: SegmentedControlProps<T>) {
   return (
     <div
+      role="radiogroup"
+      aria-label={legend}
       className={`inline-flex w-fit max-w-full flex-wrap items-center gap-1 rounded-2xl border border-slate-200 bg-white/82 p-1 shadow-[0_16px_36px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-slate-800/90 dark:bg-slate-900/72 dark:shadow-[0_14px_32px_rgba(2,6,23,0.18)] ${className}`.trim()}
     >
       {options.map((option) => {
@@ -29,6 +33,8 @@ export default function SegmentedControl<T extends string>({
           <button
             key={option.value}
             type="button"
+            role="radio"
+            aria-checked={active ? 'true' : 'false'}
             onClick={() => onChange(option.value)}
             className={`inline-flex h-8 min-w-22 items-center justify-center gap-1.5 rounded-xl px-4 text-sm font-medium leading-none transition-all ${
               active

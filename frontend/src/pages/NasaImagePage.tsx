@@ -94,6 +94,7 @@ export default function NasaImagePage() {
               Media
             </label>
             <SegmentedControl
+              legend="Filter by media type"
               value={mediaSelection}
               onChange={(value) => setMediaType(value === 'all' ? '' : value)}
               options={[
@@ -171,6 +172,13 @@ export default function NasaImagePage() {
         </div>
       )}
 
+      <div aria-live="polite" className="sr-only">
+        {loading
+          ? 'Loading search results...'
+          : activeQuery && totalHits > 0
+            ? `Search complete, ${totalHits} results found`
+            : ''}
+      </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {items.map((item) => (
           <ImageCard key={item.nasa_id} item={item} onClick={setSelectedItem} />

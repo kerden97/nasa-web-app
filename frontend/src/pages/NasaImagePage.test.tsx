@@ -270,7 +270,7 @@ describe('NasaImagePage', () => {
 
     render(<NasaImagePage />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Video' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Video' }))
 
     expect(mockedUseNasaImage).toHaveBeenLastCalledWith({
       query: '',

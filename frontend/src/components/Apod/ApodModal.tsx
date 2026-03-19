@@ -42,7 +42,7 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
   }
 
   return (
-    <ModalFrame onClose={onClose}>
+    <ModalFrame onClose={onClose} titleId="apod-modal-title">
       <div className="h-full overflow-hidden">
         <div className="flex h-full flex-col lg:grid lg:h-[48rem] lg:max-h-[calc(100vh-73px-2rem)] lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.9fr)]">
           <div className="flex shrink-0 min-h-[14rem] max-h-[36svh] items-center justify-center bg-black sm:min-h-[18rem] sm:max-h-[46svh] lg:max-h-none">
@@ -67,7 +67,10 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
                   <MediaBadge kind={item.media_type} />
                 </div>
 
-                <h2 className="ui-page-title mt-4 pr-12 text-xl leading-[1.08] text-slate-900 dark:text-white sm:text-3xl">
+                <h2
+                  id="apod-modal-title"
+                  className="ui-page-title mt-4 pr-12 text-xl leading-[1.08] text-slate-900 dark:text-white sm:text-3xl"
+                >
                   {item.title}
                 </h2>
               </div>

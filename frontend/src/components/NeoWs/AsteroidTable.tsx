@@ -76,7 +76,10 @@ export default function AsteroidTable({ neos }: AsteroidTableProps) {
           <RowsPerPageDropdown id="neo-rows-top" value={rowsPerPage} onChange={handleRowsPerPage} />
         </div>
 
-        <table className="min-w-215 w-full table-fixed text-left text-sm">
+        <table
+          aria-label="Near-Earth Objects"
+          className="min-w-215 w-full table-fixed text-left text-sm"
+        >
           <colgroup>
             <col className="w-45" />
             <col className="w-30" />
@@ -187,7 +190,7 @@ export default function AsteroidTable({ neos }: AsteroidTableProps) {
             LD (Lunar Distance) = ~384,400 km, the average distance from Earth to the Moon.
           </p>
           <div className="flex items-center gap-3 whitespace-nowrap">
-            <span>
+            <span aria-live="polite" aria-atomic="true">
               {clampedPage * rowsPerPage + 1}–
               {Math.min((clampedPage + 1) * rowsPerPage, sortedNeos.length)} of {sortedNeos.length}
             </span>
@@ -236,6 +239,9 @@ function SortableHeader({
   const active = sortKey === currentKey
   return (
     <th
+      aria-sort={
+        active ? (asc ? ('ascending' as const) : ('descending' as const)) : ('none' as const)
+      }
       className={`whitespace-nowrap px-4 py-3 font-medium text-slate-600 dark:text-slate-400${align === 'right' ? ' text-right' : ''}`}
     >
       <button
@@ -279,7 +285,7 @@ function RowsPerPageDropdown({
         type="button"
         id={id}
         aria-haspopup="menu"
-        aria-expanded={open ? 'true' : 'false'}
+        aria-expanded={open ? ('true' as const) : ('false' as const)}
         aria-controls={menuId}
         aria-label="Rows per page"
         onClick={() => setOpen((p) => !p)}

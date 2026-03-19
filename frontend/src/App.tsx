@@ -48,10 +48,16 @@ function App() {
 
   return (
     <div className="relative isolate flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-100 focus:rounded-xl focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-slate-900 focus:shadow-lg focus:ring-2 focus:ring-[#2563EB] dark:focus:bg-slate-900 dark:focus:text-white"
+      >
+        Skip to main content
+      </a>
       <RouteScrollRestoration />
       {showGlobalStarfield && <Starfield />}
       <Navbar />
-      <main className="relative z-10 flex-1">
+      <main id="main-content" className="relative z-10 flex-1">
         <Suspense fallback={<RouteFallback pathname={location.pathname} />}>
           <Routes>
             <Route path="/" element={<HomePage />} />

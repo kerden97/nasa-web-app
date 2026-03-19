@@ -200,6 +200,14 @@ export default function AsteroidWatchPage() {
           }
         />
 
+        <div aria-live="polite" className="sr-only">
+          {loading
+            ? 'Loading asteroid data...'
+            : data && hasResults
+              ? `${allNeos.length} near-Earth object${allNeos.length === 1 ? '' : 's'} loaded`
+              : ''}
+        </div>
+
         {loading && <AsteroidWatchSkeletonContent />}
 
         {error && !loading && (

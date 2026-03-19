@@ -146,7 +146,7 @@ describe('EpicPage', () => {
   it('switches to enhanced collection when clicking Enhanced pill', () => {
     render(<EpicPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Enhanced' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Enhanced' }))
 
     expect(mockedUseEpic).toHaveBeenLastCalledWith('enhanced', expect.anything())
   })
@@ -215,7 +215,7 @@ describe('EpicPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Previous' }))
     expect(mockedUseEpic).toHaveBeenLastCalledWith('natural', '2026-03-11')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Enhanced' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Enhanced' }))
 
     expect(mockedUseEpic).toHaveBeenLastCalledWith('enhanced', '2026-03-08')
   })

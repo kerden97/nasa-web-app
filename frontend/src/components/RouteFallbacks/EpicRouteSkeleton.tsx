@@ -53,6 +53,7 @@ export default function EpicRouteSkeleton() {
 
         <div className="self-start lg:shrink-0 lg:self-auto">
           <SegmentedControl
+            legend="Image collection"
             className="w-fit pointer-events-none"
             value="natural"
             onChange={() => {}}

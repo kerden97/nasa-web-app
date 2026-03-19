@@ -108,7 +108,7 @@ export default function RadarBriefModal({ startDate, endDate, onClose }: RadarBr
   }, [cacheKey, cachedBrief, endDate, startDate])
 
   return (
-    <ModalFrame onClose={onClose} maxWidthClass="max-w-4xl">
+    <ModalFrame onClose={onClose} maxWidthClass="max-w-4xl" titleId="radar-brief-modal-title">
       <div className="relative flex h-[min(44rem,calc(100vh-7rem))] min-h-[30rem] flex-col">
         <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-[#0B3D91]/12 blur-3xl" />
 
@@ -127,7 +127,10 @@ export default function RadarBriefModal({ startDate, endDate, onClose }: RadarBr
               {brief?.source === 'ai' ? 'AI' : 'System'}
             </span>
           </div>
-          <h2 className="mt-3 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
+          <h2
+            id="radar-brief-modal-title"
+            className="mt-3 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl"
+          >
             {asteroidWatchRadarBriefTitle}
           </h2>
           <p className="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-400">
@@ -139,7 +142,7 @@ export default function RadarBriefModal({ startDate, endDate, onClose }: RadarBr
         <div className="scrollbar-thin relative min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-8 sm:py-6">
           <div className="min-h-full">
             {loading ? (
-              <div className="relative">
+              <div className="relative" role="status" aria-live="polite">
                 <p className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
                   <Sparkles size={16} className="text-[#0B3D91] dark:text-[#8CB8FF]" />
                   {asteroidWatchRadarBriefLoading}

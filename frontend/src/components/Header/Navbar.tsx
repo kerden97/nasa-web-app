@@ -57,7 +57,10 @@ export default function Navbar() {
 
   return (
     <header className="relative z-50 border-b border-slate-200 bg-white py-3 dark:border-slate-800 dark:bg-slate-950">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <nav
+        aria-label="Main"
+        className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
+      >
         <div className="flex items-center gap-6">
           <Link
             to="/"
@@ -98,10 +101,12 @@ export default function Navbar() {
 
               {isWondersOpen && (
                 <div
+                  role="menu"
                   className="absolute left-0 top-full z-50 mt-3 w-[21rem] rounded-[24px] border border-slate-200 bg-white/96 p-2 shadow-[0_24px_80px_rgba(15,23,42,0.16)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/96 dark:shadow-[0_24px_80px_rgba(2,6,23,0.55)]"
                   onMouseLeave={closeWondersMenu}
                 >
                   <Link
+                    role="menuitem"
                     to="/wonders-of-the-universe"
                     onClick={closeWondersMenu}
                     className="group mb-1 flex items-center gap-3 rounded-2xl px-4 py-3 transition hover:bg-slate-50 dark:hover:bg-slate-950/30"
@@ -124,6 +129,7 @@ export default function Navbar() {
 
                       return (
                         <NavLink
+                          role="menuitem"
                           key={destination.to}
                           to={destination.to}
                           onClick={closeWondersMenu}

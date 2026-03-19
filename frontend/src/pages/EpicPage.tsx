@@ -191,6 +191,7 @@ export default function EpicPage() {
 
         <div className="self-start lg:shrink-0 lg:self-auto">
           <SegmentedControl
+            legend="Image collection"
             className="w-fit"
             value={collection}
             onChange={(value: EpicCollection) => {
@@ -217,6 +218,11 @@ export default function EpicPage() {
         </div>
       )}
 
+      <div aria-live="polite" className="sr-only">
+        {loading || datesLoading
+          ? 'Loading EPIC imagery...'
+          : `${images.length} image${images.length === 1 ? '' : 's'} loaded`}
+      </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {images.map((item) => (
           <EpicCard key={item.identifier} item={item} onClick={setSelectedItem} />

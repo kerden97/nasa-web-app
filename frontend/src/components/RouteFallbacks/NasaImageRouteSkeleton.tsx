@@ -39,6 +39,7 @@ export default function NasaImageRouteSkeleton() {
               Media
             </label>
             <SegmentedControl
+              legend="Filter by media type"
               value="all"
               onChange={() => {}}
               options={[

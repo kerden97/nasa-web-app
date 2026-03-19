@@ -66,6 +66,9 @@ export default function MobileMenu({
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site navigation"
         className="ml-auto flex h-full w-full max-w-sm flex-col border-l border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
         onClick={(event) => event.stopPropagation()}
       >
@@ -100,7 +103,7 @@ export default function MobileMenu({
             </p>
           </div>
 
-          <nav className="mt-6 space-y-2">
+          <nav aria-label="Mobile" className="mt-6 space-y-2">
             <NavLink
               to="/"
               end

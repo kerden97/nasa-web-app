@@ -89,6 +89,7 @@ export default function ApodPage() {
 
         <div className="self-start lg:shrink-0 lg:self-auto">
           <SegmentedControl
+            legend="Filter by media type"
             className="w-fit p-0.5 [&_button]:h-8 [&_button]:min-w-19 [&_button]:px-3 [&_button]:text-xs"
             value={mediaFilter}
             onChange={setMediaFilter}
@@ -109,6 +110,11 @@ export default function ApodPage() {
         />
       )}
 
+      <div aria-live="polite" className="sr-only">
+        {loading
+          ? 'Loading APOD entries...'
+          : `${visibleItems.length} item${visibleItems.length === 1 ? '' : 's'} loaded`}
+      </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {archiveItems.map((item) => (
           <ApodCard key={item.date} item={item} onClick={setSelectedItem} />
