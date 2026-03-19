@@ -16,9 +16,7 @@ interface UseNeowsResult {
 
 export function useNeows(startDate: string, endDate: string): UseNeowsResult {
   const requestKey = startDate && endDate ? `${startDate}:${endDate}` : null
-  const cacheKey = requestKey
-    ? createPersistedCacheKey('neows', 'feed', startDate, endDate)
-    : null
+  const cacheKey = requestKey ? createPersistedCacheKey('neows', 'feed', startDate, endDate) : null
   const initialCache = cacheKey ? readPersistedCache(cacheKey, neoFeedResultSchema) : null
 
   const [data, setData] = useState<NeoFeedResult | null>(() => initialCache)

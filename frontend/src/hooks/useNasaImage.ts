@@ -81,7 +81,9 @@ export function useNasaImage(options: UseNasaImageOptions): UseNasaImageResult {
       if (cachedResult) {
         setItems(cachedResult.items)
         setTotalHits(cachedResult.totalHits)
-        setHasMore(cachedResult.items.length > 0 && cachedResult.items.length < cachedResult.totalHits)
+        setHasMore(
+          cachedResult.items.length > 0 && cachedResult.items.length < cachedResult.totalHits,
+        )
         setLoading(false)
       } else {
         setItems([])

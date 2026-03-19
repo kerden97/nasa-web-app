@@ -75,7 +75,12 @@ const apodImageProxyQuerySchema = z.object({
   q: z.coerce.number().optional(),
 })
 
-const { heroWidth: APOD_HERO_WIDTH, heroQuality: APOD_HERO_QUALITY, cardWidth: APOD_CARD_WIDTH, cardQuality: APOD_CARD_QUALITY } = imageProxyDefaults.apod
+const {
+  heroWidth: APOD_HERO_WIDTH,
+  heroQuality: APOD_HERO_QUALITY,
+  cardWidth: APOD_CARD_WIDTH,
+  cardQuality: APOD_CARD_QUALITY,
+} = imageProxyDefaults.apod
 
 function buildApodImageProxyUrl(
   req: Request,

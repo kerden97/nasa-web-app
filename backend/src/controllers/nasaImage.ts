@@ -137,7 +137,8 @@ const nasaImageProxyQuerySchema = z.object({
   q: z.coerce.number().optional(),
 })
 
-const { cardWidth: NASA_IMAGE_CARD_WIDTH, cardQuality: NASA_IMAGE_CARD_QUALITY } = imageProxyDefaults.nasaImage
+const { cardWidth: NASA_IMAGE_CARD_WIDTH, cardQuality: NASA_IMAGE_CARD_QUALITY } =
+  imageProxyDefaults.nasaImage
 
 function buildNasaImageProxyUrl(
   req: Request,
