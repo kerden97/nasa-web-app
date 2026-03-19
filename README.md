@@ -344,6 +344,8 @@ For APOD, EPIC, and Asteroid Watch, I also added a persisted client-side stale c
 
 The `Radar Brief` feature uses `gpt-4o-mini` rather than `gpt-5-nano` because `gpt-5-nano` frequently exhausted the request’s output budget on reasoning before producing the final structured JSON, while `gpt-4o-mini` returned reliable low-latency structured summaries for this use case.
 
+The Mars Rover Photos API was not included because NASA has retired and archived the endpoint — it no longer returns live data.
+
 ### Performance and Delivery Decisions
 
 - Card preview images for APOD, EPIC, and NASA Image are served through backend proxy/optimization routes to reduce payload size and improve mobile loading.

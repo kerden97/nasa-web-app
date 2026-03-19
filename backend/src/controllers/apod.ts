@@ -10,6 +10,7 @@ import {
   normalizeApodImageQuality,
   normalizeApodImageWidth,
 } from '../services/apodImageProxy'
+import { getRequestBaseUrl } from '../lib/requestUrl'
 import type { ApodQuery } from '../types/apod'
 import type { ApodItem } from '../types/apod'
 
@@ -77,15 +78,6 @@ const APOD_HERO_WIDTH = 1280
 const APOD_HERO_QUALITY = 78
 const APOD_CARD_WIDTH = 640
 const APOD_CARD_QUALITY = 68
-
-function getRequestBaseUrl(req: Request): string {
-  const forwardedProto = req.get('x-forwarded-proto')?.split(',')[0]?.trim()
-  const forwardedHost = req.get('x-forwarded-host')
-  const protocol = forwardedProto || req.protocol || 'http'
-  const host = forwardedHost || req.get('host')
-
-  return `${protocol}://${host}`
-}
 
 function buildApodImageProxyUrl(
   req: Request,

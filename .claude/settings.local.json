@@ -56,7 +56,8 @@
       "Bash(curl -sS \"https://images-api.nasa.gov/search?q=asteroid+near+earth&media_type=image&page_size=5\")",
       "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); items=data[''''collection''''][''''items'''']; [print\\(i[''''data''''][0][''''nasa_id''''], ''''|'''', i[''''data''''][0][''''title'''']\\) for i in items]\")",
       "Bash(curl -sS -o card-neo.jpg \"https://images-assets.nasa.gov/image/PIA15627/PIA15627~thumb.jpg\" -w \"\\\\nneo: %{http_code} %{size_download}bytes\")",
-      "Bash(grep -n '<h1\\\\|<h2\\\\|<h3' /c/Users/User/nasa-web-app/frontend/src/pages/*.tsx)"
+      "Bash(grep -n '<h1\\\\|<h2\\\\|<h3' /c/Users/User/nasa-web-app/frontend/src/pages/*.tsx)",
+      "Bash(git check-ignore:*)"
     ]
   }
 }

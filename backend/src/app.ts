@@ -2,6 +2,7 @@ import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 import compression from 'compression'
+import rateLimit from 'express-rate-limit'
 import { config } from './config'
 import { sendApiError } from './lib/apiErrors'
 import { requestLogger } from './middleware/requestLogger'
@@ -11,6 +12,18 @@ import apodRoutes from './routes/apod'
 import nasaImageRoutes from './routes/nasaImage'
 import epicRoutes from './routes/epic'
 import neowsRoutes from './routes/neows'
+
+const apiLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 100,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: {
+    error: 'Too many requests. Please try again shortly.',
+    code: 'rate_limit_exceeded',
+    status: 429,
+  },
+})
 
 export function createApp() {
   const app = express()
@@ -23,6 +36,7 @@ export function createApp() {
   app.use(cors({ origin: config.frontendOrigins }))
   app.use(compression())
   app.use(express.json())
+  app.use('/api', apiLimiter)
   app.use(requestLogger)
 
   app.use(healthRoutes)

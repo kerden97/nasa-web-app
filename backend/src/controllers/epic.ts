@@ -10,6 +10,7 @@ import {
   normalizeEpicImageQuality,
   normalizeEpicImageWidth,
 } from '../services/epicImageProxy'
+import { getRequestBaseUrl } from '../lib/requestUrl'
 import type { EpicCollection } from '../types/epic'
 import type { EpicImage } from '../types/epic'
 
@@ -39,15 +40,6 @@ const epicImageProxyQuerySchema = z.object({
 
 const EPIC_CARD_WIDTH = 640
 const EPIC_CARD_QUALITY = 70
-
-function getRequestBaseUrl(req: Request): string {
-  const forwardedProto = req.get('x-forwarded-proto')?.split(',')[0]?.trim()
-  const forwardedHost = req.get('x-forwarded-host')
-  const protocol = forwardedProto || req.protocol || 'http'
-  const host = forwardedHost || req.get('host')
-
-  return `${protocol}://${host}`
-}
 
 function buildEpicImageProxyUrl(
   req: Request,

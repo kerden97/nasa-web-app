@@ -10,6 +10,7 @@ import {
   normalizeNasaImageWidth,
 } from '../services/nasaImageProxy'
 import { searchNasaImages } from '../services/nasaImage'
+import { getRequestBaseUrl } from '../lib/requestUrl'
 import type { NasaImageItem } from '../types/nasaImage'
 import type { NasaImageQuery } from '../types/nasaImage'
 
@@ -137,15 +138,6 @@ const nasaImageProxyQuerySchema = z.object({
 
 const NASA_IMAGE_CARD_WIDTH = 640
 const NASA_IMAGE_CARD_QUALITY = 72
-
-function getRequestBaseUrl(req: Request): string {
-  const forwardedProto = req.get('x-forwarded-proto')?.split(',')[0]?.trim()
-  const forwardedHost = req.get('x-forwarded-host')
-  const protocol = forwardedProto || req.protocol || 'http'
-  const host = forwardedHost || req.get('host')
-
-  return `${protocol}://${host}`
-}
 
 function buildNasaImageProxyUrl(
   req: Request,
