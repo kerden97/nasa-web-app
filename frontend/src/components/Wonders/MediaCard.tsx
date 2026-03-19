@@ -5,6 +5,7 @@ interface MediaCardProps {
   badge: string
   imageAlt: string
   imageSrc?: string
+  shouldLoadImage?: boolean
   readyToShow: boolean
   title: string
   meta: string
@@ -20,6 +21,7 @@ export default function MediaCard({
   badge,
   imageAlt,
   imageSrc,
+  shouldLoadImage = true,
   readyToShow,
   title,
   meta,
@@ -30,6 +32,9 @@ export default function MediaCard({
   fit = 'cover',
   teaser,
 }: MediaCardProps) {
+  const canRenderImage = !!imageSrc && shouldLoadImage
+  const isDeferredImage = !!imageSrc && !shouldLoadImage
+
   return (
     <button
       type="button"
@@ -42,7 +47,7 @@ export default function MediaCard({
         </div>
       )}
 
-      {imageSrc ? (
+      {canRenderImage ? (
         <img
           src={imageSrc}
           alt={imageAlt}
@@ -54,11 +59,14 @@ export default function MediaCard({
           onLoad={onLoad}
         />
       ) : (
-        (fallback ?? (
+        (fallback ??
+        (isDeferredImage ? (
+          <div aria-hidden="true" className="h-full w-full" />
+        ) : (
           <div className="flex h-full items-center justify-center text-sm text-slate-400">
             No preview
           </div>
-        ))
+        )))
       )}
 
       <MediaBadge kind={badge} cardStyle className="absolute left-3 top-3" />

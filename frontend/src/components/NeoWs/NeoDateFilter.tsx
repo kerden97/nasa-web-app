@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useRef } from 'react'
 import type { ReactNode } from 'react'
 import { Calendar } from 'lucide-react'
 import MiniCalendar from '@/components/MiniCalendar'
@@ -7,8 +7,7 @@ import FilterChipButton from '@/components/Wonders/FilterChipButton'
 import PresetOverflowMenu from '@/components/Wonders/PresetOverflowMenu'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-import { addDays, formatLabel, todayStr } from '@/lib/calendarUtils'
-import { getDefaultRange } from '@/lib/neoUtils'
+import { isNeoDateDisabled, useNeoDateFilterState } from '@/components/NeoWs/useNeoDateFilterState'
 
 interface NeoDateFilterProps {
   defaultRange: { start: string; end: string }
@@ -16,121 +15,71 @@ interface NeoDateFilterProps {
   trailingAction?: ReactNode
 }
 
-type NeoPreset = { label: string; getRange: () => [string, string] | [string] }
+interface CalendarModeToggleProps {
+  calendarMode: 'single' | 'range'
+  onSingleMode: () => void
+  onRangeMode: () => void
+}
+
+function CalendarModeToggle({ calendarMode, onSingleMode, onRangeMode }: CalendarModeToggleProps) {
+  return (
+    <div className="mb-3 flex rounded-xl border border-slate-200 bg-slate-50/80 p-1 dark:border-slate-700 dark:bg-slate-950/55">
+      <button
+        type="button"
+        onClick={onSingleMode}
+        className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+          calendarMode === 'single'
+            ? 'bg-[#0B3D91] text-white dark:bg-[#8CB8FF] dark:text-slate-950'
+            : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+        }`}
+      >
+        Single date
+      </button>
+      <button
+        type="button"
+        onClick={onRangeMode}
+        className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+          calendarMode === 'range'
+            ? 'bg-[#0B3D91] text-white dark:bg-[#8CB8FF] dark:text-slate-950'
+            : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+        }`}
+      >
+        Date range
+      </button>
+    </div>
+  )
+}
 
 export default function NeoDateFilter({
   defaultRange,
   onChange,
   trailingAction,
 }: NeoDateFilterProps) {
-  const [calendarOpen, setCalendarOpen] = useState(false)
-  const [calendarMode, setCalendarMode] = useState<'single' | 'range'>('range')
-  const [rangeStart, setRangeStart] = useState<string | null>(null)
-  const [rangeEnd, setRangeEnd] = useState<string | null>(null)
-  const [hoveredDate, setHoveredDate] = useState<string | null>(null)
-  const [activePreset, setActivePreset] = useState<string | null>('Last 7 days')
-  const [currentStart, setCurrentStart] = useState(defaultRange.start)
-  const [currentEnd, setCurrentEnd] = useState(defaultRange.end)
   const calendarRef = useRef<HTMLDivElement>(null)
   const isMobile = useMediaQuery('(max-width: 639px)')
+  const {
+    activePreset,
+    applyPreset,
+    calendarMode,
+    calendarOpen,
+    closeCalendar,
+    draftRange,
+    handleCalendarSelect,
+    handleReset,
+    hoveredDate,
+    isFiltered,
+    mobilePrimaryPreset,
+    neoPresets,
+    rangeHint,
+    selectionLabel,
+    setHoveredDate,
+    setRangeMode,
+    setSingleDateMode,
+    toggleCalendar,
+  } = useNeoDateFilterState({ defaultRange, onChange })
 
-  const closeCalendar = useCallback(() => setCalendarOpen(false), [])
   useClickOutside(calendarRef, closeCalendar)
 
-  const isDateDisabled = (iso: string) => iso > todayStr()
-
-  const neoPresets: NeoPreset[] = useMemo(
-    () => [
-      { label: 'Today', getRange: () => [todayStr()] },
-      { label: 'Yesterday', getRange: () => [addDays(todayStr(), -1)] },
-      {
-        label: 'Last 3 days',
-        getRange: () => {
-          const t = todayStr()
-          return [addDays(t, -2), t]
-        },
-      },
-      {
-        label: 'Last 7 days',
-        getRange: () => {
-          const t = todayStr()
-          return [addDays(t, -6), t]
-        },
-      },
-    ],
-    [],
-  )
-
-  const applyPreset = useCallback(
-    (preset: NeoPreset) => {
-      const result = preset.getRange()
-      setActivePreset(preset.label)
-      setCalendarOpen(false)
-      setRangeStart(null)
-      setRangeEnd(null)
-      const start = result[0]
-      const end = result.length === 1 ? result[0] : result[1]
-      setCurrentStart(start)
-      setCurrentEnd(end)
-      onChange(start, end)
-    },
-    [onChange],
-  )
-
-  const handleCalendarSelect = useCallback(
-    (iso: string) => {
-      if (calendarMode === 'single') {
-        setRangeStart(iso)
-        setRangeEnd(null)
-        setActivePreset(null)
-        setCalendarOpen(false)
-        setCurrentStart(iso)
-        setCurrentEnd(iso)
-        onChange(iso, iso)
-      } else {
-        if (!rangeStart || rangeEnd) {
-          setRangeStart(iso)
-          setRangeEnd(null)
-        } else {
-          const [start, initialEnd] = iso < rangeStart ? [iso, rangeStart] : [rangeStart, iso]
-          const diffMs =
-            new Date(`${initialEnd}T00:00:00`).getTime() - new Date(`${start}T00:00:00`).getTime()
-          const diffDays = diffMs / (1000 * 60 * 60 * 24)
-          const end = diffDays > 6 ? addDays(start, 6) : initialEnd
-          setRangeStart(start)
-          setRangeEnd(end)
-          setActivePreset(null)
-          setCalendarOpen(false)
-          setCurrentStart(start)
-          setCurrentEnd(end)
-          onChange(start, end)
-        }
-      }
-    },
-    [calendarMode, rangeStart, rangeEnd, onChange],
-  )
-
-  const handleReset = useCallback(() => {
-    const def = getDefaultRange()
-    setRangeStart(null)
-    setRangeEnd(null)
-    setActivePreset('Last 7 days')
-    setCalendarOpen(false)
-    setCurrentStart(def.start)
-    setCurrentEnd(def.end)
-    onChange(def.start, def.end)
-  }, [onChange])
-
-  const isFiltered = currentStart !== defaultRange.start || currentEnd !== defaultRange.end
-
-  const selectionLabel = (() => {
-    if (activePreset) return activePreset
-    if (rangeStart && rangeEnd) return `${formatLabel(rangeStart)} – ${formatLabel(rangeEnd)}`
-    if (rangeStart) return formatLabel(rangeStart)
-    return null
-  })()
-  const mobilePrimaryPreset =
-    neoPresets.find((preset) => preset.label === activePreset) ?? neoPresets[0]
   const shouldShowSelectionPill = isFiltered && (!isMobile || !activePreset)
 
   return (
@@ -161,7 +110,7 @@ export default function NeoDateFilter({
 
           <div className="relative" ref={calendarRef}>
             <FilterChipButton
-              onClick={() => setCalendarOpen(!calendarOpen)}
+              onClick={toggleCalendar}
               active={calendarOpen || (isFiltered && !activePreset)}
               className="inline-flex items-center gap-1.5"
               ariaExpanded={calendarOpen}
@@ -172,56 +121,23 @@ export default function NeoDateFilter({
 
             {calendarOpen && (
               <div className="absolute left-0 top-full z-50 mt-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_24px_60px_rgba(15,23,42,0.16)] dark:border-slate-700 dark:bg-slate-900">
-                <div className="mb-3 flex rounded-xl border border-slate-200 bg-slate-50/80 p-1 dark:border-slate-700 dark:bg-slate-950/55">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCalendarMode('single')
-                      setRangeStart(null)
-                      setRangeEnd(null)
-                    }}
-                    className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                      calendarMode === 'single'
-                        ? 'bg-[#0B3D91] text-white dark:bg-[#8CB8FF] dark:text-slate-950'
-                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                    }`}
-                  >
-                    Single date
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCalendarMode('range')
-                      setRangeStart(null)
-                      setRangeEnd(null)
-                    }}
-                    className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                      calendarMode === 'range'
-                        ? 'bg-[#0B3D91] text-white dark:bg-[#8CB8FF] dark:text-slate-950'
-                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                    }`}
-                  >
-                    Date range
-                  </button>
-                </div>
+                <CalendarModeToggle
+                  calendarMode={calendarMode}
+                  onSingleMode={setSingleDateMode}
+                  onRangeMode={setRangeMode}
+                />
 
-                {calendarMode === 'range' && (
-                  <p className="mb-3 text-[11px] text-slate-500 dark:text-slate-400">
-                    {!rangeStart
-                      ? 'Pick a start date'
-                      : !rangeEnd
-                        ? 'Now pick an end date (max 7 days)'
-                        : 'Range selected'}
-                  </p>
+                {rangeHint && (
+                  <p className="mb-3 text-[11px] text-slate-500 dark:text-slate-400">{rangeHint}</p>
                 )}
 
                 <MiniCalendar
-                  rangeStart={rangeStart}
-                  rangeEnd={rangeEnd}
+                  rangeStart={draftRange.start}
+                  rangeEnd={draftRange.end}
                   hoveredDate={calendarMode === 'range' ? hoveredDate : null}
                   onSelect={handleCalendarSelect}
                   onHover={setHoveredDate}
-                  isDateDisabled={isDateDisabled}
+                  isDateDisabled={isNeoDateDisabled}
                 />
               </div>
             )}

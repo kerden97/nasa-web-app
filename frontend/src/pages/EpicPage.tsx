@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Calendar, Globe, Sparkles } from 'lucide-react'
 import EpicCard from '@/components/Epic/EpicCard'
 import EpicCardSkeleton from '@/components/Epic/EpicCardSkeleton'
-import EpicModal from '@/components/Epic/EpicModal'
 import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
 import MiniCalendar from '@/components/MiniCalendar'
 import FilterChipButton from '@/components/Wonders/FilterChipButton'
@@ -24,6 +23,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery'
 import type { EpicCollection, EpicImage } from '@/types/epic'
 
 type EpicDatePreset = 'latest' | 'previous' | 'week' | 'month' | 'custom'
+const EpicModal = lazy(() => import('@/components/Epic/EpicModal'))
 
 export default function EpicPage() {
   const [collection, setCollection] = useState<EpicCollection>('natural')
@@ -227,7 +227,11 @@ export default function EpicPage() {
           ))}
       </div>
 
-      {selectedItem && <EpicModal item={selectedItem} onClose={() => setSelectedItem(null)} />}
+      {selectedItem && (
+        <Suspense fallback={null}>
+          <EpicModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+        </Suspense>
+      )}
     </>
   )
 }

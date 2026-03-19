@@ -1,16 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { Image as ImageIcon, Play, Shapes } from 'lucide-react'
 import { useApod } from '@/hooks/useApod'
 import { useGridSize } from '@/hooks/useGridSize'
 import ApodCard from '@/components/Apod/ApodCard'
 import ApodCardSkeleton from '@/components/Apod/ApodCardSkeleton'
 import ApodInitialLoadingState from '@/components/Apod/ApodInitialLoadingState'
-import ApodModal from '@/components/Apod/ApodModal'
 import DateFilter from '@/components/Apod/DateFilter'
 import FeaturedApodHero from '@/components/Apod/FeaturedApodHero'
 import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
 import SegmentedControl from '@/components/Wonders/SegmentedControl'
 import type { ApodItem } from '@/types/apod'
+
+const ApodModal = lazy(() => import('@/components/Apod/ApodModal'))
 
 export default function ApodPage() {
   useEffect(() => {
@@ -129,7 +130,11 @@ export default function ApodPage() {
         </div>
       )}
 
-      {selectedItem && <ApodModal item={selectedItem} onClose={() => setSelectedItem(null)} />}
+      {selectedItem && (
+        <Suspense fallback={null}>
+          <ApodModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+        </Suspense>
+      )}
     </>
   )
 }

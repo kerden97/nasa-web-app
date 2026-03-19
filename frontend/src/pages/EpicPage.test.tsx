@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import EpicPage from '@/pages/EpicPage'
 import { useEpic, useEpicDates } from '@/hooks/useEpic'
@@ -220,10 +220,13 @@ describe('EpicPage', () => {
     expect(mockedUseEpic).toHaveBeenLastCalledWith('enhanced', '2026-03-08')
   })
 
-  it('opens and closes the detail modal when a card is clicked', () => {
+  it('opens and closes the detail modal when a card is clicked', async () => {
     render(<EpicPage />)
 
-    fireEvent.click(screen.getAllByTestId('epic-card')[0]!)
+    await act(async () => {
+      fireEvent.click(screen.getAllByTestId('epic-card')[0]!)
+      await vi.runAllTimersAsync()
+    })
     expect(screen.getByTestId('epic-modal')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Close modal' }))

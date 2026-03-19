@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { Image as ImageIcon, Play, Search, Shapes, X } from 'lucide-react'
 import { useNasaImage } from '@/hooks/useNasaImage'
 import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
 import ImageCard from '@/components/NasaImage/ImageCard'
 import ImageCardSkeleton from '@/components/NasaImage/ImageCardSkeleton'
-import ImageModal from '@/components/NasaImage/ImageModal'
 import SegmentedControl from '@/components/Wonders/SegmentedControl'
 import FilterChipButton from '@/components/Wonders/FilterChipButton'
 import {
@@ -16,6 +15,8 @@ import {
   nasaImageSuggestions,
 } from '@/content/nasaImageContent'
 import type { NasaImageItem } from '@/types/nasaImage'
+
+const ImageModal = lazy(() => import('@/components/NasaImage/ImageModal'))
 
 export default function NasaImagePage() {
   const [searchInput, setSearchInput] = useState('')
@@ -191,7 +192,11 @@ export default function NasaImagePage() {
         </div>
       )}
 
-      {selectedItem && <ImageModal item={selectedItem} onClose={() => setSelectedItem(null)} />}
+      {selectedItem && (
+        <Suspense fallback={null}>
+          <ImageModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+        </Suspense>
+      )}
     </>
   )
 }

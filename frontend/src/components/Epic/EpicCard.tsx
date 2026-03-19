@@ -44,6 +44,7 @@ export default function EpicCard({ item, onClick }: EpicCardProps) {
         badge="EPIC"
         imageAlt={item.caption}
         imageSrc={item.image}
+        shouldLoadImage={inView}
         readyToShow={readyToShow}
         title={item.caption}
         meta={date}

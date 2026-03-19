@@ -203,7 +203,7 @@ describe('NasaImagePage', () => {
     expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
   })
 
-  it('opens and closes the detail modal when a card is clicked', () => {
+  it('opens and closes the detail modal when a card is clicked', async () => {
     mockedUseNasaImage.mockReturnValue({
       items,
       totalHits: 2,
@@ -217,7 +217,7 @@ describe('NasaImagePage', () => {
     submitSearch('mars')
 
     fireEvent.click(screen.getAllByTestId('image-card')[0]!)
-    expect(screen.getByTestId('image-modal')).toBeInTheDocument()
+    expect(await screen.findByTestId('image-modal')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Close modal' }))
     expect(screen.queryByTestId('image-modal')).not.toBeInTheDocument()

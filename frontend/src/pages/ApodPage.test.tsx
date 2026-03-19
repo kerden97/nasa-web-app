@@ -148,7 +148,7 @@ describe('ApodPage', () => {
     expect(screen.queryByText('No results found for the selected date.')).not.toBeInTheDocument()
   })
 
-  it('opens and closes the APOD modal from the featured section', () => {
+  it('opens and closes the APOD modal from the featured section', async () => {
     mockedUseApod.mockReturnValue({
       items,
       loading: false,
@@ -161,7 +161,7 @@ describe('ApodPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Explore details' }))
 
-    expect(screen.getByRole('button', { name: 'Close modal' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Close modal' })).toBeInTheDocument()
     expect(screen.getAllByText(items[0]!.title).length).toBeGreaterThan(1)
     expect(screen.queryByText('Published')).not.toBeInTheDocument()
     expect(screen.queryByText('Media')).not.toBeInTheDocument()
