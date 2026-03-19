@@ -1,7 +1,8 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 import { useNeows } from '@/hooks/useNeows'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
 import {
@@ -30,6 +31,65 @@ import { getDefaultRange, shortDate, formatNeoDisplayName } from '@/lib/neoUtils
 const AsteroidChartsSection = lazy(() => import('@/components/NeoWs/AsteroidChartsSection'))
 const RadarBriefModal = lazy(() => import('@/components/NeoWs/RadarBriefModal'))
 
+function DeferredAsteroidCharts({
+  defer,
+  dailyData,
+  hazardousData,
+  scatterData,
+  isDark,
+}: {
+  defer: boolean
+  dailyData: DailyCountItem[]
+  hazardousData: HazardousDataItem[]
+  scatterData: ScatterDataItem[]
+  isDark: boolean
+}) {
+  const chartsAnchorRef = useRef<HTMLDivElement | null>(null)
+  const [shouldRenderCharts, setShouldRenderCharts] = useState(!defer)
+
+  useEffect(() => {
+    if (!defer || shouldRenderCharts) return
+
+    const anchor = chartsAnchorRef.current
+    if (!anchor) return
+
+    if (typeof window === 'undefined' || typeof window.IntersectionObserver !== 'function') {
+      const frameId = window.requestAnimationFrame(() => setShouldRenderCharts(true))
+      return () => window.cancelAnimationFrame(frameId)
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setShouldRenderCharts(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '320px 0px' },
+    )
+
+    observer.observe(anchor)
+    return () => observer.disconnect()
+  }, [defer, shouldRenderCharts])
+
+  return (
+    <div ref={chartsAnchorRef} className="[content-visibility:auto] [contain-intrinsic-size:65rem]">
+      {shouldRenderCharts ? (
+        <Suspense fallback={<AsteroidWatchChartsSkeleton />}>
+          <AsteroidChartsSection
+            dailyData={dailyData}
+            hazardousData={hazardousData}
+            scatterData={scatterData}
+            isDark={isDark}
+          />
+        </Suspense>
+      ) : (
+        <AsteroidWatchChartsSkeleton />
+      )}
+    </div>
+  )
+}
+
 export default function AsteroidWatchPage() {
   useEffect(() => {
     document.title = 'Asteroid Watch | Home & Beyond'
@@ -37,6 +97,7 @@ export default function AsteroidWatchPage() {
 
   const { theme } = useTheme()
   const isDark = theme === 'dark'
+  const isMobileOrCoarse = useMediaQuery('(max-width: 767px), (pointer: coarse)')
 
   const defaultRange = useMemo(() => getDefaultRange(), [])
   const [startDate, setStartDate] = useState(defaultRange.start)
@@ -102,6 +163,7 @@ export default function AsteroidWatchPage() {
   }, [allNeos, isDark])
 
   const hasResults = allNeos.length > 0
+
   return (
     <section className="bg-slate-50 dark:bg-transparent">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -148,16 +210,14 @@ export default function AsteroidWatchPage() {
           <>
             <SummaryStats allNeos={allNeos} />
 
-            <div className="[content-visibility:auto] [contain-intrinsic-size:65rem]">
-              <Suspense fallback={<AsteroidWatchChartsSkeleton />}>
-                <AsteroidChartsSection
-                  dailyData={dailyData}
-                  hazardousData={hazardousData}
-                  scatterData={scatterData}
-                  isDark={isDark}
-                />
-              </Suspense>
-            </div>
+            <DeferredAsteroidCharts
+              key={`${startDate}:${endDate}:${isMobileOrCoarse ? 'mobile' : 'desktop'}`}
+              defer={isMobileOrCoarse}
+              dailyData={dailyData}
+              hazardousData={hazardousData}
+              scatterData={scatterData}
+              isDark={isDark}
+            />
 
             <div className="[content-visibility:auto] [contain-intrinsic-size:88rem]">
               <AsteroidTable neos={allNeos} />
