@@ -1,10 +1,27 @@
 import type { Request, Response, NextFunction } from 'express'
+import { z } from 'zod'
 import { sendApiError } from '../lib/apiErrors'
+import { dateField, sendZodQueryError } from '../lib/queryValidation'
 import { fetchEpicImages, fetchEpicDates } from '../services/epic'
 import type { EpicCollection } from '../types/epic'
-import { isValidDate } from '../lib/validation'
 
 const VALID_COLLECTIONS = ['natural', 'enhanced'] as const
+const epicCollectionSchema = z.preprocess(
+  (value) =>
+    typeof value === 'string' && VALID_COLLECTIONS.includes(value as EpicCollection)
+      ? value
+      : 'natural',
+  z.enum(VALID_COLLECTIONS),
+)
+
+const epicImagesQuerySchema = z.object({
+  collection: epicCollectionSchema,
+  date: dateField('invalid_date', 'Invalid date format. Use YYYY-MM-DD.'),
+})
+
+const epicDatesQuerySchema = z.object({
+  collection: epicCollectionSchema,
+})
 
 export async function getEpicImages(
   req: Request,
@@ -12,19 +29,15 @@ export async function getEpicImages(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const { collection, date } = req.query
+    const parsedQuery = epicImagesQuerySchema.safeParse(req.query)
 
-    const col: EpicCollection =
-      typeof collection === 'string' && VALID_COLLECTIONS.includes(collection as EpicCollection)
-        ? (collection as EpicCollection)
-        : 'natural'
-
-    if (typeof date === 'string' && !isValidDate(date)) {
-      sendApiError(res, 400, 'invalid_date', 'Invalid date format. Use YYYY-MM-DD.')
+    if (!parsedQuery.success) {
+      sendZodQueryError(res, sendApiError, parsedQuery.error)
       return
     }
 
-    const data = await fetchEpicImages(col, typeof date === 'string' ? date : undefined)
+    const { collection, date } = parsedQuery.data
+    const data = await fetchEpicImages(collection as EpicCollection, date)
     res.json(data)
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
@@ -43,14 +56,14 @@ export async function getEpicImages(
 
 export async function getEpicDates(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { collection } = req.query
+    const parsedQuery = epicDatesQuerySchema.safeParse(req.query)
 
-    const col: EpicCollection =
-      typeof collection === 'string' && VALID_COLLECTIONS.includes(collection as EpicCollection)
-        ? (collection as EpicCollection)
-        : 'natural'
+    if (!parsedQuery.success) {
+      sendZodQueryError(res, sendApiError, parsedQuery.error)
+      return
+    }
 
-    const data = await fetchEpicDates(col)
+    const data = await fetchEpicDates(parsedQuery.data.collection as EpicCollection)
     res.json(data)
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
