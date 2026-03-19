@@ -17,6 +17,8 @@ vi.mock('@/context/ThemeContext', () => ({
 vi.mock('@/components/NeoWs/AsteroidWatchSkeleton', () => ({
   default: () => <div data-testid="asteroid-watch-skeleton" />,
   AsteroidWatchSkeletonContent: () => <div data-testid="asteroid-watch-skeleton" />,
+  AsteroidWatchChartsSkeleton: () => <div data-testid="asteroid-watch-charts-skeleton" />,
+  AsteroidWatchTableSkeleton: () => <div data-testid="asteroid-watch-table-skeleton" />,
 }))
 
 function renderPage() {
@@ -191,14 +193,14 @@ describe('AsteroidWatchPage', () => {
     expect(screen.getByText('Largest (est.)')).toBeInTheDocument()
   })
 
-  it('renders all three chart containers', () => {
+  it('renders all three chart containers', async () => {
     mockedUseNeows.mockReturnValue({ data: sampleFeed, loading: false, error: null })
     renderPage()
 
-    expect(screen.getByText('Daily Near-Earth Objects')).toBeInTheDocument()
+    expect(await screen.findByText('Daily Near-Earth Objects')).toBeInTheDocument()
     expect(screen.getByText('Hazardous Classification')).toBeInTheDocument()
     expect(screen.getByText('Velocity vs. Miss Distance')).toBeInTheDocument()
-    expect(screen.getByTestId('bar-chart')).toBeInTheDocument()
+    expect(await screen.findByTestId('bar-chart')).toBeInTheDocument()
     expect(screen.getByTestId('pie-chart')).toBeInTheDocument()
     expect(screen.getByTestId('scatter-chart')).toBeInTheDocument()
   })

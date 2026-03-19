@@ -249,6 +249,29 @@ export default function AsteroidWatchSkeleton() {
   return <AsteroidWatchSkeletonContent withHeader />
 }
 
+export function AsteroidWatchChartsSkeleton() {
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <ChartCardSkeleton title={asteroidWatchChartTitles[0]} height={300} />
+      <ChartCardSkeleton
+        title={asteroidWatchChartTitles[1]}
+        height={300}
+        note={asteroidWatchHazardousNote}
+      />
+      <ChartCardSkeleton
+        title={asteroidWatchChartTitles[2]}
+        className="lg:col-span-2"
+        height={350}
+        note={asteroidWatchScatterNote}
+      />
+    </div>
+  )
+}
+
+export function AsteroidWatchTableSkeleton() {
+  return <TableSkeleton />
+}
+
 export function AsteroidWatchSkeletonContent({ withHeader = false }: { withHeader?: boolean }) {
   return (
     <>
@@ -282,22 +305,9 @@ export function AsteroidWatchSkeletonContent({ withHeader = false }: { withHeade
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <ChartCardSkeleton title={asteroidWatchChartTitles[0]} height={300} />
-        <ChartCardSkeleton
-          title={asteroidWatchChartTitles[1]}
-          height={300}
-          note={asteroidWatchHazardousNote}
-        />
-        <ChartCardSkeleton
-          title={asteroidWatchChartTitles[2]}
-          className="lg:col-span-2"
-          height={350}
-          note={asteroidWatchScatterNote}
-        />
-      </div>
+      <AsteroidWatchChartsSkeleton />
 
-      <TableSkeleton />
+      <AsteroidWatchTableSkeleton />
     </>
   )
 }

@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 import { useNeows } from '@/hooks/useNeows'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
-import { AsteroidWatchSkeletonContent } from '@/components/NeoWs/AsteroidWatchSkeleton'
 import {
-  asteroidWatchChartTitles,
+  AsteroidWatchChartsSkeleton,
+  AsteroidWatchSkeletonContent,
+} from '@/components/NeoWs/AsteroidWatchSkeleton'
+import {
   asteroidWatchEmptyDescription,
   asteroidWatchRadarBriefButton,
   asteroidWatchEmptyTitle,
@@ -16,21 +18,17 @@ import {
   asteroidWatchTitle,
 } from '@/content/asteroidWatchContent'
 import NeoDateFilter from '@/components/NeoWs/NeoDateFilter'
-import RadarBriefModal from '@/components/NeoWs/RadarBriefModal'
 import SummaryStats from '@/components/NeoWs/SummaryStats'
 import AsteroidTable from '@/components/NeoWs/AsteroidTable'
-import {
-  ChartCard,
-  DailyCountChart,
-  HazardousPieChart,
-  VelocityScatterChart,
-} from '@/components/NeoWs/NeoCharts'
 import type {
   DailyCountItem,
-  ScatterDataItem,
   HazardousDataItem,
+  ScatterDataItem,
 } from '@/components/NeoWs/NeoCharts'
 import { getDefaultRange, shortDate, formatNeoDisplayName } from '@/lib/neoUtils'
+
+const AsteroidChartsSection = lazy(() => import('@/components/NeoWs/AsteroidChartsSection'))
+const RadarBriefModal = lazy(() => import('@/components/NeoWs/RadarBriefModal'))
 
 export default function AsteroidWatchPage() {
   useEffect(() => {
@@ -150,21 +148,20 @@ export default function AsteroidWatchPage() {
           <>
             <SummaryStats allNeos={allNeos} />
 
-            <div className="grid gap-6 lg:grid-cols-2">
-              <ChartCard title={asteroidWatchChartTitles[0]}>
-                <DailyCountChart data={dailyData} isDark={isDark} />
-              </ChartCard>
-
-              <ChartCard title={asteroidWatchChartTitles[1]}>
-                <HazardousPieChart data={hazardousData} />
-              </ChartCard>
-
-              <ChartCard title={asteroidWatchChartTitles[2]} className="lg:col-span-2">
-                <VelocityScatterChart data={scatterData} isDark={isDark} />
-              </ChartCard>
+            <div className="[content-visibility:auto] [contain-intrinsic-size:65rem]">
+              <Suspense fallback={<AsteroidWatchChartsSkeleton />}>
+                <AsteroidChartsSection
+                  dailyData={dailyData}
+                  hazardousData={hazardousData}
+                  scatterData={scatterData}
+                  isDark={isDark}
+                />
+              </Suspense>
             </div>
 
-            <AsteroidTable neos={allNeos} />
+            <div className="[content-visibility:auto] [contain-intrinsic-size:88rem]">
+              <AsteroidTable neos={allNeos} />
+            </div>
           </>
         )}
 
@@ -180,12 +177,14 @@ export default function AsteroidWatchPage() {
         )}
 
         {isRadarBriefOpen && hasResults && (
-          <RadarBriefModal
-            key={`${startDate}:${endDate}`}
-            startDate={startDate}
-            endDate={endDate}
-            onClose={() => setIsRadarBriefOpen(false)}
-          />
+          <Suspense fallback={null}>
+            <RadarBriefModal
+              key={`${startDate}:${endDate}`}
+              startDate={startDate}
+              endDate={endDate}
+              onClose={() => setIsRadarBriefOpen(false)}
+            />
+          </Suspense>
         )}
       </div>
     </section>
