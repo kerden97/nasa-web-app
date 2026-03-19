@@ -1,9 +1,7 @@
-const CACHE_PREFIX = 'home-and-beyond:v1'
+import { z } from 'zod'
+import { persistedCacheRecordSchema } from '@/schemas/api'
 
-interface PersistedClientCacheRecord<T> {
-  savedAt: number
-  value: T
-}
+const CACHE_PREFIX = 'home-and-beyond:v1'
 
 function getStorage(): Storage | null {
   if (typeof window === 'undefined') return null
@@ -18,7 +16,7 @@ export function createPersistedCacheKey(...parts: string[]): string {
   return [CACHE_PREFIX, ...parts].join(':')
 }
 
-export function readPersistedCache<T>(key: string): T | null {
+export function readPersistedCache<T>(key: string, schema?: z.ZodType<T>): T | null {
   const storage = getStorage()
   if (!storage) return null
 
@@ -26,13 +24,16 @@ export function readPersistedCache<T>(key: string): T | null {
     const raw = storage.getItem(key)
     if (!raw) return null
 
-    const parsed = JSON.parse(raw) as PersistedClientCacheRecord<T>
-    if (!parsed || typeof parsed !== 'object' || !('value' in parsed)) {
+    const parsed = JSON.parse(raw) as unknown
+    const recordSchema = persistedCacheRecordSchema(schema ?? z.unknown())
+    const result = recordSchema.safeParse(parsed)
+
+    if (!result.success) {
       storage.removeItem(key)
       return null
     }
 
-    return parsed.value
+    return result.data.value as T
   } catch {
     storage.removeItem(key)
     return null
@@ -44,7 +45,7 @@ export function writePersistedCache<T>(key: string, value: T): void {
   if (!storage) return
 
   try {
-    const record: PersistedClientCacheRecord<T> = {
+    const record = {
       savedAt: Date.now(),
       value,
     }

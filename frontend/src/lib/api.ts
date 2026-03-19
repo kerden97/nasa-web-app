@@ -1,3 +1,6 @@
+import { z } from 'zod'
+import { apiErrorBodySchema } from '@/schemas/api'
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
 
 const NETWORK_ERROR_MESSAGE =
@@ -7,11 +10,7 @@ const CLIENT_ERROR_MESSAGE =
   "This request couldn't be completed. Please adjust your filters and try again."
 const UNKNOWN_ERROR_MESSAGE = 'Something went wrong while loading this section.'
 
-interface ApiErrorBody {
-  error?: unknown
-  code?: unknown
-  status?: unknown
-}
+type ApiErrorBody = z.infer<typeof apiErrorBodySchema>
 
 export class ApiHttpError extends Error {
   status: number
@@ -44,6 +43,11 @@ function getResponseError(response: Response, body: ApiErrorBody | null): ApiHtt
   return new ApiHttpError(message, status, code)
 }
 
+function parseApiErrorBody(body: unknown): ApiErrorBody | null {
+  const parsed = apiErrorBodySchema.safeParse(body)
+  return parsed.success ? parsed.data : null
+}
+
 function getNetworkError(error: unknown): ApiHttpError {
   if (error instanceof TypeError) {
     return new ApiHttpError(NETWORK_ERROR_MESSAGE, 0, 'network_error')
@@ -56,6 +60,7 @@ export async function fetchApi<T>(
   path: string,
   params?: Record<string, string>,
   signal?: AbortSignal,
+  schema?: z.ZodType<T>,
 ): Promise<T> {
   const url = new URL(path, API_URL)
   if (params) {
@@ -74,11 +79,22 @@ export async function fetchApi<T>(
   }
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as ApiErrorBody | null
-    throw getResponseError(response, body)
+    const body = await response.json().catch(() => null)
+    throw getResponseError(response, parseApiErrorBody(body))
   }
 
-  return response.json().catch(() => {
+  const body = await response.json().catch(() => {
     throw new ApiHttpError(UNKNOWN_ERROR_MESSAGE, response.status, 'invalid_json_response')
   })
+
+  if (!schema) {
+    return body as T
+  }
+
+  const parsed = schema.safeParse(body)
+  if (!parsed.success) {
+    throw new ApiHttpError(UNKNOWN_ERROR_MESSAGE, response.status, 'invalid_json_response')
+  }
+
+  return parsed.data
 }

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
+import { z } from 'zod'
 import {
   createPersistedCacheKey,
   readPersistedCache,
@@ -22,6 +23,21 @@ describe('persistedClientCache', () => {
     localStorage.setItem(key, '{not-valid-json')
 
     expect(readPersistedCache<string[]>(key)).toBeNull()
+    expect(localStorage.getItem(key)).toBeNull()
+  })
+
+  it('clears cached values that fail schema validation', () => {
+    const key = createPersistedCacheKey('neows', 'feed', '2026-03-12', '2026-03-18')
+    writePersistedCache(key, { date: '2026-03-18' })
+
+    expect(
+      readPersistedCache(
+        key,
+        z.object({
+          date: z.number(),
+        }),
+      ),
+    ).toBeNull()
     expect(localStorage.getItem(key)).toBeNull()
   })
 })

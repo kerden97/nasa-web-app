@@ -5,6 +5,7 @@ import {
   readPersistedCache,
   writePersistedCache,
 } from '@/lib/persistedClientCache'
+import { neoFeedResultSchema } from '@/schemas/api'
 import type { NeoFeedResult } from '@/types/neows'
 
 interface UseNeowsResult {
@@ -27,7 +28,7 @@ export function useNeows(startDate: string, endDate: string): UseNeowsResult {
     const controller = new AbortController()
     const id = ++requestId.current
     const cacheKey = createPersistedCacheKey('neows', 'feed', startDate, endDate)
-    const cachedData = readPersistedCache<NeoFeedResult>(cacheKey)
+    const cachedData = readPersistedCache(cacheKey, neoFeedResultSchema)
     const usedCachedData = Boolean(cachedData)
 
     if (usedCachedData) {
@@ -41,10 +42,11 @@ export function useNeows(startDate: string, endDate: string): UseNeowsResult {
       setFetchedKey(null)
     }
 
-    fetchApi<NeoFeedResult>(
+    fetchApi(
       '/api/neows/feed',
       { start_date: startDate, end_date: endDate },
       controller.signal,
+      neoFeedResultSchema,
     )
       .then((result) => {
         if (id === requestId.current) {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchApi } from '@/lib/api'
+import { nasaImageSearchResultSchema } from '@/schemas/api'
 import type { NasaImageItem } from '@/types/nasaImage'
 
 interface UseNasaImageOptions {
@@ -46,11 +47,7 @@ export function useNasaImage(options: UseNasaImageOptions): UseNasaImageResult {
     if (options.yearStart) params.year_start = options.yearStart
     if (options.yearEnd) params.year_end = options.yearEnd
 
-    fetchApi<{ items: NasaImageItem[]; totalHits: number }>(
-      '/api/nasa-image',
-      params,
-      controller.signal,
-    )
+    fetchApi('/api/nasa-image', params, controller.signal, nasaImageSearchResultSchema)
       .then((data) => {
         setItems(data.items)
         setTotalHits(data.totalHits)
@@ -80,7 +77,7 @@ export function useNasaImage(options: UseNasaImageOptions): UseNasaImageResult {
     if (options.yearStart) params.year_start = options.yearStart
     if (options.yearEnd) params.year_end = options.yearEnd
 
-    fetchApi<{ items: NasaImageItem[]; totalHits: number }>('/api/nasa-image', params)
+    fetchApi('/api/nasa-image', params, undefined, nasaImageSearchResultSchema)
       .then((data) => {
         setItems((prev) => {
           const updated = [...prev, ...data.items]

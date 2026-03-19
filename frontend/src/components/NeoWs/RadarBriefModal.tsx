@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AlertTriangle, Sparkles } from 'lucide-react'
 import ModalFrame from '@/components/Wonders/ModalFrame'
 import { fetchApi } from '@/lib/api'
+import { neoRadarBriefResponseSchema } from '@/schemas/api'
 import type { NeoRadarBriefResponse } from '@/types/neowsRadarBrief'
 import {
   asteroidWatchRadarBriefDisclaimerLabel,
@@ -81,10 +82,11 @@ export default function RadarBriefModal({ startDate, endDate, onClose }: RadarBr
 
     const controller = new AbortController()
 
-    fetchApi<NeoRadarBriefResponse>(
+    fetchApi(
       '/api/neows/radar-brief',
       { start_date: startDate, end_date: endDate },
       controller.signal,
+      neoRadarBriefResponseSchema,
     )
       .then((result) => {
         radarBriefSessionCache.set(cacheKey, result)

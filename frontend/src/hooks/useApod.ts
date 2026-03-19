@@ -6,6 +6,8 @@ import {
   readPersistedCache,
   writePersistedCache,
 } from '@/lib/persistedClientCache'
+import { apodItemsSchema, apodLatestCacheSchema, apodResponseSchema } from '@/schemas/api'
+import type { ApodLatestCache } from '@/schemas/api'
 import type { ApodItem } from '@/types/apod'
 
 interface UseApodOptions {
@@ -26,12 +28,6 @@ interface UseApodResult {
 // Always fetch 21 on first load — covers all breakpoints without client detection delay
 const FIRST_PAGE_SIZE = 21
 const APOD_LATEST_CACHE_KEY = createPersistedCacheKey('apod', 'latest-list')
-
-interface ApodLatestCache {
-  items: ApodItem[]
-  oldestDate: string | null
-  hasMore: boolean
-}
 
 interface CoveredRange {
   start: string
@@ -259,7 +255,7 @@ export function useApod(options: UseApodOptions = {}): UseApodResult {
     requestInFlightRef.current = true
 
     if (isLatestFeed) {
-      const cached = readPersistedCache<ApodLatestCache>(APOD_LATEST_CACHE_KEY)
+      const cached = readPersistedCache(APOD_LATEST_CACHE_KEY, apodLatestCacheSchema)
       if (cached?.items.length) {
         usedCachedData = true
         addItemsToPool(itemPoolRef.current, cached.items)
@@ -296,10 +292,11 @@ export function useApod(options: UseApodOptions = {}): UseApodResult {
       dispatch({ type: 'start-request' })
     }
 
-    fetchApi<ApodItem | ApodItem[]>(
+    fetchApi(
       '/api/apod',
       Object.keys(params).length ? params : undefined,
       controller.signal,
+      apodResponseSchema,
     )
       .then((data) => {
         const list = Array.isArray(data) ? data : [data]
@@ -376,10 +373,15 @@ export function useApod(options: UseApodOptions = {}): UseApodResult {
     requestInFlightRef.current = true
     dispatch({ type: 'load-more-start' })
 
-    fetchApi<ApodItem[]>('/api/apod', {
-      end_date: endDate,
-      count: String(size),
-    })
+    fetchApi(
+      '/api/apod',
+      {
+        end_date: endDate,
+        count: String(size),
+      },
+      undefined,
+      apodItemsSchema,
+    )
       .then((data) => {
         addItemsToPool(itemPoolRef.current, data)
 

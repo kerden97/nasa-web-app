@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { z } from 'zod'
 import { ApiHttpError, fetchApi } from '@/lib/api'
 
 describe('fetchApi', () => {
@@ -77,5 +78,29 @@ describe('fetchApi', () => {
     mockedFetch.mockRejectedValue(new DOMException('The operation was aborted.', 'AbortError'))
 
     await expect(fetchApi('/api/apod')).rejects.toMatchObject({ name: 'AbortError' })
+  })
+
+  it('rejects JSON responses that fail the provided runtime schema', async () => {
+    mockedFetch.mockResolvedValue(
+      new Response(JSON.stringify({ items: 'invalid' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+
+    await expect(
+      fetchApi(
+        '/api/apod',
+        undefined,
+        undefined,
+        z.object({
+          items: z.array(z.string()),
+        }),
+      ),
+    ).rejects.toMatchObject<ApiHttpError>({
+      message: 'Something went wrong while loading this section.',
+      status: 200,
+      code: 'invalid_json_response',
+    })
   })
 })

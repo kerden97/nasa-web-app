@@ -5,6 +5,7 @@ import {
   readPersistedCache,
   writePersistedCache,
 } from '@/lib/persistedClientCache'
+import { epicDatesSchema, epicImagesSchema } from '@/schemas/api'
 import type { EpicImage, EpicCollection } from '@/types/epic'
 
 interface UseEpicResult {
@@ -24,7 +25,7 @@ export function useEpic(collection: EpicCollection, date?: string): UseEpicResul
 
     const controller = new AbortController()
     const cacheKey = createPersistedCacheKey('epic', 'images', collection, date)
-    const cachedImages = readPersistedCache<EpicImage[]>(cacheKey)
+    const cachedImages = readPersistedCache(cacheKey, epicImagesSchema)
     const usedCachedData = Boolean(cachedImages?.length)
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -39,7 +40,7 @@ export function useEpic(collection: EpicCollection, date?: string): UseEpicResul
 
     const params: Record<string, string> = { collection, date }
 
-    fetchApi<EpicImage[]>('/api/epic', params, controller.signal)
+    fetchApi('/api/epic', params, controller.signal, epicImagesSchema)
       .then((result) => {
         setImages(result)
         writePersistedCache(cacheKey, result)
@@ -68,7 +69,7 @@ export function useEpicDates(collection: EpicCollection) {
   useEffect(() => {
     const controller = new AbortController()
     const cacheKey = createPersistedCacheKey('epic', 'dates', collection)
-    const cachedDates = readPersistedCache<string[]>(cacheKey)
+    const cachedDates = readPersistedCache(cacheKey, epicDatesSchema)
     const usedCachedData = Boolean(cachedDates?.length)
 
     if (usedCachedData) {
@@ -80,7 +81,7 @@ export function useEpicDates(collection: EpicCollection) {
       setLoading(true)
     }
 
-    fetchApi<string[]>('/api/epic/dates', { collection }, controller.signal)
+    fetchApi('/api/epic/dates', { collection }, controller.signal, epicDatesSchema)
       .then((result) => {
         setDates(result)
         writePersistedCache(cacheKey, result)
