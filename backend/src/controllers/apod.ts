@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
 import { sendApiError } from '../lib/apiErrors'
+import { dateField, sendZodQueryError } from '../lib/queryValidation'
 import { isUpstreamServiceError } from '../lib/upstreamService'
 import { fetchApod } from '../services/apod'
 import {
@@ -11,25 +12,6 @@ import {
 } from '../services/apodImageProxy'
 import type { ApodQuery } from '../types/apod'
 import type { ApodItem } from '../types/apod'
-import { isValidDate } from '../lib/validation'
-
-function dateField(errorCode: string, fieldName: string) {
-  return z.preprocess(
-    (value) => (typeof value === 'string' ? value : undefined),
-    z
-      .string()
-      .optional()
-      .superRefine((value, ctx) => {
-        if (value !== undefined && !isValidDate(value)) {
-          ctx.addIssue({
-            code: 'custom',
-            message: `Invalid ${fieldName} format. Use YYYY-MM-DD.`,
-            params: { apiCode: errorCode },
-          })
-        }
-      }),
-  )
-}
 
 const countField = z.preprocess(
   (value) => (typeof value === 'string' ? value : undefined),
@@ -52,9 +34,9 @@ const countField = z.preprocess(
 
 const apodQuerySchema = z
   .object({
-    date: dateField('invalid_date', 'date'),
-    start_date: dateField('invalid_start_date', 'start_date'),
-    end_date: dateField('invalid_end_date', 'end_date'),
+    date: dateField('invalid_date', 'Invalid date format. Use YYYY-MM-DD.'),
+    start_date: dateField('invalid_start_date', 'Invalid start_date format. Use YYYY-MM-DD.'),
+    end_date: dateField('invalid_end_date', 'Invalid end_date format. Use YYYY-MM-DD.'),
     count: countField,
   })
   .superRefine((query, ctx) => {
@@ -95,20 +77,6 @@ const APOD_HERO_WIDTH = 1280
 const APOD_HERO_QUALITY = 78
 const APOD_CARD_WIDTH = 640
 const APOD_CARD_QUALITY = 68
-
-function sendValidationError(res: Response, error: z.ZodError): void {
-  const [issue] = error.issues
-  const apiCode =
-    issue &&
-    issue.code === 'custom' &&
-    'params' in issue &&
-    issue.params &&
-    typeof issue.params.apiCode === 'string'
-      ? issue.params.apiCode
-      : 'invalid_query'
-
-  sendApiError(res, 400, apiCode, issue?.message ?? 'Invalid query parameters.')
-}
 
 function getRequestBaseUrl(req: Request): string {
   const forwardedProto = req.get('x-forwarded-proto')?.split(',')[0]?.trim()
@@ -158,7 +126,7 @@ export async function getApod(req: Request, res: Response, next: NextFunction): 
     const parsedQuery = apodQuerySchema.safeParse(req.query)
 
     if (!parsedQuery.success) {
-      sendValidationError(res, parsedQuery.error)
+      sendZodQueryError(res, sendApiError, parsedQuery.error)
       return
     }
 
@@ -182,7 +150,7 @@ export async function getApodImage(req: Request, res: Response, next: NextFuncti
   try {
     const parsedQuery = apodImageProxyQuerySchema.safeParse(req.query)
     if (!parsedQuery.success) {
-      sendValidationError(res, parsedQuery.error)
+      sendZodQueryError(res, sendApiError, parsedQuery.error)
       return
     }
 

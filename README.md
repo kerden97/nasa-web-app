@@ -64,10 +64,14 @@ The frontend talks only to the backend.
 Current backend routes:
 
 - `GET /healthz`
+- `GET /api/health`
 - `GET /api/apod`
+- `GET /api/apod/image`
 - `GET /api/nasa-image`
+- `GET /api/nasa-image/image`
 - `GET /api/epic`
 - `GET /api/epic/dates`
+- `GET /api/epic/image`
 - `GET /api/neows/feed`
 - `GET /api/neows/radar-brief`
 
@@ -261,7 +265,9 @@ GitHub Actions runs on every push to `main` and on pull requests:
 
 - **Format Check** — `npm run format:check` at the repo root
 - **Backend Tests** — `npm test` (Jest) in `backend/`
+- **Backend Test Typecheck** — `npm run typecheck:tests` in `backend/`
 - **Frontend Tests** — `npm test` (Vitest) in `frontend/`
+- **Frontend Test Typecheck** — `npm run typecheck:tests` in `frontend/`
 - **Frontend Build** — `npm run build` in `frontend/`
 - **E2E Smoke Tests** — `npm run test:e2e` (Playwright) at the repo root
 

@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "jest --passWithNoTests",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "typecheck:tests": "tsc -p tsconfig.test.json --noEmit"
   },
   "keywords": [],
   "author": "",

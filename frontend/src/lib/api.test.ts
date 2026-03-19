@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
-import { ApiHttpError, fetchApi } from '@/lib/api'
+import { fetchApi } from '@/lib/api'
 
 describe('fetchApi', () => {
   const mockedFetch = vi.fn()
@@ -17,7 +17,7 @@ describe('fetchApi', () => {
   it('maps network failures to a friendly public message', async () => {
     mockedFetch.mockRejectedValue(new TypeError('Failed to fetch'))
 
-    await expect(fetchApi('/api/apod')).rejects.toMatchObject<ApiHttpError>({
+    await expect(fetchApi('/api/apod')).rejects.toMatchObject({
       message: "We couldn't reach NASA right now. Check your connection and try again.",
       status: 0,
       code: 'network_error',
@@ -39,7 +39,7 @@ describe('fetchApi', () => {
       ),
     )
 
-    await expect(fetchApi('/api/apod')).rejects.toMatchObject<ApiHttpError>({
+    await expect(fetchApi('/api/apod')).rejects.toMatchObject({
       message: "NASA's API is temporarily unavailable. Please try again shortly.",
       status: 502,
       code: 'upstream_service_unavailable',
@@ -54,7 +54,7 @@ describe('fetchApi', () => {
       }),
     )
 
-    await expect(fetchApi('/api/apod')).rejects.toMatchObject<ApiHttpError>({
+    await expect(fetchApi('/api/apod')).rejects.toMatchObject({
       message: 'NASA data is temporarily unavailable. Please try again in a moment.',
       status: 503,
     })
@@ -68,7 +68,7 @@ describe('fetchApi', () => {
       }),
     )
 
-    await expect(fetchApi('/api/apod')).rejects.toMatchObject<ApiHttpError>({
+    await expect(fetchApi('/api/apod')).rejects.toMatchObject({
       message: "This request couldn't be completed. Please adjust your filters and try again.",
       status: 400,
     })
@@ -97,7 +97,7 @@ describe('fetchApi', () => {
           items: z.array(z.string()),
         }),
       ),
-    ).rejects.toMatchObject<ApiHttpError>({
+    ).rejects.toMatchObject({
       message: 'Something went wrong while loading this section.',
       status: 200,
       code: 'invalid_json_response',

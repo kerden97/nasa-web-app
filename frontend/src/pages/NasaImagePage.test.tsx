@@ -52,6 +52,21 @@ const items: NasaImageItem[] = [
   },
 ]
 
+function buildUseNasaImageResult(
+  overrides: Partial<ReturnType<typeof useNasaImage>> = {},
+): ReturnType<typeof useNasaImage> {
+  return {
+    items: [],
+    totalHits: 0,
+    loading: false,
+    error: null,
+    page: 1,
+    hasMore: false,
+    loadMore: vi.fn(),
+    ...overrides,
+  }
+}
+
 function getInput() {
   return screen.getByPlaceholderText(/nebula, apollo 11/i)
 }
@@ -68,14 +83,7 @@ describe('NasaImagePage', () => {
   })
 
   it('renders the initial empty state with popular searches', () => {
-    mockedUseNasaImage.mockReturnValue({
-      items: [],
-      totalHits: 0,
-      loading: false,
-      error: null,
-      hasMore: false,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(buildUseNasaImageResult())
 
     render(<NasaImagePage />)
 
@@ -86,14 +94,12 @@ describe('NasaImagePage', () => {
   })
 
   it('submits a search and displays results', () => {
-    mockedUseNasaImage.mockReturnValue({
-      items,
-      totalHits: 2,
-      loading: false,
-      error: null,
-      hasMore: false,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(
+      buildUseNasaImageResult({
+        items,
+        totalHits: 2,
+      }),
+    )
 
     render(<NasaImagePage />)
     submitSearch('mars')
@@ -103,14 +109,13 @@ describe('NasaImagePage', () => {
   })
 
   it('displays result count when results are found', () => {
-    mockedUseNasaImage.mockReturnValue({
-      items,
-      totalHits: 245,
-      loading: false,
-      error: null,
-      hasMore: true,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(
+      buildUseNasaImageResult({
+        items,
+        totalHits: 245,
+        hasMore: true,
+      }),
+    )
 
     render(<NasaImagePage />)
     submitSearch('mars')
@@ -119,14 +124,11 @@ describe('NasaImagePage', () => {
   })
 
   it('renders loading skeletons during search', () => {
-    mockedUseNasaImage.mockReturnValue({
-      items: [],
-      totalHits: 0,
-      loading: true,
-      error: null,
-      hasMore: false,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(
+      buildUseNasaImageResult({
+        loading: true,
+      }),
+    )
 
     render(<NasaImagePage />)
     submitSearch('mars')
@@ -137,14 +139,11 @@ describe('NasaImagePage', () => {
   })
 
   it('renders an error message when the hook returns an error', () => {
-    mockedUseNasaImage.mockReturnValue({
-      items: [],
-      totalHits: 0,
-      loading: false,
-      error: 'NASA Image Library is temporarily unavailable.',
-      hasMore: false,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(
+      buildUseNasaImageResult({
+        error: 'NASA Image Library is temporarily unavailable.',
+      }),
+    )
 
     render(<NasaImagePage />)
     submitSearch('test')
@@ -153,14 +152,7 @@ describe('NasaImagePage', () => {
   })
 
   it('renders the no-results message for empty search', () => {
-    mockedUseNasaImage.mockReturnValue({
-      items: [],
-      totalHits: 0,
-      loading: false,
-      error: null,
-      hasMore: false,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(buildUseNasaImageResult())
 
     render(<NasaImagePage />)
     submitSearch('xyznonexistent')
@@ -171,14 +163,14 @@ describe('NasaImagePage', () => {
   it('renders and calls loadMore when the button is clicked', () => {
     const loadMore = vi.fn()
 
-    mockedUseNasaImage.mockReturnValue({
-      items,
-      totalHits: 200,
-      loading: false,
-      error: null,
-      hasMore: true,
-      loadMore,
-    })
+    mockedUseNasaImage.mockReturnValue(
+      buildUseNasaImageResult({
+        items,
+        totalHits: 200,
+        hasMore: true,
+        loadMore,
+      }),
+    )
 
     render(<NasaImagePage />)
     submitSearch('mars')
@@ -188,14 +180,12 @@ describe('NasaImagePage', () => {
   })
 
   it('does not render load more when hasMore is false', () => {
-    mockedUseNasaImage.mockReturnValue({
-      items,
-      totalHits: 2,
-      loading: false,
-      error: null,
-      hasMore: false,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(
+      buildUseNasaImageResult({
+        items,
+        totalHits: 2,
+      }),
+    )
 
     render(<NasaImagePage />)
     submitSearch('mars')
@@ -204,14 +194,12 @@ describe('NasaImagePage', () => {
   })
 
   it('opens and closes the detail modal when a card is clicked', async () => {
-    mockedUseNasaImage.mockReturnValue({
-      items,
-      totalHits: 2,
-      loading: false,
-      error: null,
-      hasMore: false,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(
+      buildUseNasaImageResult({
+        items,
+        totalHits: 2,
+      }),
+    )
 
     render(<NasaImagePage />)
     submitSearch('mars')
@@ -224,14 +212,7 @@ describe('NasaImagePage', () => {
   })
 
   it('triggers a search when a suggestion pill is clicked', () => {
-    mockedUseNasaImage.mockReturnValue({
-      items: [],
-      totalHits: 0,
-      loading: false,
-      error: null,
-      hasMore: false,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(buildUseNasaImageResult())
 
     render(<NasaImagePage />)
 
@@ -244,14 +225,7 @@ describe('NasaImagePage', () => {
   })
 
   it('sets the document title on mount', () => {
-    mockedUseNasaImage.mockReturnValue({
-      items: [],
-      totalHits: 0,
-      loading: false,
-      error: null,
-      hasMore: false,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(buildUseNasaImageResult())
 
     render(<NasaImagePage />)
 
@@ -259,14 +233,7 @@ describe('NasaImagePage', () => {
   })
 
   it('passes the selected media type to the hook', () => {
-    mockedUseNasaImage.mockReturnValue({
-      items: [],
-      totalHits: 0,
-      loading: false,
-      error: null,
-      hasMore: false,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(buildUseNasaImageResult())
 
     render(<NasaImagePage />)
 
@@ -279,14 +246,12 @@ describe('NasaImagePage', () => {
   })
 
   it('clears the search input and active query when the clear button is clicked', () => {
-    mockedUseNasaImage.mockReturnValue({
-      items,
-      totalHits: 2,
-      loading: false,
-      error: null,
-      hasMore: false,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(
+      buildUseNasaImageResult({
+        items,
+        totalHits: 2,
+      }),
+    )
 
     render(<NasaImagePage />)
     submitSearch('mars')
@@ -303,14 +268,12 @@ describe('NasaImagePage', () => {
   })
 
   it('trims the query before passing it into the hook state', () => {
-    mockedUseNasaImage.mockReturnValue({
-      items,
-      totalHits: 2,
-      loading: false,
-      error: null,
-      hasMore: false,
-      loadMore: vi.fn(),
-    })
+    mockedUseNasaImage.mockReturnValue(
+      buildUseNasaImageResult({
+        items,
+        totalHits: 2,
+      }),
+    )
 
     render(<NasaImagePage />)
     submitSearch(' mars ')

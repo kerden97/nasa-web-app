@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { sendApiError } from '../lib/apiErrors'
 import { requiredDateField, sendZodQueryError, toUtcDate } from '../lib/queryValidation'
 import { fetchNeoRadarBrief } from '../services/neowsRadarBrief'
+import { isUpstreamServiceError } from '../lib/upstreamService'
 import { isValidDate } from '../lib/validation'
 
 const neoRadarBriefQuerySchema = z
@@ -56,9 +57,7 @@ export async function getNeoRadarBrief(
     const data = await fetchNeoRadarBrief(start_date, end_date)
     res.json(data)
   } catch (error) {
-    const message = error instanceof Error ? error.message : ''
-
-    if (message.includes('NASA NeoWs')) {
+    if (isUpstreamServiceError(error, 'NASA NeoWs')) {
       sendApiError(
         res,
         502,

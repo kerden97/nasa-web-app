@@ -334,7 +334,7 @@ describe('NeoWs service', () => {
     const error = await promise
 
     expect(error).toBeInstanceOf(Error)
-    expect((error as Error).message).toBe('network error')
+    expect((error as Error).message).toBe('NASA NeoWs API request failed: network error')
     expect(fetchMock).toHaveBeenCalledTimes(3)
   })
 

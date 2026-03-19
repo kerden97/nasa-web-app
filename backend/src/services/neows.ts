@@ -1,6 +1,7 @@
 import { config } from '../config'
 import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
 import logger from '../lib/logger'
+import { fetchUpstreamJson } from '../lib/upstreamService'
 import type { NeoFeedResult, NeoObject, NeoCloseApproach } from '../types/neows'
 
 const BASE_URL = `${config.nasa.baseUrl}/neo/rest/v1`
@@ -8,8 +9,6 @@ const BASE_URL = `${config.nasa.baseUrl}/neo/rest/v1`
 const feedCache = new Map<string, { result: NeoFeedResult; cachedDate: string }>()
 const failedKeys = new Map<string, { timestamp: number; message: string }>()
 const FAIL_COOLDOWN_MS = 10 * 60 * 1000
-const MAX_RETRIES = 3
-const RETRY_STATUSES = new Set([500, 502, 503, 504])
 const NEOWS_FRESH_TTL_SECONDS = 15 * 60
 const NEOWS_HISTORICAL_TTL_SECONDS = 24 * 60 * 60
 
@@ -120,47 +119,18 @@ async function fetchFromNasa(
     })
 
     const url = `${BASE_URL}/feed?${params.toString()}`
+    const data = await fetchUpstreamJson<NasaNeoApiResponse>(url, {
+      serviceName: 'NASA NeoWs API',
+      requestLog: 'Fetching NeoWs feed',
+      transientRetryLog: 'NeoWs API transient error, retrying',
+      networkRetryLog: 'NeoWs fetch failed, retrying',
+      errorLog: 'NeoWs API error',
+      context: { startDate, endDate },
+    })
+    const result = mapResponse(data)
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      logger.info('Fetching NeoWs feed', { startDate, endDate, attempt })
-
-      let response: Response
-      try {
-        response = await fetch(url)
-      } catch (error) {
-        if (attempt >= MAX_RETRIES) throw error
-        const message = error instanceof Error ? error.message : 'Unknown fetch error'
-        const delay = attempt * 1000
-        logger.warn('NeoWs fetch failed, retrying', { attempt, retryIn: `${delay}ms`, message })
-        await new Promise((r) => setTimeout(r, delay))
-        continue
-      }
-
-      if (!response.ok) {
-        const body = await response.text()
-
-        if (RETRY_STATUSES.has(response.status) && attempt < MAX_RETRIES) {
-          const delay = attempt * 1000
-          logger.warn('NeoWs API transient error, retrying', {
-            status: response.status,
-            attempt,
-            retryIn: `${delay}ms`,
-          })
-          await new Promise((r) => setTimeout(r, delay))
-          continue
-        }
-        logger.error('NeoWs API error', { status: response.status, body })
-        throw new Error(`NASA NeoWs API responded with ${response.status}`)
-      }
-
-      const data: NasaNeoApiResponse = await response.json()
-      const result = mapResponse(data)
-
-      feedCache.set(key, { result, cachedDate: todayUTC() })
-      return result
-    }
-
-    throw new Error('NeoWs retry loop exited unexpectedly')
+    feedCache.set(key, { result, cachedDate: todayUTC() })
+    return result
   })()
 
   inflight.set(key, promise)

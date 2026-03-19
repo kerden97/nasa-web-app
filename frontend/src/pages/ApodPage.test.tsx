@@ -204,12 +204,12 @@ describe('ApodPage', () => {
   })
 
   it('renders filtered results without the featured hero and includes all items in the grid', () => {
-    mockedUseApod.mockImplementation(({ date, startDate }) => ({
+    mockedUseApod.mockImplementation((options) => ({
       items,
       loading: false,
       error: null,
       loadMore: vi.fn(),
-      hasMore: !(date || startDate),
+      hasMore: !(options?.date || options?.startDate),
     }))
 
     render(<ApodPage />)
@@ -228,12 +228,12 @@ describe('ApodPage', () => {
   })
 
   it('resets the filter and restores the featured layout', () => {
-    mockedUseApod.mockImplementation(({ date, startDate }) => ({
+    mockedUseApod.mockImplementation((options) => ({
       items,
       loading: false,
       error: null,
       loadMore: vi.fn(),
-      hasMore: !(date || startDate),
+      hasMore: !(options?.date || options?.startDate),
     }))
 
     render(<ApodPage />)

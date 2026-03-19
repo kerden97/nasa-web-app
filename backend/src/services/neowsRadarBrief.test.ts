@@ -34,6 +34,8 @@ jest.mock('../lib/logger', () => ({
   },
 }))
 
+import type { CachedNeoRadarBrief, NeoRadarBriefFacts } from '../types/neowsRadarBrief'
+
 describe('NeoWs radar brief service', () => {
   const sampleFeed = {
     element_count: 2,
@@ -105,6 +107,70 @@ describe('NeoWs radar brief service', () => {
     },
   }
 
+  const sampleFacts: NeoRadarBriefFacts = {
+    totalObjects: 2,
+    hazardousCount: 1,
+    observationDays: 1,
+    busiestDay: {
+      date: '2026-03-14',
+      count: 2,
+      hazardousCount: 1,
+    },
+    closestApproach: {
+      id: '1',
+      name: '2026 AB',
+      date: '2026-03-14',
+      hazardous: true,
+      diameterMeters: 100,
+      velocityKmS: 18.4,
+      missDistanceLd: 4.67,
+      nasaJplUrl: 'https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=1',
+    },
+    fastestObject: {
+      id: '1',
+      name: '2026 AB',
+      date: '2026-03-14',
+      hazardous: true,
+      diameterMeters: 100,
+      velocityKmS: 18.4,
+      missDistanceLd: 4.67,
+      nasaJplUrl: 'https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=1',
+    },
+    largestObject: {
+      id: '1',
+      name: '2026 AB',
+      date: '2026-03-14',
+      hazardous: true,
+      diameterMeters: 100,
+      velocityKmS: 18.4,
+      missDistanceLd: 4.67,
+      nasaJplUrl: 'https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=1',
+    },
+    largestHazardousObject: {
+      id: '1',
+      name: '2026 AB',
+      date: '2026-03-14',
+      hazardous: true,
+      diameterMeters: 100,
+      velocityKmS: 18.4,
+      missDistanceLd: 4.67,
+      nasaJplUrl: 'https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=1',
+    },
+    impactSubject: {
+      id: '1',
+      name: '2026 AB',
+      date: '2026-03-14',
+      hazardous: true,
+      diameterMeters: 100,
+      velocityKmS: 18.4,
+      missDistanceLd: 4.67,
+      nasaJplUrl: 'https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=1',
+    },
+    impactComparison: 'roughly football-field scale',
+    impactBand: 'a regional catastrophe',
+    illustrativeEnergyMegatons: 120,
+  }
+
   beforeEach(() => {
     jest.useFakeTimers()
     jest.setSystemTime(new Date('2026-03-15T12:00:00Z'))
@@ -171,7 +237,7 @@ describe('NeoWs radar brief service', () => {
   })
 
   it('reuses a cached historical brief without calling OpenAI again', async () => {
-    mockDurableGet.mockResolvedValue({
+    const cachedBrief: CachedNeoRadarBrief = {
       source: 'ai',
       model: 'gpt-4o-mini',
       generatedAt: '2026-03-14T12:00:00.000Z',
@@ -184,8 +250,9 @@ describe('NeoWs radar brief service', () => {
       disclaimer: 'Cached disclaimer',
       promptVersion: 1,
       fingerprint: 'cached-fingerprint',
-      factsUsed: {},
-    })
+      factsUsed: sampleFacts,
+    }
+    mockDurableGet.mockResolvedValue(cachedBrief)
 
     const { fetchNeoRadarBrief } = await import('./neowsRadarBrief')
     const result = await fetchNeoRadarBrief('2026-03-14', '2026-03-14')
