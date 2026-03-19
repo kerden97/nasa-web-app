@@ -35,6 +35,7 @@ export const epicImageSchema = z.object({
   identifier: z.string(),
   caption: z.string(),
   image: z.string(),
+  card_url: z.string().optional(),
   date: z.string(),
   centroid_coordinates: z.object({
     lat: z.number(),
@@ -54,6 +55,7 @@ export const nasaImageItemSchema = z.object({
   center: z.string().optional(),
   keywords: z.array(z.string()).optional(),
   href: z.string(),
+  card_url: z.string().optional(),
   asset_manifest_url: z.string().optional(),
 })
 export const nasaImageSearchResultSchema = z.object({

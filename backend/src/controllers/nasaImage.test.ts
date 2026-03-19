@@ -3,12 +3,24 @@ import request from 'supertest'
 import nasaImageRoutes from '../routes/nasaImage'
 import { globalErrorHandler } from '../middleware/errorHandler'
 import { searchNasaImages } from '../services/nasaImage'
+import { getOptimizedNasaImage } from '../services/nasaImageProxy'
 
 jest.mock('../services/nasaImage', () => ({
   searchNasaImages: jest.fn(),
 }))
 
+jest.mock('../services/nasaImageProxy', () => ({
+  getOptimizedNasaImage: jest.fn(),
+  isOptimizableNasaImageSource: (sourceUrl: string | undefined) =>
+    typeof sourceUrl === 'string' && sourceUrl.startsWith('https://images-assets.nasa.gov/'),
+  normalizeNasaImageWidth: (width: number | undefined, fallback: number) => width ?? fallback,
+  normalizeNasaImageQuality: (quality: number | undefined, fallback: number) => quality ?? fallback,
+}))
+
 const mockedSearch = searchNasaImages as jest.MockedFunction<typeof searchNasaImages>
+const mockedGetOptimizedNasaImage = getOptimizedNasaImage as jest.MockedFunction<
+  typeof getOptimizedNasaImage
+>
 
 function createApp() {
   const app = express()
@@ -20,6 +32,7 @@ function createApp() {
 describe('NASA Image Library controller', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockedGetOptimizedNasaImage.mockReset()
   })
 
   it('returns results for a valid search query', async () => {
@@ -31,7 +44,7 @@ describe('NASA Image Library controller', () => {
           description: 'A view of the Mars surface.',
           date_created: '2020-07-30T00:00:00Z',
           media_type: 'image',
-          href: 'https://example.com/thumb.jpg',
+          href: 'https://images-assets.nasa.gov/image/PIA00001/PIA00001~thumb.jpg',
         },
       ],
       totalHits: 1,
@@ -43,6 +56,7 @@ describe('NASA Image Library controller', () => {
     expect(response.body.items).toHaveLength(1)
     expect(response.body.items[0].title).toBe('Mars Surface')
     expect(response.body.totalHits).toBe(1)
+    expect(response.body.items[0].card_url).toContain('/api/nasa-image/image?')
     expect(mockedSearch).toHaveBeenCalledWith({ q: 'mars' })
   })
 
@@ -209,5 +223,44 @@ describe('NASA Image Library controller', () => {
     await request(createApp()).get('/api/nasa-image?q=%20nebula%20')
 
     expect(mockedSearch).toHaveBeenCalledWith({ q: 'nebula' })
+  })
+
+  it('returns an optimized preview image asset', async () => {
+    mockedGetOptimizedNasaImage.mockResolvedValue({
+      buffer: Buffer.from('nasa-image'),
+      contentType: 'image/webp',
+      etag: 'nasa-etag',
+    })
+
+    const response = await request(createApp()).get(
+      '/api/nasa-image/image?src=https%3A%2F%2Fimages-assets.nasa.gov%2Fimage%2FPIA23123%2FPIA23123~thumb.jpg&w=640&q=72',
+    )
+
+    expect(response.status).toBe(200)
+    expect(response.header['content-type']).toContain('image/webp')
+    expect(response.header.etag).toBe('nasa-etag')
+    expect(mockedGetOptimizedNasaImage).toHaveBeenCalledWith(
+      'https://images-assets.nasa.gov/image/PIA23123/PIA23123~thumb.jpg',
+      640,
+      72,
+    )
+  })
+
+  it('returns 400 for unsupported preview image sources', async () => {
+    mockedGetOptimizedNasaImage.mockRejectedValue(
+      new Error('Unsupported NASA Image Library image source'),
+    )
+
+    const response = await request(createApp()).get(
+      '/api/nasa-image/image?src=https%3A%2F%2Fexample.com%2Fthumb.jpg',
+    )
+
+    expect(response.status).toBe(400)
+    expect(response.body.code).toBe('unsupported_image_source')
+    expect(mockedGetOptimizedNasaImage).toHaveBeenCalledWith(
+      'https://example.com/thumb.jpg',
+      640,
+      72,
+    )
   })
 })

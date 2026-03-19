@@ -43,7 +43,7 @@ export default function EpicCard({ item, onClick }: EpicCardProps) {
       <MediaCard
         badge="EPIC"
         imageAlt={item.caption}
-        imageSrc={item.image}
+        imageSrc={item.card_url ?? item.image}
         shouldLoadImage={inView}
         readyToShow={readyToShow}
         title={item.caption}

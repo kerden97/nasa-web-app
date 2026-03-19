@@ -7,6 +7,7 @@ export interface NasaImageItem {
   center?: string
   keywords?: string[]
   href: string // thumbnail link
+  card_url?: string
   asset_manifest_url?: string
 }
 

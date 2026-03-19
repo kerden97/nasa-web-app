@@ -214,8 +214,8 @@ export async function getApodImage(req: Request, res: Response, next: NextFuncti
     }
 
     if (
-      message.startsWith('NASA APOD image responded with') ||
-      message === 'APOD asset is not an image'
+      message.startsWith('Remote image responded with') ||
+      message === 'Remote asset is not an image'
     ) {
       sendApiError(
         res,

@@ -42,7 +42,7 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
       <MediaCard
         badge={item.media_type}
         imageAlt={item.title}
-        imageSrc={item.href}
+        imageSrc={item.card_url ?? item.href}
         shouldLoadImage={inView}
         readyToShow={readyToShow}
         title={item.title}

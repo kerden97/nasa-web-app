@@ -3,14 +3,26 @@ import request from 'supertest'
 import epicRoutes from '../routes/epic'
 import { globalErrorHandler } from '../middleware/errorHandler'
 import { fetchEpicImages, fetchEpicDates } from '../services/epic'
+import { getOptimizedEpicImage } from '../services/epicImageProxy'
 
 jest.mock('../services/epic', () => ({
   fetchEpicImages: jest.fn(),
   fetchEpicDates: jest.fn(),
 }))
 
+jest.mock('../services/epicImageProxy', () => ({
+  getOptimizedEpicImage: jest.fn(),
+  isOptimizableEpicImageSource: (sourceUrl: string | undefined) =>
+    typeof sourceUrl === 'string' && sourceUrl.startsWith('https://epic.gsfc.nasa.gov/archive/'),
+  normalizeEpicImageWidth: (width: number | undefined, fallback: number) => width ?? fallback,
+  normalizeEpicImageQuality: (quality: number | undefined, fallback: number) => quality ?? fallback,
+}))
+
 const mockedFetchImages = fetchEpicImages as jest.MockedFunction<typeof fetchEpicImages>
 const mockedFetchDates = fetchEpicDates as jest.MockedFunction<typeof fetchEpicDates>
+const mockedGetOptimizedEpicImage = getOptimizedEpicImage as jest.MockedFunction<
+  typeof getOptimizedEpicImage
+>
 
 function createApp() {
   const app = express()
@@ -21,6 +33,7 @@ function createApp() {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  mockedGetOptimizedEpicImage.mockReset()
 })
 
 describe('EPIC controller – getEpicImages', () => {
@@ -42,6 +55,7 @@ describe('EPIC controller – getEpicImages', () => {
     expect(response.status).toBe(200)
     expect(response.body).toHaveLength(1)
     expect(response.body[0].identifier).toBe('20260312003633')
+    expect(response.body[0].card_url).toContain('/api/epic/image?')
     expect(mockedFetchImages).toHaveBeenCalledWith('natural', undefined)
   })
 
@@ -167,5 +181,60 @@ describe('EPIC controller – getEpicDates', () => {
 
     expect(response.status).toBe(500)
     expect(response.body.error).toBe('Internal server error')
+  })
+})
+
+describe('EPIC controller – getEpicImage', () => {
+  it('returns an optimized image asset', async () => {
+    mockedGetOptimizedEpicImage.mockResolvedValue({
+      buffer: Buffer.from('epic-image'),
+      contentType: 'image/webp',
+      etag: 'epic-etag',
+    })
+
+    const response = await request(createApp()).get(
+      '/api/epic/image?src=https%3A%2F%2Fepic.gsfc.nasa.gov%2Farchive%2Fnatural%2F2026%2F03%2F12%2Fjpg%2Fepic.jpg&w=640&q=70',
+    )
+
+    expect(response.status).toBe(200)
+    expect(response.header['content-type']).toContain('image/webp')
+    expect(response.header.etag).toBe('epic-etag')
+    expect(mockedGetOptimizedEpicImage).toHaveBeenCalledWith(
+      'https://epic.gsfc.nasa.gov/archive/natural/2026/03/12/jpg/epic.jpg',
+      640,
+      70,
+    )
+  })
+
+  it('returns 304 when the etag matches', async () => {
+    mockedGetOptimizedEpicImage.mockResolvedValue({
+      buffer: Buffer.from('epic-image'),
+      contentType: 'image/webp',
+      etag: 'epic-etag',
+    })
+
+    const response = await request(createApp())
+      .get(
+        '/api/epic/image?src=https%3A%2F%2Fepic.gsfc.nasa.gov%2Farchive%2Fnatural%2F2026%2F03%2F12%2Fjpg%2Fepic.jpg',
+      )
+      .set('If-None-Match', 'epic-etag')
+
+    expect(response.status).toBe(304)
+  })
+
+  it('returns 400 for unsupported image hosts', async () => {
+    mockedGetOptimizedEpicImage.mockRejectedValue(new Error('Unsupported EPIC image source'))
+
+    const response = await request(createApp()).get(
+      '/api/epic/image?src=https%3A%2F%2Fexample.com%2Fepic.jpg',
+    )
+
+    expect(response.status).toBe(400)
+    expect(response.body.code).toBe('unsupported_image_source')
+    expect(mockedGetOptimizedEpicImage).toHaveBeenCalledWith(
+      'https://example.com/epic.jpg',
+      640,
+      70,
+    )
   })
 })

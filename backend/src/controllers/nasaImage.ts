@@ -2,7 +2,14 @@ import type { Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
 import { sendApiError } from '../lib/apiErrors'
 import { sendZodQueryError } from '../lib/queryValidation'
+import {
+  getOptimizedNasaImage,
+  isOptimizableNasaImageSource,
+  normalizeNasaImageQuality,
+  normalizeNasaImageWidth,
+} from '../services/nasaImageProxy'
 import { searchNasaImages } from '../services/nasaImage'
+import type { NasaImageItem } from '../types/nasaImage'
 import type { NasaImageQuery } from '../types/nasaImage'
 
 const VALID_MEDIA_TYPES = ['image', 'video', 'audio'] as const
@@ -121,6 +128,53 @@ const nasaImageQuerySchema = z
     }),
   )
 
+const nasaImageProxyQuerySchema = z.object({
+  src: z.string().url(),
+  w: z.coerce.number().optional(),
+  q: z.coerce.number().optional(),
+})
+
+const NASA_IMAGE_CARD_WIDTH = 640
+const NASA_IMAGE_CARD_QUALITY = 72
+
+function getRequestBaseUrl(req: Request): string {
+  const forwardedProto = req.get('x-forwarded-proto')?.split(',')[0]?.trim()
+  const forwardedHost = req.get('x-forwarded-host')
+  const protocol = forwardedProto || req.protocol || 'http'
+  const host = forwardedHost || req.get('host')
+
+  return `${protocol}://${host}`
+}
+
+function buildNasaImageProxyUrl(
+  req: Request,
+  sourceUrl: string | undefined,
+  width: number,
+  quality: number,
+): string | undefined {
+  if (!isOptimizableNasaImageSource(sourceUrl)) return undefined
+
+  const url = new URL('/api/nasa-image/image', getRequestBaseUrl(req))
+  url.searchParams.set('src', sourceUrl)
+  url.searchParams.set('w', String(width))
+  url.searchParams.set('q', String(quality))
+  return url.toString()
+}
+
+function decorateNasaImageItem(req: Request, item: NasaImageItem): NasaImageItem {
+  const cardUrl = buildNasaImageProxyUrl(
+    req,
+    item.href,
+    NASA_IMAGE_CARD_WIDTH,
+    NASA_IMAGE_CARD_QUALITY,
+  )
+
+  return {
+    ...item,
+    ...(cardUrl ? { card_url: cardUrl } : {}),
+  }
+}
+
 export async function searchImages(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const parsedQuery = nasaImageQuerySchema.safeParse(req.query)
@@ -131,7 +185,10 @@ export async function searchImages(req: Request, res: Response, next: NextFuncti
     }
 
     const data = await searchNasaImages(parsedQuery.data)
-    res.json(data)
+    res.json({
+      ...data,
+      items: data.items.map((item) => decorateNasaImageItem(req, item)),
+    })
   } catch (error) {
     const message = error instanceof Error ? error.message : ''
     if (message.includes('NASA Image Library')) {
@@ -143,6 +200,58 @@ export async function searchImages(req: Request, res: Response, next: NextFuncti
       )
       return
     }
+    next(error)
+  }
+}
+
+export async function getNasaImage(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const parsedQuery = nasaImageProxyQuerySchema.safeParse(req.query)
+    if (!parsedQuery.success) {
+      sendZodQueryError(res, sendApiError, parsedQuery.error)
+      return
+    }
+
+    const width = normalizeNasaImageWidth(parsedQuery.data.w, NASA_IMAGE_CARD_WIDTH)
+    const quality = normalizeNasaImageQuality(parsedQuery.data.q, NASA_IMAGE_CARD_QUALITY)
+    const optimized = await getOptimizedNasaImage(parsedQuery.data.src, width, quality)
+
+    if (req.get('if-none-match') === optimized.etag) {
+      res.status(304).end()
+      return
+    }
+
+    res.setHeader('Content-Type', optimized.contentType)
+    res.setHeader('Content-Length', String(optimized.buffer.length))
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+    res.setHeader('ETag', optimized.etag)
+    res.end(optimized.buffer)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+
+    if (message === 'Unsupported NASA Image Library image source') {
+      sendApiError(
+        res,
+        400,
+        'unsupported_image_source',
+        'Only NASA Image Library preview assets can be optimized.',
+      )
+      return
+    }
+
+    if (
+      message.startsWith('Remote image responded with') ||
+      message === 'Remote asset is not an image'
+    ) {
+      sendApiError(
+        res,
+        502,
+        'upstream_image_unavailable',
+        "NASA's Image Library preview asset is temporarily unavailable. Please try again shortly.",
+      )
+      return
+    }
+
     next(error)
   }
 }

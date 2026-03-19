@@ -334,3 +334,11 @@ I added a durable Redis cache through Upstash in production, while keeping Redis
 For APOD, EPIC, and Asteroid Watch, I also added a persisted client-side stale cache on top of the backend cache. The goal was not to replace the backend, but to improve repeat-visit UX: render the last known good payload immediately, then revalidate in the background. This is especially useful when the backend is waking from a free-tier cold start.
 
 The `Radar Brief` feature uses `gpt-4o-mini` rather than `gpt-5-nano` because `gpt-5-nano` frequently exhausted the request’s output budget on reasoning before producing the final structured JSON, while `gpt-4o-mini` returned reliable low-latency structured summaries for this use case.
+
+### Performance and Delivery Decisions
+
+- Card preview images for APOD, EPIC, and NASA Image are served through backend proxy/optimization routes to reduce payload size and improve mobile loading.
+- Full-detail modal views keep original upstream assets when higher fidelity is more valuable than aggressive compression.
+- Heavy UI paths such as media modals and asteroid charts are lazy-loaded so they do not inflate the initial route cost.
+- Repeated fetches are reduced with persisted client cache on the frontend and cached API responses on the backend.
+- Runtime API boundaries use Zod validation to keep request/response handling consistent and safer across frontend and backend.
