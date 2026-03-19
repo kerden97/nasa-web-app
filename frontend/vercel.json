@@ -1,3 +1,14 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/wonders-of-the-universe", "destination": "/index.html" },
+    { "source": "/wonders-of-the-universe/", "destination": "/index.html" },
+    { "source": "/wonders-of-the-universe/apod", "destination": "/index.html" },
+    { "source": "/wonders-of-the-universe/apod/", "destination": "/index.html" },
+    { "source": "/wonders-of-the-universe/nasa-image-library", "destination": "/index.html" },
+    { "source": "/wonders-of-the-universe/nasa-image-library/", "destination": "/index.html" },
+    { "source": "/wonders-of-the-universe/epic", "destination": "/index.html" },
+    { "source": "/wonders-of-the-universe/epic/", "destination": "/index.html" },
+    { "source": "/asteroid-watch", "destination": "/index.html" },
+    { "source": "/asteroid-watch/", "destination": "/index.html" }
+  ]
 }

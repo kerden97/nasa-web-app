@@ -1,6 +1,7 @@
 import { config } from '../config'
 import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
 import logger from '../lib/logger'
+import { fetchUpstreamJson, isUpstreamServiceError } from '../lib/upstreamService'
 import type { ApodItem, ApodQuery } from '../types/apod'
 
 // Per-date in-memory cache — past dates are immutable, today invalidates on date rollover
@@ -103,7 +104,7 @@ function hydrateApodLocalCache(result: ApodItem | ApodItem[]): void {
 }
 
 function isNasaApiError(error: unknown): error is Error {
-  return error instanceof Error && error.message.includes('NASA API')
+  return isUpstreamServiceError(error, 'NASA API')
 }
 
 function shouldFallbackLatestDate(date: string, error: unknown): boolean {
@@ -128,45 +129,23 @@ async function fetchFromNasa(query: ApodQuery): Promise<ApodItem[]> {
   }
 
   const promise = (async () => {
-    const MAX_RETRIES = 3
-    // NASA 500 "Internal Service Error" is often transient (API bugs, not missing data)
-    const RETRY_STATUSES = new Set([500, 502, 503, 504])
-
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      logger.info('Fetching APOD from NASA API', {
+    const data = await fetchUpstreamJson<ApodItem | ApodItem[]>(url, {
+      serviceName: 'NASA API',
+      requestLog: 'Fetching APOD from NASA API',
+      transientRetryLog: 'NASA API transient error, retrying',
+      networkRetryLog: 'NASA API network error, retrying',
+      errorLog: 'NASA APOD API error',
+      context: {
         date: query.date,
         start_date: query.start_date,
         end_date: query.end_date,
-        attempt,
-      })
+      },
+    })
 
-      const response = await fetch(url)
+    const items: ApodItem[] = Array.isArray(data) ? data : [data]
 
-      if (!response.ok) {
-        const body = await response.text()
-
-        if (RETRY_STATUSES.has(response.status) && attempt < MAX_RETRIES) {
-          const delay = attempt * 1000
-          logger.warn('NASA API transient error, retrying', {
-            status: response.status,
-            attempt,
-            retryIn: `${delay}ms`,
-          })
-          await new Promise((r) => setTimeout(r, delay))
-          continue
-        }
-        logger.error('NASA APOD API error', { status: response.status, body })
-        throw new Error(`NASA API responded with ${response.status}`)
-      }
-
-      const data = await response.json()
-      const items: ApodItem[] = Array.isArray(data) ? data : [data]
-
-      items.forEach(setCached)
-      return items
-    }
-
-    throw new Error('NASA API failed after retries')
+    items.forEach(setCached)
+    return items
   })()
 
   inflight.set(url, promise)

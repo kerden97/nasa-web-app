@@ -30,7 +30,7 @@ export default function EpicPage() {
   const [datePreset, setDatePreset] = useState<EpicDatePreset>('latest')
   const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined)
   const [calendarOpen, setCalendarOpen] = useState(false)
-  const { dates, loading: datesLoading } = useEpicDates(collection)
+  const { dates, loading: datesLoading, error: datesError } = useEpicDates(collection)
   const effectiveSelectedDate =
     selectedDate && dates.includes(selectedDate) ? selectedDate : dates[0]
   const { images, loading, error } = useEpic(collection, effectiveSelectedDate)
@@ -110,6 +110,8 @@ export default function EpicPage() {
       : (dateOptions.find((option) => option.value === datePreset) ?? dateOptions[0])
   const shouldShowEpicSelectionPill =
     isEpicFiltered && epicSelectionLabel && (!isMobile || datePreset === 'custom')
+  const epicError = !datesLoading && !loading ? (datesError ?? error) : null
+  const epicErrorTitle = datesError ? 'Unable to load EPIC dates' : 'Unable to load EPIC imagery'
 
   return (
     <>
@@ -208,11 +210,11 @@ export default function EpicPage() {
         </div>
       </div>
 
-      {error && (
-        <InlineErrorNotice className="mb-6" title="Unable to load EPIC imagery" message={error} />
+      {epicError && (
+        <InlineErrorNotice className="mb-6" title={epicErrorTitle} message={epicError} />
       )}
 
-      {!loading && !error && images.length === 0 && !datesLoading && (
+      {!loading && !epicError && images.length === 0 && !datesLoading && (
         <div className="rounded-[28px] border border-slate-200 bg-white px-6 py-12 text-center text-slate-500 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
           No EPIC imagery is available for this collection right now.
         </div>

@@ -77,7 +77,7 @@ describe('EpicPage', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-16T12:00:00Z'))
     mockMobileMatchMedia(false)
-    mockedUseEpicDates.mockReturnValue({ dates, loading: false })
+    mockedUseEpicDates.mockReturnValue({ dates, loading: false, error: null })
     mockedUseEpic.mockReturnValue({ images, loading: false, error: null })
   })
 
@@ -115,7 +115,7 @@ describe('EpicPage', () => {
   })
 
   it('renders loading skeletons when dates are loading', () => {
-    mockedUseEpicDates.mockReturnValue({ dates: [], loading: true })
+    mockedUseEpicDates.mockReturnValue({ dates: [], loading: true, error: null })
     mockedUseEpic.mockReturnValue({ images: [], loading: false, error: null })
 
     render(<EpicPage />)
@@ -133,6 +133,21 @@ describe('EpicPage', () => {
     render(<EpicPage />)
 
     expect(screen.getByText("NASA's EPIC API is temporarily unavailable.")).toBeInTheDocument()
+  })
+
+  it('renders a date-specific error when EPIC dates fail to load', () => {
+    mockedUseEpicDates.mockReturnValue({
+      dates: [],
+      loading: false,
+      error: 'Unable to load EPIC date options.',
+    })
+    mockedUseEpic.mockReturnValue({ images: [], loading: false, error: null })
+
+    render(<EpicPage />)
+
+    expect(screen.getByText('Unable to load EPIC date options.')).toBeInTheDocument()
+    expect(screen.getByText('Unable to load EPIC dates')).toBeInTheDocument()
+    expect(screen.queryByText(/No EPIC imagery is available/)).not.toBeInTheDocument()
   })
 
   it('renders empty state when no images available', () => {
@@ -208,6 +223,7 @@ describe('EpicPage', () => {
     mockedUseEpicDates.mockImplementation((collection) => ({
       dates: collection === 'enhanced' ? ['2026-03-08', '2026-03-07'] : dates,
       loading: false,
+      error: null,
     }))
 
     render(<EpicPage />)
@@ -270,7 +286,7 @@ describe('EpicPage', () => {
   })
 
   it('renders the page without header date metadata when no dates are available', () => {
-    mockedUseEpicDates.mockReturnValue({ dates: [], loading: false })
+    mockedUseEpicDates.mockReturnValue({ dates: [], loading: false, error: null })
     mockedUseEpic.mockReturnValue({ images: [], loading: false, error: null })
 
     render(<EpicPage />)

@@ -161,6 +161,17 @@ describe('APOD controller', () => {
     expect(response.body.status).toBe(502)
   })
 
+  it('returns 502 when the NASA request fails at the network layer', async () => {
+    mockedFetchApod.mockRejectedValue(new Error('NASA API request failed: socket hang up'))
+
+    const response = await request(createApp()).get('/api/apod?date=2026-03-11')
+
+    expect(response.status).toBe(502)
+    expect(response.body.error).toContain("NASA's API is temporarily unavailable")
+    expect(response.body.code).toBe('upstream_service_unavailable')
+    expect(response.body.status).toBe(502)
+  })
+
   it('passes unexpected errors to the global error handler', async () => {
     mockedFetchApod.mockRejectedValue(new Error('Unexpected failure'))
 

@@ -1,5 +1,6 @@
 import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
 import logger from '../lib/logger'
+import { fetchUpstreamJson } from '../lib/upstreamService'
 import type { NasaImageItem, NasaImageQuery } from '../types/nasaImage'
 
 // NASA Image and Video Library — no API key required
@@ -8,8 +9,6 @@ const BASE_URL = 'https://images-api.nasa.gov'
 const searchCache = new Map<string, { items: NasaImageItem[]; totalHits: number }>()
 const failedQueries = new Map<string, { timestamp: number; message: string }>()
 const FAIL_COOLDOWN_MS = 10 * 60 * 1000 // don't retry a failed query for 10 minutes
-const MAX_RETRIES = 3
-const RETRY_STATUSES = new Set([500, 502, 503, 504])
 const NASA_IMAGE_TTL_SECONDS = 60 * 60
 
 // In-flight request deduplication — prevents concurrent identical API calls
@@ -119,37 +118,21 @@ async function fetchFromNasa(
     params.set('page', String(query.page ?? 1))
 
     const url = `${BASE_URL}/search?${params.toString()}`
+    const data = await fetchUpstreamJson<NasaSearchResponse>(url, {
+      serviceName: 'NASA Image Library',
+      requestLog: 'Searching NASA Image Library',
+      transientRetryLog: 'NASA Image Library transient error, retrying',
+      networkRetryLog: 'NASA Image Library network error, retrying',
+      errorLog: 'NASA Image Library API error',
+      context: {
+        q: query.q,
+        page: query.page ?? 1,
+      },
+    })
+    const result = mapResponse(data)
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      logger.info('Searching NASA Image Library', { q: query.q, page: query.page ?? 1, attempt })
-
-      const response = await fetch(url)
-
-      if (!response.ok) {
-        const body = await response.text()
-
-        if (RETRY_STATUSES.has(response.status) && attempt < MAX_RETRIES) {
-          const delay = attempt * 1000
-          logger.warn('NASA Image Library transient error, retrying', {
-            status: response.status,
-            attempt,
-            retryIn: `${delay}ms`,
-          })
-          await new Promise((r) => setTimeout(r, delay))
-          continue
-        }
-        logger.error('NASA Image Library API error', { status: response.status, body })
-        throw new Error(`NASA Image Library responded with ${response.status}`)
-      }
-
-      const data: NasaSearchResponse = await response.json()
-      const result = mapResponse(data)
-
-      searchCache.set(key, result)
-      return result
-    }
-
-    throw new Error('NASA Image Library failed after retries')
+    searchCache.set(key, result)
+    return result
   })()
 
   inflight.set(key, promise)

@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
 import { sendApiError } from '../lib/apiErrors'
 import { sendZodQueryError } from '../lib/queryValidation'
+import { isUpstreamServiceError } from '../lib/upstreamService'
 import {
   getOptimizedNasaImage,
   isOptimizableNasaImageSource,
@@ -190,8 +191,7 @@ export async function searchImages(req: Request, res: Response, next: NextFuncti
       items: data.items.map((item) => decorateNasaImageItem(req, item)),
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : ''
-    if (message.includes('NASA Image Library')) {
+    if (isUpstreamServiceError(error, 'NASA Image Library')) {
       sendApiError(
         res,
         502,

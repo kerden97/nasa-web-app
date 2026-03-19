@@ -206,6 +206,17 @@ describe('NASA Image Library controller', () => {
     expect(response.body.status).toBe(502)
   })
 
+  it('returns 502 when the NASA Image Library request fails at the network layer', async () => {
+    mockedSearch.mockRejectedValue(new Error('NASA Image Library request failed: socket hang up'))
+
+    const response = await request(createApp()).get('/api/nasa-image?q=mars')
+
+    expect(response.status).toBe(502)
+    expect(response.body.error).toContain('temporarily unavailable')
+    expect(response.body.code).toBe('upstream_service_unavailable')
+    expect(response.body.status).toBe(502)
+  })
+
   it('passes unexpected errors to the global error handler', async () => {
     mockedSearch.mockRejectedValue(new Error('Unexpected failure'))
 

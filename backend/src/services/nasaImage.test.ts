@@ -233,6 +233,21 @@ describe('NASA Image Library service', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3)
   })
 
+  it('retries network failures and throws an upstream error after exhaustion', async () => {
+    const fetchMock = jest.fn().mockRejectedValue(new Error('socket hang up'))
+
+    global.fetch = fetchMock as typeof fetch
+
+    const promise = searchNasaImages({ q: 'network-fail' }).catch((e: Error) => e)
+    await jest.advanceTimersByTimeAsync(1000)
+    await jest.advanceTimersByTimeAsync(2000)
+    const error = await promise
+
+    expect(error).toBeInstanceOf(Error)
+    expect((error as Error).message).toContain('NASA Image Library request failed: socket hang up')
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+
   it('does not retry on non-transient errors (e.g. 400)', async () => {
     const fetchMock = jest.fn().mockResolvedValue({
       ok: false,

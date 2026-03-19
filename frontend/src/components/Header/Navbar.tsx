@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom'
 import { ChevronDown, Menu } from 'lucide-react'
 import logo from '@/assets/logo.webp'
 import { asteroidDestination, wondersDestinations } from '@/lib/navigation'
+import { matchesRoute } from '@/lib/routeMatching'
 import { wondersUiConfig } from '@/lib/wondersUi'
 import MotionToggle from './MotionToggle'
 import ThemeToggle from './ThemeToggle'
@@ -17,8 +18,8 @@ export default function Navbar() {
   const handleCloseMobileMenu = useCallback(() => setIsMobileMenuOpen(false), [])
   const closeWondersMenu = useCallback(() => setIsWondersOpen(false), [])
 
-  const isWondersActive = location.pathname.startsWith('/wonders-of-the-universe')
-  const isAsteroidActive = location.pathname.startsWith(asteroidDestination.to)
+  const isWondersActive = matchesRoute(location.pathname, '/wonders-of-the-universe')
+  const isAsteroidActive = matchesRoute(location.pathname, asteroidDestination.to)
 
   const desktopLinkBase =
     'inline-flex items-center gap-2 rounded-full px-4 py-2 text-base font-medium transition-all'
@@ -28,7 +29,7 @@ export default function Navbar() {
 
   const currentWondersLabel = useMemo(() => {
     const match = wondersDestinations.find((destination) =>
-      location.pathname.startsWith(destination.to),
+      matchesRoute(location.pathname, destination.to),
     )
     return match?.shortLabel ?? 'Wonders'
   }, [location.pathname])
@@ -125,7 +126,7 @@ export default function Navbar() {
                   <div className="space-y-0.5">
                     {wondersUiConfig.map((destination) => {
                       const { Icon } = destination
-                      const active = location.pathname.startsWith(destination.to)
+                      const active = matchesRoute(location.pathname, destination.to)
 
                       return (
                         <NavLink

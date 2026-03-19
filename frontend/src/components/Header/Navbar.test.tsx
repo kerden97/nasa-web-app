@@ -144,4 +144,18 @@ describe('Navbar mobile menu', () => {
     expect(imageLink.className).toContain(activeClassFragment)
     expect(epicLink.className).not.toContain(activeClassFragment)
   })
+
+  it('does not treat invalid Wonders subpaths as active child routes', async () => {
+    renderNavbar('/wonders-of-the-universe/apodaa')
+
+    expect(screen.getByRole('button', { name: 'Wonders' })).toBeInTheDocument()
+
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'Wonders' }))
+
+    const apodLink = await screen.findByRole('menuitem', {
+      name: 'Astronomy Picture of the Day',
+    })
+
+    expect(apodLink.className).not.toContain('bg-slate-100')
+  })
 })

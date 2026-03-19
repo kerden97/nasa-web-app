@@ -71,7 +71,7 @@ Current backend routes:
 - `GET /api/neows/feed`
 - `GET /api/neows/radar-brief`
 
-Error responses are standardized as:
+Backend error responses, including unknown-route 404s, are standardized as:
 
 ```json
 {
@@ -84,6 +84,7 @@ Error responses are standardized as:
 Status-code policy:
 
 - `400` — invalid user input or invalid filter combinations
+- `404` — unknown backend route
 - `502` — NASA/upstream temporary failure
 - `500` — unexpected internal server failure
 
@@ -147,6 +148,8 @@ OPENAI_MODEL=gpt-4o-mini
 - Root Directory: `frontend`
 - Framework Preset: Vite
 - Auto-Deploy: on commit to `main`
+- Only the known SPA routes rewrite to `index.html`; unknown frontend URLs return an HTTP `404`
+  and serve the custom static `404.html` page on direct requests
 
 Required environment variables on Vercel:
 
@@ -320,8 +323,8 @@ Workflow file: `.github/workflows/ci.yml`
 
 Detailed testing notes live in:
 
-- [frontend/TESTING.md](/c:/Users/User/nasa-web-app/frontend/TESTING.md)
-- [backend/TESTING.md](/c:/Users/User/nasa-web-app/backend/TESTING.md)
+- [frontend/TESTING.md](./frontend/TESTING.md)
+- [backend/TESTING.md](./backend/TESTING.md)
 
 # Decisions
 

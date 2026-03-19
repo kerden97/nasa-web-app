@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { Compass, House, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { asteroidDestination } from '@/lib/navigation'
+import { matchesRoute } from '@/lib/routeMatching'
 import { wondersUiConfig } from '@/lib/wondersUi'
 import { useMotion } from '@/context/useMotion'
 
@@ -149,7 +150,7 @@ export default function MobileMenu({
                       key={destination.to}
                       to={destination.to}
                       onClick={(e) => {
-                        if (location.pathname.startsWith(destination.to)) e.preventDefault()
+                        if (matchesRoute(location.pathname, destination.to)) e.preventDefault()
                         onClose()
                       }}
                       className={({ isActive }) =>
@@ -171,7 +172,7 @@ export default function MobileMenu({
             <NavLink
               to={asteroidDestination.to}
               onClick={(e) => {
-                if (location.pathname.startsWith(asteroidDestination.to)) e.preventDefault()
+                if (matchesRoute(location.pathname, asteroidDestination.to)) e.preventDefault()
                 onClose()
               }}
               className={({ isActive }) =>

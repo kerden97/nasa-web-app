@@ -229,6 +229,21 @@ describe('EPIC service', () => {
       expect(fetchMock).toHaveBeenCalledTimes(3)
     })
 
+    it('retries network failures and throws an upstream error after exhaustion', async () => {
+      const fetchMock = jest.fn().mockRejectedValue(new Error('socket hang up'))
+
+      global.fetch = fetchMock as typeof fetch
+
+      const promise = fetchEpicImages('natural', '2026-03-12').catch((e: Error) => e)
+      await jest.advanceTimersByTimeAsync(1000)
+      await jest.advanceTimersByTimeAsync(2000)
+      const error = await promise
+
+      expect(error).toBeInstanceOf(Error)
+      expect((error as Error).message).toContain('NASA EPIC API request failed: socket hang up')
+      expect(fetchMock).toHaveBeenCalledTimes(3)
+    })
+
     it('deduplicates concurrent identical requests', async () => {
       const fetchMock = jest.fn().mockResolvedValue({
         ok: true,
@@ -382,6 +397,21 @@ describe('EPIC service', () => {
 
       expect(error).toBeInstanceOf(Error)
       expect((error as Error).message).toContain('NASA EPIC API responded with 500')
+      expect(fetchMock).toHaveBeenCalledTimes(3)
+    })
+
+    it('retries date-request network failures and throws an upstream error after exhaustion', async () => {
+      const fetchMock = jest.fn().mockRejectedValue(new Error('socket hang up'))
+
+      global.fetch = fetchMock as typeof fetch
+
+      const promise = fetchEpicDates('natural').catch((e: Error) => e)
+      await jest.advanceTimersByTimeAsync(1000)
+      await jest.advanceTimersByTimeAsync(2000)
+      const error = await promise
+
+      expect(error).toBeInstanceOf(Error)
+      expect((error as Error).message).toContain('NASA EPIC API request failed: socket hang up')
       expect(fetchMock).toHaveBeenCalledTimes(3)
     })
 

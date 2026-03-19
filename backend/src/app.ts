@@ -3,6 +3,7 @@ import express from 'express'
 import helmet from 'helmet'
 import compression from 'compression'
 import { config } from './config'
+import { sendApiError } from './lib/apiErrors'
 import { requestLogger } from './middleware/requestLogger'
 import { globalErrorHandler } from './middleware/errorHandler'
 import healthRoutes from './routes/health'
@@ -29,6 +30,10 @@ export function createApp() {
   app.use(nasaImageRoutes)
   app.use(epicRoutes)
   app.use(neowsRoutes)
+
+  app.use((_req, res) => {
+    sendApiError(res, 404, 'route_not_found', 'Route not found')
+  })
 
   app.use(globalErrorHandler)
 

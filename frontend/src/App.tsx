@@ -9,6 +9,7 @@ import ScrollToTopButton from '@/components/ScrollToTop/ScrollToTopButton'
 import Starfield from '@/components/Starfield/Starfield'
 import { useTheme } from '@/context/ThemeContext'
 import HomePage from '@/pages/HomePage'
+import NotFoundPage from '@/pages/NotFoundPage'
 import WondersHubPage from '@/pages/WondersHubPage'
 import WondersPage from '@/pages/WondersPage'
 
@@ -68,6 +69,7 @@ function App() {
               <Route path="epic" element={<EpicPage />} />
             </Route>
             <Route path="/asteroid-watch" element={<AsteroidWatchPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </main>

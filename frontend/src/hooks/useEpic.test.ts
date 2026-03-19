@@ -29,7 +29,31 @@ describe('useEpic', () => {
 
     expect(result.current.loading).toBe(false)
     expect(result.current.dates).toEqual(['2026-03-18'])
+    expect(result.current.error).toBeNull()
     await waitFor(() => expect(mockedFetchApi).toHaveBeenCalledTimes(1))
+  })
+
+  it('surfaces an error when EPIC dates fail without cached data', async () => {
+    mockedFetchApi.mockRejectedValue(new Error('Unable to load EPIC date options.'))
+
+    const { result } = renderHook(() => useEpicDates('natural'))
+
+    await waitFor(() => expect(mockedFetchApi).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.dates).toEqual([])
+    expect(result.current.error).toBe('Unable to load EPIC date options.')
+  })
+
+  it('keeps cached EPIC dates visible when background revalidation fails', async () => {
+    writePersistedCache(createPersistedCacheKey('epic', 'dates', 'natural'), ['2026-03-18'])
+    mockedFetchApi.mockRejectedValue(new Error('network failure'))
+
+    const { result } = renderHook(() => useEpicDates('natural'))
+
+    await waitFor(() => expect(mockedFetchApi).toHaveBeenCalledTimes(1))
+    expect(result.current.loading).toBe(false)
+    expect(result.current.error).toBeNull()
+    expect(result.current.dates).toEqual(['2026-03-18'])
   })
 
   it('keeps cached EPIC images visible when background revalidation fails', async () => {

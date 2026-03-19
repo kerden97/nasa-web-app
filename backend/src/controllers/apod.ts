@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
 import { sendApiError } from '../lib/apiErrors'
+import { isUpstreamServiceError } from '../lib/upstreamService'
 import { fetchApod } from '../services/apod'
 import {
   getOptimizedApodImage,
@@ -164,8 +165,7 @@ export async function getApod(req: Request, res: Response, next: NextFunction): 
     const data = await fetchApod(parsedQuery.data)
     res.json(decorateApodResponse(req, data))
   } catch (error) {
-    const message = error instanceof Error ? error.message : ''
-    if (message.includes('NASA API')) {
+    if (isUpstreamServiceError(error, 'NASA API')) {
       sendApiError(
         res,
         502,

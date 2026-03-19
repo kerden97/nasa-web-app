@@ -1,5 +1,6 @@
 import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
 import logger from '../lib/logger'
+import { fetchUpstreamJson } from '../lib/upstreamService'
 import type { EpicImage, EpicCollection } from '../types/epic'
 
 // Image cache: "collection:date|latest" → { images, cachedDate }
@@ -38,9 +39,6 @@ function buildImageUrl(image: string, date: string, collection: EpicCollection):
   return `${EPIC_ARCHIVE_BASE_URL}/${collection}/${year}/${month}/${day}/jpg/${image}.jpg`
 }
 
-const MAX_RETRIES = 3
-const RETRY_STATUSES = new Set([500, 502, 503, 504])
-
 async function fetchImagesFromNasa(
   collection: EpicCollection,
   date: string | undefined,
@@ -56,46 +54,30 @@ async function fetchImagesFromNasa(
   const promise = (async () => {
     const datePath = date ? `/date/${date}` : ''
     const url = `${EPIC_API_BASE_URL}/${collection}${datePath}`
+    const data = await fetchUpstreamJson<EpicApiItem[]>(url, {
+      serviceName: 'NASA EPIC API',
+      requestLog: 'Fetching EPIC images',
+      transientRetryLog: 'EPIC API transient error, retrying',
+      networkRetryLog: 'EPIC API network error, retrying',
+      errorLog: 'EPIC API error',
+      context: {
+        collection,
+        date: date ?? 'latest',
+      },
+    })
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      logger.info('Fetching EPIC images', { collection, date: date ?? 'latest', attempt })
+    const images: EpicImage[] = data.map((item) => ({
+      identifier: item.identifier,
+      caption: item.caption,
+      image: buildImageUrl(item.image, item.date, collection),
+      date: item.date,
+      centroid_coordinates: item.centroid_coordinates,
+    }))
 
-      const response = await fetch(url)
-
-      if (!response.ok) {
-        const body = await response.text()
-
-        if (RETRY_STATUSES.has(response.status) && attempt < MAX_RETRIES) {
-          const delay = attempt * 1000
-          logger.warn('EPIC API transient error, retrying', {
-            status: response.status,
-            attempt,
-            retryIn: `${delay}ms`,
-          })
-          await new Promise((r) => setTimeout(r, delay))
-          continue
-        }
-        logger.error('EPIC API error', { status: response.status, body })
-        throw new Error(`NASA EPIC API responded with ${response.status}`)
-      }
-
-      const data: EpicApiItem[] = await response.json()
-
-      const images: EpicImage[] = data.map((item) => ({
-        identifier: item.identifier,
-        caption: item.caption,
-        image: buildImageUrl(item.image, item.date, collection),
-        date: item.date,
-        centroid_coordinates: item.centroid_coordinates,
-      }))
-
-      if (images.length > 0) {
-        cache.set(key, { images, cachedDate: todayUTC() })
-      }
-      return images
+    if (images.length > 0) {
+      cache.set(key, { images, cachedDate: todayUTC() })
     }
-
-    throw new Error('NASA EPIC API failed after retries')
+    return images
   })()
 
   inflight.set(key, promise)
@@ -115,40 +97,21 @@ async function fetchDatesFromNasa(collection: EpicCollection): Promise<string[]>
 
   const promise = (async () => {
     const url = `${EPIC_API_BASE_URL}/${collection}/all`
+    const data = await fetchUpstreamJson<{ date: string }[]>(url, {
+      serviceName: 'NASA EPIC API',
+      requestLog: 'Fetching EPIC available dates',
+      transientRetryLog: 'EPIC dates API transient error, retrying',
+      networkRetryLog: 'EPIC dates API network error, retrying',
+      errorLog: 'EPIC dates API error',
+      context: { collection },
+    })
+    const dates = data
+      .map((d) => d.date)
+      .sort()
+      .reverse()
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      logger.info('Fetching EPIC available dates', { collection, attempt })
-
-      const response = await fetch(url)
-
-      if (!response.ok) {
-        const body = await response.text()
-
-        if (RETRY_STATUSES.has(response.status) && attempt < MAX_RETRIES) {
-          const delay = attempt * 1000
-          logger.warn('EPIC dates API transient error, retrying', {
-            status: response.status,
-            attempt,
-            retryIn: `${delay}ms`,
-          })
-          await new Promise((r) => setTimeout(r, delay))
-          continue
-        }
-        logger.error('EPIC dates API error', { status: response.status, body })
-        throw new Error(`NASA EPIC API responded with ${response.status}`)
-      }
-
-      const data: { date: string }[] = await response.json()
-      const dates = data
-        .map((d) => d.date)
-        .sort()
-        .reverse()
-
-      datesCache.set(collection, { dates, cachedDate: todayUTC() })
-      return dates
-    }
-
-    throw new Error('NASA EPIC dates API failed after retries')
+    datesCache.set(collection, { dates, cachedDate: todayUTC() })
+    return dates
   })()
 
   inflightDates.set(collection, promise)

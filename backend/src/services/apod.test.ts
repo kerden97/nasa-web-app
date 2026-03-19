@@ -321,6 +321,23 @@ describe('APOD service', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3)
   })
 
+  it('retries network failures and throws an upstream error after exhaustion', async () => {
+    const fetchMock = jest.fn().mockRejectedValue(new Error('socket hang up'))
+
+    global.fetch = fetchMock as typeof fetch
+
+    const promise = fetchApod({ date: '2026-03-10' }).catch((e: Error) => e)
+
+    await jest.advanceTimersByTimeAsync(1000)
+    await jest.advanceTimersByTimeAsync(2000)
+
+    const error = await promise
+
+    expect(error).toBeInstanceOf(Error)
+    expect((error as Error).message).toContain('NASA API request failed: socket hang up')
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+
   it('falls back to the previous APOD when the latest date is unavailable', async () => {
     const failResponse = {
       ok: false,

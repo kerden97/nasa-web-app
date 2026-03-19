@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer } from 'react'
 import { fetchApi } from '@/lib/api'
 import {
   createPersistedCacheKey,
@@ -14,10 +14,112 @@ interface UseEpicResult {
   error: string | null
 }
 
+interface UseEpicDatesResult {
+  dates: string[]
+  loading: boolean
+  error: string | null
+}
+
+interface EpicState {
+  images: EpicImage[]
+  loading: boolean
+  error: string | null
+}
+
+type EpicAction =
+  | { type: 'hydrate-cache'; payload: EpicImage[] }
+  | { type: 'start-request' }
+  | { type: 'resolve-request'; payload: EpicImage[] }
+  | { type: 'request-error'; payload: string }
+
+interface EpicDatesState {
+  dates: string[]
+  loading: boolean
+  error: string | null
+}
+
+type EpicDatesAction =
+  | { type: 'hydrate-cache'; payload: string[] }
+  | { type: 'start-request' }
+  | { type: 'resolve-request'; payload: string[] }
+  | { type: 'request-error'; payload: string }
+
+const initialEpicState: EpicState = {
+  images: [],
+  loading: false,
+  error: null,
+}
+
+const initialEpicDatesState: EpicDatesState = {
+  dates: [],
+  loading: true,
+  error: null,
+}
+
+function epicReducer(state: EpicState, action: EpicAction): EpicState {
+  switch (action.type) {
+    case 'hydrate-cache':
+      return {
+        images: action.payload,
+        loading: false,
+        error: null,
+      }
+    case 'start-request':
+      return {
+        images: [],
+        loading: true,
+        error: null,
+      }
+    case 'resolve-request':
+      return {
+        images: action.payload,
+        loading: false,
+        error: null,
+      }
+    case 'request-error':
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      }
+    default:
+      return state
+  }
+}
+
+function epicDatesReducer(state: EpicDatesState, action: EpicDatesAction): EpicDatesState {
+  switch (action.type) {
+    case 'hydrate-cache':
+      return {
+        dates: action.payload,
+        loading: false,
+        error: null,
+      }
+    case 'start-request':
+      return {
+        dates: [],
+        loading: true,
+        error: null,
+      }
+    case 'resolve-request':
+      return {
+        dates: action.payload,
+        loading: false,
+        error: null,
+      }
+    case 'request-error':
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      }
+    default:
+      return state
+  }
+}
+
 export function useEpic(collection: EpicCollection, date?: string): UseEpicResult {
-  const [images, setImages] = useState<EpicImage[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [state, dispatch] = useReducer(epicReducer, initialEpicState)
   const hasDate = Boolean(date)
 
   useEffect(() => {
@@ -28,43 +130,37 @@ export function useEpic(collection: EpicCollection, date?: string): UseEpicResul
     const cachedImages = readPersistedCache(cacheKey, epicImagesSchema)
     const usedCachedData = Boolean(cachedImages?.length)
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setError(null)
     if (usedCachedData) {
-      setImages(cachedImages!)
-      setLoading(false)
+      dispatch({ type: 'hydrate-cache', payload: cachedImages! })
     } else {
-      setImages([])
-      setLoading(true)
+      dispatch({ type: 'start-request' })
     }
 
     const params: Record<string, string> = { collection, date }
 
     fetchApi('/api/epic', params, controller.signal, epicImagesSchema)
       .then((result) => {
-        setImages(result)
+        dispatch({ type: 'resolve-request', payload: result })
         writePersistedCache(cacheKey, result)
       })
       .catch((err: Error) => {
-        if (err.name !== 'AbortError' && !usedCachedData) setError(err.message)
-      })
-      .finally(() => {
-        if (!controller.signal.aborted && !usedCachedData) setLoading(false)
+        if (err.name !== 'AbortError' && !usedCachedData) {
+          dispatch({ type: 'request-error', payload: err.message })
+        }
       })
 
     return () => controller.abort()
   }, [collection, date])
 
   return {
-    images: hasDate ? images : [],
-    loading: hasDate ? loading : false,
-    error: hasDate ? error : null,
+    images: hasDate ? state.images : [],
+    loading: hasDate ? state.loading : false,
+    error: hasDate ? state.error : null,
   }
 }
 
-export function useEpicDates(collection: EpicCollection) {
-  const [dates, setDates] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
+export function useEpicDates(collection: EpicCollection): UseEpicDatesResult {
+  const [state, dispatch] = useReducer(epicDatesReducer, initialEpicDatesState)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -73,26 +169,28 @@ export function useEpicDates(collection: EpicCollection) {
     const usedCachedData = Boolean(cachedDates?.length)
 
     if (usedCachedData) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setDates(cachedDates!)
-      setLoading(false)
+      dispatch({ type: 'hydrate-cache', payload: cachedDates! })
     } else {
-      setDates([])
-      setLoading(true)
+      dispatch({ type: 'start-request' })
     }
 
     fetchApi('/api/epic/dates', { collection }, controller.signal, epicDatesSchema)
       .then((result) => {
-        setDates(result)
+        dispatch({ type: 'resolve-request', payload: result })
         writePersistedCache(cacheKey, result)
       })
-      .catch(() => {})
-      .finally(() => {
-        if (!controller.signal.aborted && !usedCachedData) setLoading(false)
+      .catch((err: Error) => {
+        if (err.name !== 'AbortError' && !usedCachedData) {
+          dispatch({ type: 'request-error', payload: err.message })
+        }
       })
 
     return () => controller.abort()
   }, [collection])
 
-  return { dates, loading }
+  return {
+    dates: state.dates,
+    loading: state.loading,
+    error: state.error,
+  }
 }

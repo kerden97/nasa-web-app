@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
 import { sendApiError } from '../lib/apiErrors'
 import { dateField, sendZodQueryError } from '../lib/queryValidation'
+import { isUpstreamServiceError } from '../lib/upstreamService'
 import { fetchEpicImages, fetchEpicDates } from '../services/epic'
 import {
   getOptimizedEpicImage,
@@ -89,8 +90,7 @@ export async function getEpicImages(
     const data = await fetchEpicImages(collection as EpicCollection, date)
     res.json(data.map((item) => decorateEpicImage(req, item)))
   } catch (error) {
-    const message = error instanceof Error ? error.message : ''
-    if (message.includes('NASA EPIC')) {
+    if (isUpstreamServiceError(error, 'NASA EPIC')) {
       sendApiError(
         res,
         502,
@@ -115,8 +115,7 @@ export async function getEpicDates(req: Request, res: Response, next: NextFuncti
     const data = await fetchEpicDates(parsedQuery.data.collection as EpicCollection)
     res.json(data)
   } catch (error) {
-    const message = error instanceof Error ? error.message : ''
-    if (message.includes('NASA EPIC')) {
+    if (isUpstreamServiceError(error, 'NASA EPIC')) {
       sendApiError(
         res,
         502,
