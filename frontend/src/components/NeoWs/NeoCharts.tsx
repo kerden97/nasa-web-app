@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import {
   BarChart,
   Bar,
@@ -85,7 +86,13 @@ function DailyCountTooltip({
   )
 }
 
-export function DailyCountChart({ data, isDark }: { data: DailyCountItem[]; isDark: boolean }) {
+export const DailyCountChart = memo(function DailyCountChart({
+  data,
+  isDark,
+}: {
+  data: DailyCountItem[]
+  isDark: boolean
+}) {
   const gridColor = isDark ? '#243041' : '#dbe4f0'
   const textColor = isDark ? '#8ea2c5' : '#64748b'
 
@@ -113,11 +120,15 @@ export function DailyCountChart({ data, isDark }: { data: DailyCountItem[]; isDa
       </BarChart>
     </ResponsiveContainer>
   )
-}
+})
 
 // ── Hazardous pie chart ──────────────────────────────────────────────
 
-export function HazardousPieChart({ data }: { data: HazardousDataItem[] }) {
+export const HazardousPieChart = memo(function HazardousPieChart({
+  data,
+}: {
+  data: HazardousDataItem[]
+}) {
   return (
     <>
       <ResponsiveContainer width="100%" height={300}>
@@ -149,7 +160,7 @@ export function HazardousPieChart({ data }: { data: HazardousDataItem[] }) {
       </p>
     </>
   )
-}
+})
 
 // ── Velocity vs distance scatter chart ───────────────────────────────
 
@@ -173,7 +184,7 @@ function ScatterTooltip({
   )
 }
 
-export function VelocityScatterChart({
+export const VelocityScatterChart = memo(function VelocityScatterChart({
   data,
   isDark,
 }: {
@@ -244,4 +255,4 @@ export function VelocityScatterChart({
       </p>
     </>
   )
-}
+})

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchApi } from '@/lib/api'
 import {
   createPersistedCacheKey,
@@ -47,6 +47,15 @@ function buildSearchCacheKey(
   )
 }
 
+function buildSearchKey(
+  query: string,
+  mediaType: string | undefined,
+  yearStart: string | undefined,
+  yearEnd: string | undefined,
+): string {
+  return `${query}|${mediaType ?? ''}|${yearStart ?? ''}|${yearEnd ?? ''}`
+}
+
 export function useNasaImage(options: UseNasaImageOptions): UseNasaImageResult {
   const [items, setItems] = useState<NasaImageItem[]>([])
   const [totalHits, setTotalHits] = useState(0)
@@ -59,30 +68,42 @@ export function useNasaImage(options: UseNasaImageOptions): UseNasaImageResult {
   const { mediaType, yearStart, yearEnd } = options
   const hasQuery = trimmedQuery.length > 0
 
+  const searchKey = hasQuery ? buildSearchKey(trimmedQuery, mediaType, yearStart, yearEnd) : null
+  const prevSearchKeyRef = useRef(searchKey)
+
+  if (prevSearchKeyRef.current !== searchKey) {
+    prevSearchKeyRef.current = searchKey
+    if (searchKey) {
+      const cacheKey = buildSearchCacheKey(trimmedQuery, mediaType, yearStart, yearEnd, 1)
+      const cachedResult = readPersistedCache(cacheKey, nasaImageSearchResultSchema)
+      setPage(1)
+      setError(null)
+      if (cachedResult) {
+        setItems(cachedResult.items)
+        setTotalHits(cachedResult.totalHits)
+        setHasMore(cachedResult.items.length > 0 && cachedResult.items.length < cachedResult.totalHits)
+        setLoading(false)
+      } else {
+        setItems([])
+        setTotalHits(0)
+        setHasMore(false)
+        setLoading(true)
+      }
+    } else {
+      setPage(1)
+      setItems([])
+      setTotalHits(0)
+      setHasMore(false)
+      setLoading(false)
+      setError(null)
+    }
+  }
+
   useEffect(() => {
     if (!hasQuery) return
 
     const controller = new AbortController()
     const cacheKey = buildSearchCacheKey(trimmedQuery, mediaType, yearStart, yearEnd, 1)
-    const cachedResult = readPersistedCache(cacheKey, nasaImageSearchResultSchema)
-    const usedCachedData = Boolean(cachedResult)
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPage(1)
-    setError(null)
-    if (usedCachedData) {
-      setItems(cachedResult!.items)
-      setTotalHits(cachedResult!.totalHits)
-      setHasMore(
-        cachedResult!.items.length > 0 && cachedResult!.items.length < cachedResult!.totalHits,
-      )
-      setLoading(false)
-    } else {
-      setItems([])
-      setTotalHits(0)
-      setHasMore(false)
-      setLoading(true)
-    }
 
     const params: Record<string, string> = { q: trimmedQuery, page: '1' }
     if (mediaType) params.media_type = mediaType
@@ -97,10 +118,10 @@ export function useNasaImage(options: UseNasaImageOptions): UseNasaImageResult {
         writePersistedCache<NasaImageSearchResult>(cacheKey, data)
       })
       .catch((err: Error) => {
-        if (err.name !== 'AbortError' && !usedCachedData) setError(err.message)
+        if (err.name !== 'AbortError') setError(err.message)
       })
       .finally(() => {
-        if (!controller.signal.aborted && !usedCachedData) setLoading(false)
+        if (!controller.signal.aborted) setLoading(false)
       })
 
     return () => controller.abort()

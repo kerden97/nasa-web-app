@@ -11,6 +11,7 @@ import {
 } from '../services/nasaImageProxy'
 import { searchNasaImages } from '../services/nasaImage'
 import { getRequestBaseUrl } from '../lib/requestUrl'
+import { imageProxyDefaults } from '../config/imageProxy'
 import type { NasaImageItem } from '../types/nasaImage'
 import type { NasaImageQuery } from '../types/nasaImage'
 
@@ -136,8 +137,7 @@ const nasaImageProxyQuerySchema = z.object({
   q: z.coerce.number().optional(),
 })
 
-const NASA_IMAGE_CARD_WIDTH = 640
-const NASA_IMAGE_CARD_QUALITY = 72
+const { cardWidth: NASA_IMAGE_CARD_WIDTH, cardQuality: NASA_IMAGE_CARD_QUALITY } = imageProxyDefaults.nasaImage
 
 function buildNasaImageProxyUrl(
   req: Request,

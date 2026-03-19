@@ -11,6 +11,7 @@ import {
   normalizeApodImageWidth,
 } from '../services/apodImageProxy'
 import { getRequestBaseUrl } from '../lib/requestUrl'
+import { imageProxyDefaults } from '../config/imageProxy'
 import type { ApodQuery } from '../types/apod'
 import type { ApodItem } from '../types/apod'
 
@@ -74,10 +75,7 @@ const apodImageProxyQuerySchema = z.object({
   q: z.coerce.number().optional(),
 })
 
-const APOD_HERO_WIDTH = 1280
-const APOD_HERO_QUALITY = 78
-const APOD_CARD_WIDTH = 640
-const APOD_CARD_QUALITY = 68
+const { heroWidth: APOD_HERO_WIDTH, heroQuality: APOD_HERO_QUALITY, cardWidth: APOD_CARD_WIDTH, cardQuality: APOD_CARD_QUALITY } = imageProxyDefaults.apod
 
 function buildApodImageProxyUrl(
   req: Request,

@@ -11,6 +11,7 @@ import {
   normalizeEpicImageWidth,
 } from '../services/epicImageProxy'
 import { getRequestBaseUrl } from '../lib/requestUrl'
+import { imageProxyDefaults } from '../config/imageProxy'
 import type { EpicCollection } from '../types/epic'
 import type { EpicImage } from '../types/epic'
 
@@ -38,8 +39,7 @@ const epicImageProxyQuerySchema = z.object({
   q: z.coerce.number().optional(),
 })
 
-const EPIC_CARD_WIDTH = 640
-const EPIC_CARD_QUALITY = 70
+const { cardWidth: EPIC_CARD_WIDTH, cardQuality: EPIC_CARD_QUALITY } = imageProxyDefaults.epic
 
 function buildEpicImageProxyUrl(
   req: Request,

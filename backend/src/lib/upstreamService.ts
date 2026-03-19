@@ -1,7 +1,7 @@
 import logger from './logger'
 
 const MAX_RETRIES = 3
-const RETRY_STATUSES = new Set([500, 502, 503, 504])
+const RETRY_STATUSES = new Set([429, 500, 502, 503, 504])
 
 type UpstreamErrorKind = 'http' | 'network'
 
@@ -106,7 +106,9 @@ export async function fetchUpstreamJson<T>(
       const body = await response.text()
 
       if (RETRY_STATUSES.has(response.status) && attempt < MAX_RETRIES) {
-        const delay = attempt * 1000
+        const retryAfter = response.headers?.get('retry-after')
+        const retryAfterMs = retryAfter ? Math.min(Number(retryAfter) * 1000, 5000) : 0
+        const delay = Math.max(retryAfterMs, attempt * 1000)
         logger.warn(transientRetryLog, {
           ...context,
           status: response.status,
