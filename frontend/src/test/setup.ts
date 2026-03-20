@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 
 class IntersectionObserverMock implements IntersectionObserver {
   readonly root: Element | Document | null
@@ -43,5 +44,32 @@ Object.defineProperty(window, 'matchMedia', {
     addEventListener: () => {},
     removeEventListener: () => {},
     dispatchEvent: () => false,
+  }),
+})
+
+Object.defineProperty(window, 'scrollTo', {
+  writable: true,
+  configurable: true,
+  value: vi.fn(),
+})
+
+const canvas2dContextMock = {
+  setTransform: vi.fn(),
+  clearRect: vi.fn(),
+  beginPath: vi.fn(),
+  arc: vi.fn(),
+  fill: vi.fn(),
+  fillStyle: '',
+}
+
+Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+  writable: true,
+  configurable: true,
+  value: vi.fn((contextId: string) => {
+    if (contextId === '2d') {
+      return canvas2dContextMock
+    }
+
+    return null
   }),
 })

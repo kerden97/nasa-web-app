@@ -82,4 +82,29 @@ describe('useNeows', () => {
     resolveFetch?.(cachedFeed)
     await waitFor(() => expect(mockedFetchApi).toHaveBeenCalledTimes(1))
   })
+
+  it('surfaces request errors when no cached asteroid feed is available', async () => {
+    mockedFetchApi.mockRejectedValue(new Error('network failure'))
+
+    const { result } = renderHook(() => useNeows('2026-03-12', '2026-03-18'))
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.data).toBeNull()
+    expect(result.current.error).toBe('network failure')
+  })
+
+  it('keeps cached asteroid feed visible when background revalidation fails', async () => {
+    writePersistedCache(
+      createPersistedCacheKey('neows', 'feed', '2026-03-12', '2026-03-18'),
+      cachedFeed,
+    )
+    mockedFetchApi.mockRejectedValue(new Error('network failure'))
+
+    const { result } = renderHook(() => useNeows('2026-03-12', '2026-03-18'))
+
+    await waitFor(() => expect(mockedFetchApi).toHaveBeenCalledTimes(1))
+    expect(result.current.loading).toBe(false)
+    expect(result.current.data).toEqual(cachedFeed)
+    expect(result.current.error).toBeNull()
+  })
 })

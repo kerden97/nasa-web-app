@@ -10,8 +10,8 @@ import {
   normalizeNasaImageWidth,
 } from '../services/nasaImageProxy'
 import { searchNasaImages } from '../services/nasaImage'
-import { getRequestBaseUrl } from '../lib/requestUrl'
 import { imageProxyDefaults } from '../config/imageProxy'
+import { buildImageProxyUrl, createImageProxyHandler } from '../lib/imageProxyController'
 import type { NasaImageItem } from '../types/nasaImage'
 import type { NasaImageQuery } from '../types/nasaImage'
 
@@ -131,14 +131,9 @@ const nasaImageQuerySchema = z
     }),
   )
 
-const nasaImageProxyQuerySchema = z.object({
-  src: z.string().url(),
-  w: z.coerce.number().optional(),
-  q: z.coerce.number().optional(),
-})
-
 const { cardWidth: NASA_IMAGE_CARD_WIDTH, cardQuality: NASA_IMAGE_CARD_QUALITY } =
   imageProxyDefaults.nasaImage
+const NASA_IMAGE_PROXY_ROUTE = '/api/nasa-image/image'
 
 function buildNasaImageProxyUrl(
   req: Request,
@@ -146,13 +141,13 @@ function buildNasaImageProxyUrl(
   width: number,
   quality: number,
 ): string | undefined {
-  if (!isOptimizableNasaImageSource(sourceUrl)) return undefined
-
-  const url = new URL('/api/nasa-image/image', getRequestBaseUrl(req))
-  url.searchParams.set('src', sourceUrl)
-  url.searchParams.set('w', String(width))
-  url.searchParams.set('q', String(quality))
-  return url.toString()
+  return buildImageProxyUrl(req, {
+    routePath: NASA_IMAGE_PROXY_ROUTE,
+    sourceUrl,
+    width,
+    quality,
+    isOptimizableSource: isOptimizableNasaImageSource,
+  })
 }
 
 function decorateNasaImageItem(req: Request, item: NasaImageItem): NasaImageItem {
@@ -197,54 +192,14 @@ export async function searchImages(req: Request, res: Response, next: NextFuncti
   }
 }
 
-export async function getNasaImage(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try {
-    const parsedQuery = nasaImageProxyQuerySchema.safeParse(req.query)
-    if (!parsedQuery.success) {
-      sendZodQueryError(res, sendApiError, parsedQuery.error)
-      return
-    }
-
-    const width = normalizeNasaImageWidth(parsedQuery.data.w, NASA_IMAGE_CARD_WIDTH)
-    const quality = normalizeNasaImageQuality(parsedQuery.data.q, NASA_IMAGE_CARD_QUALITY)
-    const optimized = await getOptimizedNasaImage(parsedQuery.data.src, width, quality)
-
-    if (req.get('if-none-match') === optimized.etag) {
-      res.status(304).end()
-      return
-    }
-
-    res.setHeader('Content-Type', optimized.contentType)
-    res.setHeader('Content-Length', String(optimized.buffer.length))
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-    res.setHeader('ETag', optimized.etag)
-    res.end(optimized.buffer)
-  } catch (error) {
-    const message = error instanceof Error ? error.message : ''
-
-    if (message === 'Unsupported NASA Image Library image source') {
-      sendApiError(
-        res,
-        400,
-        'unsupported_image_source',
-        'Only NASA Image Library preview assets can be optimized.',
-      )
-      return
-    }
-
-    if (
-      message.startsWith('Remote image responded with') ||
-      message === 'Remote asset is not an image'
-    ) {
-      sendApiError(
-        res,
-        502,
-        'upstream_image_unavailable',
-        "NASA's Image Library preview asset is temporarily unavailable. Please try again shortly.",
-      )
-      return
-    }
-
-    next(error)
-  }
-}
+export const getNasaImage = createImageProxyHandler({
+  defaultWidth: NASA_IMAGE_CARD_WIDTH,
+  defaultQuality: NASA_IMAGE_CARD_QUALITY,
+  normalizeWidth: normalizeNasaImageWidth,
+  normalizeQuality: normalizeNasaImageQuality,
+  getOptimizedImage: getOptimizedNasaImage,
+  unsupportedSourceError: 'Unsupported NASA Image Library image source',
+  unsupportedSourceMessage: 'Only NASA Image Library preview assets can be optimized.',
+  upstreamUnavailableMessage:
+    "NASA's Image Library preview asset is temporarily unavailable. Please try again shortly.",
+})

@@ -21,6 +21,19 @@ vi.mock('@/components/NeoWs/AsteroidWatchSkeleton', () => ({
   AsteroidWatchTableSkeleton: () => <div data-testid="asteroid-watch-table-skeleton" />,
 }))
 
+vi.mock('@/components/NeoWs/AsteroidChartsSection', () => ({
+  default: () => (
+    <div>
+      <h2>Daily Near-Earth Objects</h2>
+      <div data-testid="bar-chart" />
+      <h2>Hazardous Classification</h2>
+      <div data-testid="pie-chart" />
+      <h2>Velocity vs. Miss Distance</h2>
+      <div data-testid="scatter-chart" />
+    </div>
+  ),
+}))
+
 function renderPage() {
   return render(
     <MemoryRouter>

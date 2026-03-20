@@ -10,8 +10,8 @@ import {
   normalizeApodImageQuality,
   normalizeApodImageWidth,
 } from '../services/apodImageProxy'
-import { getRequestBaseUrl } from '../lib/requestUrl'
 import { imageProxyDefaults } from '../config/imageProxy'
+import { buildImageProxyUrl, createImageProxyHandler } from '../lib/imageProxyController'
 import type { ApodQuery } from '../types/apod'
 import type { ApodItem } from '../types/apod'
 
@@ -69,18 +69,13 @@ const apodQuerySchema = z
     }),
   )
 
-const apodImageProxyQuerySchema = z.object({
-  src: z.string().url(),
-  w: z.coerce.number().optional(),
-  q: z.coerce.number().optional(),
-})
-
 const {
   heroWidth: APOD_HERO_WIDTH,
   heroQuality: APOD_HERO_QUALITY,
   cardWidth: APOD_CARD_WIDTH,
   cardQuality: APOD_CARD_QUALITY,
 } = imageProxyDefaults.apod
+const APOD_IMAGE_PROXY_ROUTE = '/api/apod/image'
 
 function buildApodImageProxyUrl(
   req: Request,
@@ -88,13 +83,13 @@ function buildApodImageProxyUrl(
   width: number,
   quality: number,
 ): string | undefined {
-  if (!isOptimizableApodImageSource(sourceUrl)) return undefined
-
-  const url = new URL('/api/apod/image', getRequestBaseUrl(req))
-  url.searchParams.set('src', sourceUrl)
-  url.searchParams.set('w', String(width))
-  url.searchParams.set('q', String(quality))
-  return url.toString()
+  return buildImageProxyUrl(req, {
+    routePath: APOD_IMAGE_PROXY_ROUTE,
+    sourceUrl,
+    width,
+    quality,
+    isOptimizableSource: isOptimizableApodImageSource,
+  })
 }
 
 function decorateApodItem(req: Request, item: ApodItem): ApodItem {
@@ -141,54 +136,14 @@ export async function getApod(req: Request, res: Response, next: NextFunction): 
   }
 }
 
-export async function getApodImage(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try {
-    const parsedQuery = apodImageProxyQuerySchema.safeParse(req.query)
-    if (!parsedQuery.success) {
-      sendZodQueryError(res, sendApiError, parsedQuery.error)
-      return
-    }
-
-    const width = normalizeApodImageWidth(parsedQuery.data.w, APOD_HERO_WIDTH)
-    const quality = normalizeApodImageQuality(parsedQuery.data.q, APOD_HERO_QUALITY)
-    const optimized = await getOptimizedApodImage(parsedQuery.data.src, width, quality)
-
-    if (req.get('if-none-match') === optimized.etag) {
-      res.status(304).end()
-      return
-    }
-
-    res.setHeader('Content-Type', optimized.contentType)
-    res.setHeader('Content-Length', String(optimized.buffer.length))
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-    res.setHeader('ETag', optimized.etag)
-    res.end(optimized.buffer)
-  } catch (error) {
-    const message = error instanceof Error ? error.message : ''
-
-    if (message === 'Unsupported APOD image source') {
-      sendApiError(
-        res,
-        400,
-        'unsupported_image_source',
-        'Only APOD-hosted image assets can be optimized.',
-      )
-      return
-    }
-
-    if (
-      message.startsWith('Remote image responded with') ||
-      message === 'Remote asset is not an image'
-    ) {
-      sendApiError(
-        res,
-        502,
-        'upstream_image_unavailable',
-        "NASA's APOD image asset is temporarily unavailable. Please try again shortly.",
-      )
-      return
-    }
-
-    next(error)
-  }
-}
+export const getApodImage = createImageProxyHandler({
+  defaultWidth: APOD_HERO_WIDTH,
+  defaultQuality: APOD_HERO_QUALITY,
+  normalizeWidth: normalizeApodImageWidth,
+  normalizeQuality: normalizeApodImageQuality,
+  getOptimizedImage: getOptimizedApodImage,
+  unsupportedSourceError: 'Unsupported APOD image source',
+  unsupportedSourceMessage: 'Only APOD-hosted image assets can be optimized.',
+  upstreamUnavailableMessage:
+    "NASA's APOD image asset is temporarily unavailable. Please try again shortly.",
+})

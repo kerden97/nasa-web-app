@@ -14,39 +14,53 @@ interface UseNeowsResult {
   error: string | null
 }
 
-export function useNeows(startDate: string, endDate: string): UseNeowsResult {
-  const requestKey = startDate && endDate ? `${startDate}:${endDate}` : null
-  const cacheKey = requestKey ? createPersistedCacheKey('neows', 'feed', startDate, endDate) : null
-  const initialCache = cacheKey ? readPersistedCache(cacheKey, neoFeedResultSchema) : null
+interface NeowsState {
+  requestKey: string | null
+  data: NeoFeedResult | null
+  error: string | null
+  resolved: boolean
+}
 
-  const [data, setData] = useState<NeoFeedResult | null>(() => initialCache)
-  const [error, setError] = useState<string | null>(null)
-  const [fetchedKey, setFetchedKey] = useState<string | null>(() =>
-    initialCache ? requestKey : null,
+function buildRequestKey(startDate: string, endDate: string): string | null {
+  return startDate && endDate ? `${startDate}:${endDate}` : null
+}
+
+function readCachedNeoFeed(startDate: string, endDate: string): NeoFeedResult | null {
+  const requestKey = buildRequestKey(startDate, endDate)
+  if (!requestKey) return null
+
+  return readPersistedCache(
+    createPersistedCacheKey('neows', 'feed', startDate, endDate),
+    neoFeedResultSchema,
   )
-  const requestId = useRef(0)
-  const prevKeyRef = useRef(requestKey)
+}
 
-  if (prevKeyRef.current !== requestKey) {
-    prevKeyRef.current = requestKey
-    const newCache = cacheKey ? readPersistedCache(cacheKey, neoFeedResultSchema) : null
-    if (newCache) {
-      setData(newCache)
-      setError(null)
-      setFetchedKey(requestKey)
-    } else {
-      setData(null)
-      setError(null)
-      setFetchedKey(null)
-    }
+function createNeowsState(requestKey: string | null, cachedData: NeoFeedResult | null): NeowsState {
+  return {
+    requestKey,
+    data: cachedData,
+    error: null,
+    resolved: requestKey === null || cachedData !== null,
   }
+}
+
+export function useNeows(startDate: string, endDate: string): UseNeowsResult {
+  const requestKey = buildRequestKey(startDate, endDate)
+  const cachedData = readCachedNeoFeed(startDate, endDate)
+  const [state, setState] = useState<NeowsState>(() => createNeowsState(requestKey, cachedData))
+  const requestId = useRef(0)
+
+  const activeState =
+    state.requestKey === requestKey ? state : createNeowsState(requestKey, cachedData)
 
   useEffect(() => {
-    if (!startDate || !endDate) return
+    if (!requestKey) return
 
     const controller = new AbortController()
     const id = ++requestId.current
-    const key = createPersistedCacheKey('neows', 'feed', startDate, endDate)
+    const cacheKey = createPersistedCacheKey('neows', 'feed', startDate, endDate)
+    const fallbackData = readCachedNeoFeed(startDate, endDate)
+    const hadCachedData = fallbackData !== null
 
     fetchApi(
       '/api/neows/feed',
@@ -56,22 +70,34 @@ export function useNeows(startDate: string, endDate: string): UseNeowsResult {
     )
       .then((result) => {
         if (id === requestId.current) {
-          setData(result)
-          setError(null)
-          setFetchedKey(`${startDate}:${endDate}`)
-          writePersistedCache(key, result)
+          setState({
+            requestKey,
+            data: result,
+            error: null,
+            resolved: true,
+          })
+          writePersistedCache(cacheKey, result)
         }
       })
       .catch((err: Error) => {
         if (err.name !== 'AbortError' && id === requestId.current) {
-          setFetchedKey(`${startDate}:${endDate}`)
+          setState({
+            requestKey,
+            data: fallbackData,
+            error: hadCachedData ? null : err.message,
+            resolved: true,
+          })
         }
       })
 
     return () => controller.abort()
-  }, [startDate, endDate])
+  }, [endDate, requestKey, startDate])
 
-  const loading = requestKey !== null && fetchedKey !== requestKey
+  const loading = requestKey !== null && !activeState.resolved
 
-  return { data, loading, error }
+  return {
+    data: activeState.data,
+    loading,
+    error: activeState.error,
+  }
 }

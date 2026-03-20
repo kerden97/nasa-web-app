@@ -44,6 +44,17 @@ vi.mock('@/components/Apod/ApodCardSkeleton', () => ({
   default: () => <div data-testid="apod-card-skeleton" />,
 }))
 
+vi.mock('@/components/Apod/ApodModal', () => ({
+  default: ({ item, onClose }: { item: ApodItem; onClose: () => void }) => (
+    <div role="dialog" aria-labelledby="apod-modal-title">
+      <h2 id="apod-modal-title">{item.title}</h2>
+      <button type="button" onClick={onClose} aria-label="Close modal">
+        Close
+      </button>
+    </div>
+  ),
+}))
+
 const mockedUseApod = vi.mocked(useApod)
 const mockedUseGridSize = vi.mocked(useGridSize)
 

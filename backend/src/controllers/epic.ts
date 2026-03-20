@@ -10,8 +10,8 @@ import {
   normalizeEpicImageQuality,
   normalizeEpicImageWidth,
 } from '../services/epicImageProxy'
-import { getRequestBaseUrl } from '../lib/requestUrl'
 import { imageProxyDefaults } from '../config/imageProxy'
+import { buildImageProxyUrl, createImageProxyHandler } from '../lib/imageProxyController'
 import type { EpicCollection } from '../types/epic'
 import type { EpicImage } from '../types/epic'
 
@@ -33,13 +33,8 @@ const epicDatesQuerySchema = z.object({
   collection: epicCollectionSchema,
 })
 
-const epicImageProxyQuerySchema = z.object({
-  src: z.string().url(),
-  w: z.coerce.number().optional(),
-  q: z.coerce.number().optional(),
-})
-
 const { cardWidth: EPIC_CARD_WIDTH, cardQuality: EPIC_CARD_QUALITY } = imageProxyDefaults.epic
+const EPIC_IMAGE_PROXY_ROUTE = '/api/epic/image'
 
 function buildEpicImageProxyUrl(
   req: Request,
@@ -47,13 +42,13 @@ function buildEpicImageProxyUrl(
   width: number,
   quality: number,
 ): string | undefined {
-  if (!isOptimizableEpicImageSource(sourceUrl)) return undefined
-
-  const url = new URL('/api/epic/image', getRequestBaseUrl(req))
-  url.searchParams.set('src', sourceUrl)
-  url.searchParams.set('w', String(width))
-  url.searchParams.set('q', String(quality))
-  return url.toString()
+  return buildImageProxyUrl(req, {
+    routePath: EPIC_IMAGE_PROXY_ROUTE,
+    sourceUrl,
+    width,
+    quality,
+    isOptimizableSource: isOptimizableEpicImageSource,
+  })
 }
 
 function decorateEpicImage(req: Request, item: EpicImage): EpicImage {
@@ -120,54 +115,14 @@ export async function getEpicDates(req: Request, res: Response, next: NextFuncti
   }
 }
 
-export async function getEpicImage(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try {
-    const parsedQuery = epicImageProxyQuerySchema.safeParse(req.query)
-    if (!parsedQuery.success) {
-      sendZodQueryError(res, sendApiError, parsedQuery.error)
-      return
-    }
-
-    const width = normalizeEpicImageWidth(parsedQuery.data.w, EPIC_CARD_WIDTH)
-    const quality = normalizeEpicImageQuality(parsedQuery.data.q, EPIC_CARD_QUALITY)
-    const optimized = await getOptimizedEpicImage(parsedQuery.data.src, width, quality)
-
-    if (req.get('if-none-match') === optimized.etag) {
-      res.status(304).end()
-      return
-    }
-
-    res.setHeader('Content-Type', optimized.contentType)
-    res.setHeader('Content-Length', String(optimized.buffer.length))
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-    res.setHeader('ETag', optimized.etag)
-    res.end(optimized.buffer)
-  } catch (error) {
-    const message = error instanceof Error ? error.message : ''
-
-    if (message === 'Unsupported EPIC image source') {
-      sendApiError(
-        res,
-        400,
-        'unsupported_image_source',
-        'Only EPIC-hosted image assets can be optimized.',
-      )
-      return
-    }
-
-    if (
-      message.startsWith('Remote image responded with') ||
-      message === 'Remote asset is not an image'
-    ) {
-      sendApiError(
-        res,
-        502,
-        'upstream_image_unavailable',
-        "NASA's EPIC image asset is temporarily unavailable. Please try again shortly.",
-      )
-      return
-    }
-
-    next(error)
-  }
-}
+export const getEpicImage = createImageProxyHandler({
+  defaultWidth: EPIC_CARD_WIDTH,
+  defaultQuality: EPIC_CARD_QUALITY,
+  normalizeWidth: normalizeEpicImageWidth,
+  normalizeQuality: normalizeEpicImageQuality,
+  getOptimizedImage: getOptimizedEpicImage,
+  unsupportedSourceError: 'Unsupported EPIC image source',
+  unsupportedSourceMessage: 'Only EPIC-hosted image assets can be optimized.',
+  upstreamUnavailableMessage:
+    "NASA's EPIC image asset is temporarily unavailable. Please try again shortly.",
+})

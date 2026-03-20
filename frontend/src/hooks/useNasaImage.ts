@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { fetchApi } from '@/lib/api'
 import {
   createPersistedCacheKey,
@@ -30,6 +30,16 @@ interface NasaImageSearchResult {
   totalHits: number
 }
 
+interface NasaImageState {
+  searchKey: string | null
+  items: NasaImageItem[]
+  totalHits: number
+  loading: boolean
+  error: string | null
+  page: number
+  hasMore: boolean
+}
+
 function buildSearchCacheKey(
   query: string,
   mediaType: string | undefined,
@@ -56,56 +66,97 @@ function buildSearchKey(
   return `${query}|${mediaType ?? ''}|${yearStart ?? ''}|${yearEnd ?? ''}`
 }
 
-export function useNasaImage(options: UseNasaImageOptions): UseNasaImageResult {
-  const [items, setItems] = useState<NasaImageItem[]>([])
-  const [totalHits, setTotalHits] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(false)
+function readCachedSearchResult(
+  query: string,
+  mediaType: string | undefined,
+  yearStart: string | undefined,
+  yearEnd: string | undefined,
+  page: number,
+): NasaImageSearchResult | null {
+  return readPersistedCache(
+    buildSearchCacheKey(query, mediaType, yearStart, yearEnd, page),
+    nasaImageSearchResultSchema,
+  )
+}
 
-  const trimmedQuery = options.query.trim()
-  const { mediaType, yearStart, yearEnd } = options
-  const hasQuery = trimmedQuery.length > 0
-
-  const searchKey = hasQuery ? buildSearchKey(trimmedQuery, mediaType, yearStart, yearEnd) : null
-  const prevSearchKeyRef = useRef(searchKey)
-
-  if (prevSearchKeyRef.current !== searchKey) {
-    prevSearchKeyRef.current = searchKey
-    if (searchKey) {
-      const cacheKey = buildSearchCacheKey(trimmedQuery, mediaType, yearStart, yearEnd, 1)
-      const cachedResult = readPersistedCache(cacheKey, nasaImageSearchResultSchema)
-      setPage(1)
-      setError(null)
-      if (cachedResult) {
-        setItems(cachedResult.items)
-        setTotalHits(cachedResult.totalHits)
-        setHasMore(
-          cachedResult.items.length > 0 && cachedResult.items.length < cachedResult.totalHits,
-        )
-        setLoading(false)
-      } else {
-        setItems([])
-        setTotalHits(0)
-        setHasMore(false)
-        setLoading(true)
-      }
-    } else {
-      setPage(1)
-      setItems([])
-      setTotalHits(0)
-      setHasMore(false)
-      setLoading(false)
-      setError(null)
+function createSearchState(
+  searchKey: string | null,
+  cachedResult: NasaImageSearchResult | null,
+): NasaImageState {
+  if (!searchKey) {
+    return {
+      searchKey: null,
+      items: [],
+      totalHits: 0,
+      loading: false,
+      error: null,
+      page: 1,
+      hasMore: false,
     }
   }
 
+  if (!cachedResult) {
+    return {
+      searchKey,
+      items: [],
+      totalHits: 0,
+      loading: true,
+      error: null,
+      page: 1,
+      hasMore: false,
+    }
+  }
+
+  return {
+    searchKey,
+    items: cachedResult.items,
+    totalHits: cachedResult.totalHits,
+    loading: false,
+    error: null,
+    page: 1,
+    hasMore: cachedResult.items.length > 0 && cachedResult.items.length < cachedResult.totalHits,
+  }
+}
+
+function getActiveSearchState(
+  state: NasaImageState,
+  searchKey: string | null,
+  cachedResult: NasaImageSearchResult | null,
+): NasaImageState {
+  return state.searchKey === searchKey ? state : createSearchState(searchKey, cachedResult)
+}
+
+export function useNasaImage(options: UseNasaImageOptions): UseNasaImageResult {
+  const trimmedQuery = options.query.trim()
+  const { mediaType, yearStart, yearEnd } = options
+  const hasQuery = trimmedQuery.length > 0
+  const searchKey = hasQuery ? buildSearchKey(trimmedQuery, mediaType, yearStart, yearEnd) : null
+  const cachedFirstPage = hasQuery
+    ? readCachedSearchResult(trimmedQuery, mediaType, yearStart, yearEnd, 1)
+    : null
+
+  const [state, setState] = useState<NasaImageState>(() =>
+    createSearchState(searchKey, cachedFirstPage),
+  )
+  const activeSearchKeyRef = useRef(searchKey)
+  const requestIdRef = useRef(0)
+  const loadMoreControllerRef = useRef<AbortController | null>(null)
+
+  const activeState = getActiveSearchState(state, searchKey, cachedFirstPage)
+
+  useLayoutEffect(() => {
+    activeSearchKeyRef.current = searchKey
+    loadMoreControllerRef.current?.abort()
+    loadMoreControllerRef.current = null
+  }, [searchKey])
+
   useEffect(() => {
-    if (!hasQuery) return
+    if (!hasQuery || !searchKey) return
 
     const controller = new AbortController()
     const cacheKey = buildSearchCacheKey(trimmedQuery, mediaType, yearStart, yearEnd, 1)
+    const requestId = ++requestIdRef.current
+    const requestSearchKey = searchKey
 
     const params: Record<string, string> = { q: trimmedQuery, page: '1' }
     if (mediaType) params.media_type = mediaType
@@ -114,40 +165,97 @@ export function useNasaImage(options: UseNasaImageOptions): UseNasaImageResult {
 
     fetchApi('/api/nasa-image', params, controller.signal, nasaImageSearchResultSchema)
       .then((data) => {
-        setItems(data.items)
-        setTotalHits(data.totalHits)
-        setHasMore(data.items.length > 0 && data.items.length < data.totalHits)
+        if (
+          controller.signal.aborted ||
+          requestId !== requestIdRef.current ||
+          activeSearchKeyRef.current !== requestSearchKey
+        ) {
+          return
+        }
+
+        setState({
+          searchKey: requestSearchKey,
+          items: data.items,
+          totalHits: data.totalHits,
+          loading: false,
+          error: null,
+          page: 1,
+          hasMore: data.items.length > 0 && data.items.length < data.totalHits,
+        })
         writePersistedCache<NasaImageSearchResult>(cacheKey, data)
       })
       .catch((err: Error) => {
-        if (err.name !== 'AbortError') setError(err.message)
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false)
+        if (
+          err.name !== 'AbortError' &&
+          requestId === requestIdRef.current &&
+          activeSearchKeyRef.current === requestSearchKey
+        ) {
+          const fallbackState = createSearchState(
+            requestSearchKey,
+            readCachedSearchResult(trimmedQuery, mediaType, yearStart, yearEnd, 1),
+          )
+
+          setState({
+            ...fallbackState,
+            error: err.message,
+            loading: false,
+          })
+        }
       })
 
     return () => controller.abort()
-  }, [trimmedQuery, mediaType, yearStart, yearEnd, hasQuery])
+  }, [trimmedQuery, mediaType, yearStart, yearEnd, hasQuery, searchKey])
 
   const loadMore = useCallback(() => {
-    if (loading || !hasMore || !hasQuery) return
+    if (activeState.loading || !activeState.hasMore || !hasQuery || !searchKey) return
 
-    const nextPage = page + 1
+    const nextPage = activeState.page + 1
     const cacheKey = buildSearchCacheKey(trimmedQuery, mediaType, yearStart, yearEnd, nextPage)
-    const cachedResult = readPersistedCache(cacheKey, nasaImageSearchResultSchema)
+    const cachedResult = readCachedSearchResult(
+      trimmedQuery,
+      mediaType,
+      yearStart,
+      yearEnd,
+      nextPage,
+    )
 
     if (cachedResult) {
-      setItems((prev) => [...prev, ...cachedResult.items])
-      setTotalHits(cachedResult.totalHits)
-      setHasMore(
-        cachedResult.items.length > 0 &&
-          items.length + cachedResult.items.length < cachedResult.totalHits,
-      )
-      setPage(nextPage)
+      setState((prev) => {
+        const baseState = getActiveSearchState(
+          prev,
+          searchKey,
+          readCachedSearchResult(trimmedQuery, mediaType, yearStart, yearEnd, 1),
+        )
+        const updatedItems = [...baseState.items, ...cachedResult.items]
+
+        return {
+          ...baseState,
+          searchKey,
+          items: updatedItems,
+          totalHits: cachedResult.totalHits,
+          page: nextPage,
+          hasMore: cachedResult.items.length > 0 && updatedItems.length < cachedResult.totalHits,
+        }
+      })
       return
     }
 
-    setLoading(true)
+    setState((prev) => ({
+      ...getActiveSearchState(
+        prev,
+        searchKey,
+        readCachedSearchResult(trimmedQuery, mediaType, yearStart, yearEnd, 1),
+      ),
+      searchKey,
+      loading: true,
+      error: null,
+    }))
+
+    const requestSearchKey = searchKey
+    const controller = new AbortController()
+
+    loadMoreControllerRef.current?.abort()
+    loadMoreControllerRef.current = controller
 
     const params: Record<string, string> = {
       q: trimmedQuery,
@@ -157,27 +265,76 @@ export function useNasaImage(options: UseNasaImageOptions): UseNasaImageResult {
     if (yearStart) params.year_start = yearStart
     if (yearEnd) params.year_end = yearEnd
 
-    fetchApi('/api/nasa-image', params, undefined, nasaImageSearchResultSchema)
+    fetchApi('/api/nasa-image', params, controller.signal, nasaImageSearchResultSchema)
       .then((data) => {
+        if (
+          controller.signal.aborted ||
+          activeSearchKeyRef.current !== requestSearchKey ||
+          loadMoreControllerRef.current !== controller
+        ) {
+          return
+        }
+
+        loadMoreControllerRef.current = null
         writePersistedCache<NasaImageSearchResult>(cacheKey, data)
-        setItems((prev) => {
-          const updated = [...prev, ...data.items]
-          setHasMore(data.items.length > 0 && updated.length < data.totalHits)
-          return updated
+        setState((prev) => {
+          const baseState = getActiveSearchState(
+            prev,
+            requestSearchKey,
+            readCachedSearchResult(trimmedQuery, mediaType, yearStart, yearEnd, 1),
+          )
+          const updatedItems = [...baseState.items, ...data.items]
+
+          return {
+            ...baseState,
+            searchKey: requestSearchKey,
+            items: updatedItems,
+            totalHits: data.totalHits,
+            loading: false,
+            error: null,
+            page: nextPage,
+            hasMore: data.items.length > 0 && updatedItems.length < data.totalHits,
+          }
         })
-        setPage(nextPage)
       })
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [loading, hasMore, hasQuery, items.length, page, trimmedQuery, mediaType, yearStart, yearEnd])
+      .catch((err: Error) => {
+        if (
+          err.name !== 'AbortError' &&
+          activeSearchKeyRef.current === requestSearchKey &&
+          loadMoreControllerRef.current === controller
+        ) {
+          loadMoreControllerRef.current = null
+          setState((prev) => ({
+            ...getActiveSearchState(
+              prev,
+              requestSearchKey,
+              readCachedSearchResult(trimmedQuery, mediaType, yearStart, yearEnd, 1),
+            ),
+            searchKey: requestSearchKey,
+            loading: false,
+            error: err.message,
+          }))
+        }
+      })
+  }, [
+    activeState.hasMore,
+    activeState.loading,
+    activeState.page,
+    hasQuery,
+    mediaType,
+    searchKey,
+    trimmedQuery,
+    yearStart,
+    yearEnd,
+  ])
 
   return {
-    items: hasQuery ? items : [],
-    totalHits: hasQuery ? totalHits : 0,
-    loading: hasQuery ? loading : false,
-    error: hasQuery ? error : null,
-    page: hasQuery ? page : 1,
-    hasMore: hasQuery ? hasMore : false,
+    items: hasQuery ? activeState.items : [],
+    totalHits: hasQuery ? activeState.totalHits : 0,
+    loading: hasQuery ? activeState.loading : false,
+    error: hasQuery ? activeState.error : null,
+    page: hasQuery ? activeState.page : 1,
+    hasMore: hasQuery ? activeState.hasMore : false,
     loadMore,
   }
 }

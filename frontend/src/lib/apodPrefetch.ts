@@ -54,5 +54,6 @@ function preloadHeroImage(item: ApodItem | undefined): void {
   }
 
   link.href = url
+  link.fetchPriority = 'high'
   document.head.appendChild(link)
 }

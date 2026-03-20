@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useReducer, useRef } from 'react'
 import { fetchApi } from '@/lib/api'
 import { APOD_EPOCH } from '@/lib/apodMeta'
 import { consumeApodPrefetch } from '@/lib/apodPrefetch'
@@ -234,10 +234,15 @@ function getLocalItems(
 export function useApod(options: UseApodOptions = {}): UseApodResult {
   const [state, dispatch] = useReducer(apodReducer, initialState)
   const { date, startDate, endDate } = options
+  const viewKey = `${date ?? ''}|${startDate ?? ''}|${endDate ?? ''}`
 
   // Responsive pageSize for load-more only — updated on resize via ref
   const pageSizeRef = useRef(options.pageSize ?? 20)
-  const requestInFlightRef = useRef(false)
+  const primaryRequestInFlightRef = useRef(false)
+  const primaryRequestKeyRef = useRef<string | null>(viewKey)
+  const loadMoreRequestInFlightRef = useRef(false)
+  const loadMoreControllerRef = useRef<AbortController | null>(null)
+  const activeViewKeyRef = useRef(viewKey)
   const itemPoolRef = useRef<Map<string, ApodItem>>(new Map())
   const coveredRangesRef = useRef<CoveredRange[]>([])
 
@@ -248,12 +253,21 @@ export function useApod(options: UseApodOptions = {}): UseApodResult {
   const isCustomRange = !!(date || startDate)
   const isLatestFeed = !isCustomRange
 
+  useLayoutEffect(() => {
+    activeViewKeyRef.current = viewKey
+    loadMoreControllerRef.current?.abort()
+    loadMoreControllerRef.current = null
+    loadMoreRequestInFlightRef.current = false
+  }, [viewKey])
+
   useEffect(() => {
     const controller = new AbortController()
     const params = getRequestParams({ date, startDate, endDate })
+    const requestViewKey = viewKey
     let usedCachedData = false
 
-    requestInFlightRef.current = true
+    primaryRequestInFlightRef.current = true
+    primaryRequestKeyRef.current = requestViewKey
 
     if (isLatestFeed) {
       const cached = readPersistedCache(APOD_LATEST_CACHE_KEY, apodLatestCacheSchema)
@@ -278,7 +292,7 @@ export function useApod(options: UseApodOptions = {}): UseApodResult {
       coveredRangesRef.current,
     )
     if (localItems) {
-      requestInFlightRef.current = false
+      primaryRequestInFlightRef.current = false
       dispatch({
         type: 'use-local-items',
         payload: {
@@ -311,6 +325,14 @@ export function useApod(options: UseApodOptions = {}): UseApodResult {
 
     dataPromise
       .then((list) => {
+        if (
+          controller.signal.aborted ||
+          activeViewKeyRef.current !== requestViewKey ||
+          primaryRequestKeyRef.current !== requestViewKey
+        ) {
+          return
+        }
+
         addItemsToPool(itemPoolRef.current, list)
 
         if (date || startDate) {
@@ -341,24 +363,34 @@ export function useApod(options: UseApodOptions = {}): UseApodResult {
         }
       })
       .catch((err: Error) => {
-        if (err.name !== 'AbortError' && !usedCachedData) {
+        if (
+          err.name !== 'AbortError' &&
+          !usedCachedData &&
+          activeViewKeyRef.current === requestViewKey &&
+          primaryRequestKeyRef.current === requestViewKey
+        ) {
           dispatch({ type: 'request-error', payload: err.message })
         }
       })
       .finally(() => {
-        requestInFlightRef.current = false
+        if (primaryRequestKeyRef.current === requestViewKey) {
+          primaryRequestInFlightRef.current = false
+        }
       })
 
     return () => {
       controller.abort()
-      requestInFlightRef.current = false
+      if (primaryRequestKeyRef.current === requestViewKey) {
+        primaryRequestInFlightRef.current = false
+      }
     }
-  }, [date, endDate, isLatestFeed, startDate])
+  }, [date, endDate, isLatestFeed, startDate, viewKey])
 
   const loadMore = useCallback(() => {
     if (
       state.loading ||
-      requestInFlightRef.current ||
+      primaryRequestInFlightRef.current ||
+      loadMoreRequestInFlightRef.current ||
       !state.hasMore ||
       !state.oldestDate ||
       isCustomRange
@@ -381,7 +413,12 @@ export function useApod(options: UseApodOptions = {}): UseApodResult {
       return
     }
 
-    requestInFlightRef.current = true
+    const requestViewKey = viewKey
+    const controller = new AbortController()
+
+    loadMoreControllerRef.current?.abort()
+    loadMoreControllerRef.current = controller
+    loadMoreRequestInFlightRef.current = true
     dispatch({ type: 'load-more-start' })
 
     fetchApi(
@@ -390,10 +427,18 @@ export function useApod(options: UseApodOptions = {}): UseApodResult {
         end_date: endDate,
         count: String(size),
       },
-      undefined,
+      controller.signal,
       apodItemsSchema,
     )
       .then((data) => {
+        if (
+          controller.signal.aborted ||
+          activeViewKeyRef.current !== requestViewKey ||
+          loadMoreControllerRef.current !== controller
+        ) {
+          return
+        }
+
         addItemsToPool(itemPoolRef.current, data)
 
         const nextOldestDate = data[data.length - 1]?.date ?? state.oldestDate
@@ -411,12 +456,21 @@ export function useApod(options: UseApodOptions = {}): UseApodResult {
         })
       })
       .catch((err: Error) => {
-        dispatch({ type: 'load-more-error', payload: err.message })
+        if (
+          err.name !== 'AbortError' &&
+          activeViewKeyRef.current === requestViewKey &&
+          loadMoreControllerRef.current === controller
+        ) {
+          dispatch({ type: 'load-more-error', payload: err.message })
+        }
       })
       .finally(() => {
-        requestInFlightRef.current = false
+        if (loadMoreControllerRef.current === controller) {
+          loadMoreControllerRef.current = null
+          loadMoreRequestInFlightRef.current = false
+        }
       })
-  }, [isCustomRange, state.hasMore, state.items, state.loading, state.oldestDate])
+  }, [isCustomRange, state.hasMore, state.items, state.loading, state.oldestDate, viewKey])
 
   return {
     items: state.items,
