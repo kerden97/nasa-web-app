@@ -46,7 +46,7 @@ describe('useExternalLink', () => {
   })
 
   it('queueExternalLink accepts a custom label', () => {
-    const { result } = renderHook(() => useExternalLink('Default'))
+    const { result } = renderHook(() => useExternalLink<string>('Default'))
 
     act(() => {
       result.current.queueExternalLink('https://example.com', 'Custom Label')
