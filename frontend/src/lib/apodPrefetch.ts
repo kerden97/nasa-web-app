@@ -1,5 +1,6 @@
 import type { ApodItem } from '@/types/apod'
 import { fetchApi } from '@/lib/api'
+import { buildProxyUrlAtWidth } from '@/lib/imageProxy'
 import { apodResponseSchema } from '@/schemas/api'
 
 const FIRST_PAGE_SIZE = 21
@@ -34,12 +35,24 @@ export function resetApodPrefetch(): void {
 
 function preloadHeroImage(item: ApodItem | undefined): void {
   if (!item) return
-  const url = item.media_type === 'video' ? item.thumbnail_url : (item.hero_url ?? item.url)
+  const isVideo = item.media_type === 'video'
+  const url = isVideo ? item.thumbnail_url : (item.hero_url ?? item.url)
   if (!url) return
 
   const link = document.createElement('link')
   link.rel = 'preload'
   link.as = 'image'
+
+  // Match the exact srcSet/sizes the <img> in FeaturedApodHero uses
+  // so the browser reuses this preload instead of making a second request
+  if (!isVideo && item.hero_url) {
+    link.setAttribute(
+      'imagesrcset',
+      `${buildProxyUrlAtWidth(item.hero_url, 640)} 640w, ${buildProxyUrlAtWidth(item.hero_url, 960)} 960w, ${item.hero_url} 1280w`,
+    )
+    link.setAttribute('imagesizes', '(min-width: 1024px) 57vw, 100vw')
+  }
+
   link.href = url
   document.head.appendChild(link)
 }
