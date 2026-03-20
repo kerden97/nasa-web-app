@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { apiErrorBodySchema } from '@/schemas/api'
+import { getApiBaseUrl } from '@/lib/apiBaseUrl'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+const API_URL = getApiBaseUrl()
 
 const NETWORK_ERROR_MESSAGE =
   "We couldn't reach NASA right now. Check your connection and try again."

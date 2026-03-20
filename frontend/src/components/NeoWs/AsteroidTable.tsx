@@ -148,7 +148,7 @@ export default function AsteroidTable({ neos }: AsteroidTableProps) {
                 2
               return (
                 <tr
-                  key={neo.id}
+                  key={`${neo.id}:${ca?.close_approach_date ?? 'unknown'}`}
                   className="border-b border-slate-100 transition odd:bg-white/88 even:bg-slate-50/68 hover:bg-[rgba(11,61,145,0.05)] dark:border-slate-800/50 dark:odd:bg-slate-950/60 dark:even:bg-slate-900/66 dark:hover:bg-slate-800/72"
                 >
                   <td

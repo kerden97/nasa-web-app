@@ -16,8 +16,12 @@ npm test -- --run
 Create `frontend/.env` from `frontend/.env.example`:
 
 ```env
-VITE_API_URL=http://localhost:4000
+VITE_API_URL=
+VITE_DEV_PROXY_TARGET=http://localhost:4000
 ```
+
+- Leave `VITE_API_URL` blank for local Vite development so the browser uses the current origin and the Vite dev server proxies `/api` and `/healthz` to the backend.
+- Set `VITE_API_URL` only when the frontend should call a different-origin backend directly, such as a deployed static frontend.
 
 ## Current Scope
 

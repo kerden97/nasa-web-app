@@ -142,6 +142,7 @@ export default function AsteroidWatchPage() {
             neo.estimated_diameter.meters.estimated_diameter_max) /
           2
         return {
+          key: `${neo.id}:${ca.close_approach_date}`,
           name: formatNeoDisplayName(neo.name),
           distance: parseFloat(ca.miss_distance.lunar),
           diameter: avgDiameter,

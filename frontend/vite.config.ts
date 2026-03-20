@@ -1,6 +1,6 @@
 /// <reference types="vitest/config" />
 import path from 'path'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -30,23 +30,40 @@ function getManualChunk(id: string): string | undefined {
   return undefined
 }
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-    },
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: getManualChunk,
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, __dirname, '')
+  const devProxyTarget = env.VITE_DEV_PROXY_TARGET?.trim() || 'http://localhost:4000'
+
+  return {
+    plugins: [react(), tailwindcss()],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
       },
     },
-  },
-  test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: './src/test/setup.ts',
-  },
+    server: {
+      proxy: {
+        '/api': {
+          target: devProxyTarget,
+          changeOrigin: true,
+        },
+        '/healthz': {
+          target: devProxyTarget,
+          changeOrigin: true,
+        },
+      },
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: getManualChunk,
+        },
+      },
+    },
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      setupFiles: './src/test/setup.ts',
+    },
+  }
 })

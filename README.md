@@ -182,11 +182,16 @@ docker compose up -d
 
 Available local endpoints:
 
-- Frontend: `http://localhost:3000`
+- Frontend dev server: `http://localhost:3000`
 - Backend: `http://localhost:4000`
 - Backend health check: `http://localhost:4000/healthz`
 - Nginx entrypoint: `http://localhost:8080`
 - Nginx health check: `http://localhost:8080/healthz`
+
+Notes:
+
+- `http://localhost:3000` works through the frontend Vite dev server, which proxies `/api` and `/healthz` to the backend container
+- `http://localhost:8080` works through Nginx, which proxies frontend traffic to Vite and backend traffic to Express
 
 To stop containers:
 
@@ -205,10 +210,23 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-Fill in `backend/.env` with your NASA API key. Set `frontend/.env` with:
+Fill in `backend/.env` with your NASA API key.
+
+For local frontend development, you can leave `frontend/.env` exactly as copied from the example. By default:
+
+- the browser uses the current origin as the API base
+- the Vite dev server proxies `/api` and `/healthz` to `http://localhost:4000`
+
+Only set `VITE_API_URL` when you explicitly want the frontend to call a different-origin backend directly. Example:
 
 ```env
 VITE_API_URL=http://localhost:4000
+```
+
+If you keep `VITE_API_URL` blank, the Vite proxy target can still be customized if needed:
+
+```env
+VITE_DEV_PROXY_TARGET=http://localhost:4000
 ```
 
 For local backend development, leave Redis disabled:
@@ -244,6 +262,8 @@ Available local endpoints:
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:4000`
 - Backend health check: `http://localhost:4000/healthz`
+
+The frontend route works without extra CORS setup because the local Vite server proxies `/api` and `/healthz` to the backend by default.
 
 ## Formatting
 

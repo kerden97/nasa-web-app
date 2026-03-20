@@ -51,6 +51,7 @@ export interface DailyCountItem {
 }
 
 export interface ScatterDataItem {
+  key: string
   name: string
   distance: number
   diameter: number
@@ -234,7 +235,7 @@ export const VelocityScatterChart = memo(function VelocityScatterChart({
           <Scatter data={data}>
             {data.map((entry) => (
               <Cell
-                key={entry.name}
+                key={entry.key}
                 fill={
                   entry.hazardous
                     ? isDark
