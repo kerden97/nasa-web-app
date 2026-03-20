@@ -18,3 +18,8 @@ export interface NasaImageQuery {
   year_end?: string
   page?: number
 }
+
+export interface NasaImageMediaAssetResult {
+  assets: string[]
+  preferredAsset: string | null
+}

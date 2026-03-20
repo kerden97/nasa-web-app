@@ -7,6 +7,8 @@ import InfoBox from '@/components/Wonders/InfoBox'
 import MediaBadge from '@/components/Wonders/MediaBadge'
 import useExternalLink from '@/hooks/useExternalLink'
 import { formatUtcLongDate } from '@/lib/dateFormat'
+import { fetchApi } from '@/lib/api'
+import { nasaImageAssetResultSchema } from '@/schemas/api'
 
 interface ImageModalProps {
   item: NasaImageItem
@@ -39,22 +41,17 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
 
     const controller = new AbortController()
 
-    fetch(item.asset_manifest_url, { signal: controller.signal })
-      .then((response) => {
-        if (!response.ok) throw new Error(`Asset manifest responded with ${response.status}`)
-        return response.json()
-      })
-      .then((assets: string[]) => {
-        const normalizedAssets = assets.map((asset) => asset.replace(/^http:\/\//, 'https://'))
-        const preferredAsset =
-          item.media_type === 'video'
-            ? (normalizedAssets.find((asset) => asset.endsWith('~orig.mp4')) ??
-              normalizedAssets.find((asset) => asset.endsWith('.mp4')))
-            : (normalizedAssets.find((asset) => asset.endsWith('.mp3')) ??
-              normalizedAssets.find((asset) => asset.endsWith('.m4a')) ??
-              normalizedAssets.find((asset) => asset.endsWith('.wav')))
-
-        setResolvedAsset({ manifest: item.asset_manifest_url!, url: preferredAsset ?? null })
+    fetchApi(
+      '/api/nasa-image/assets',
+      {
+        src: item.asset_manifest_url,
+        media_type: item.media_type,
+      },
+      controller.signal,
+      nasaImageAssetResultSchema,
+    )
+      .then((result) => {
+        setResolvedAsset({ manifest: item.asset_manifest_url!, url: result.preferredAsset })
       })
       .catch(() => {
         if (!controller.signal.aborted) {

@@ -62,6 +62,10 @@ export const nasaImageSearchResultSchema = z.object({
   items: z.array(nasaImageItemSchema),
   totalHits: z.number().int().nonnegative(),
 })
+export const nasaImageAssetResultSchema = z.object({
+  assets: z.array(z.string()),
+  preferredAsset: z.string().nullable(),
+})
 
 export const neoCloseApproachSchema = z.object({
   close_approach_date: z.string(),
@@ -162,6 +166,7 @@ export type ApodLatestCache = z.infer<typeof apodLatestCacheSchema>
 export type EpicCollection = z.infer<typeof epicCollectionSchema>
 export type EpicImage = z.infer<typeof epicImageSchema>
 export type NasaImageItem = z.infer<typeof nasaImageItemSchema>
+export type NasaImageAssetResult = z.infer<typeof nasaImageAssetResultSchema>
 export type NeoCloseApproach = z.infer<typeof neoCloseApproachSchema>
 export type NeoObject = z.infer<typeof neoObjectSchema>
 export type NeoFeedResult = z.infer<typeof neoFeedResultSchema>

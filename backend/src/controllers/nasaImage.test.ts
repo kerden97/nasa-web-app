@@ -2,12 +2,18 @@ import express from 'express'
 import request from 'supertest'
 import nasaImageRoutes from '../routes/nasaImage'
 import { globalErrorHandler } from '../middleware/errorHandler'
-import { searchNasaImages } from '../services/nasaImage'
+import { fetchNasaMediaAssets, searchNasaImages } from '../services/nasaImage'
 import { getOptimizedNasaImage } from '../services/nasaImageProxy'
 
-jest.mock('../services/nasaImage', () => ({
-  searchNasaImages: jest.fn(),
-}))
+jest.mock('../services/nasaImage', () => {
+  const actual = jest.requireActual('../services/nasaImage')
+
+  return {
+    ...actual,
+    searchNasaImages: jest.fn(),
+    fetchNasaMediaAssets: jest.fn(),
+  }
+})
 
 jest.mock('../services/nasaImageProxy', () => ({
   getOptimizedNasaImage: jest.fn(),
@@ -18,6 +24,7 @@ jest.mock('../services/nasaImageProxy', () => ({
 }))
 
 const mockedSearch = searchNasaImages as jest.MockedFunction<typeof searchNasaImages>
+const mockedFetchAssets = fetchNasaMediaAssets as jest.MockedFunction<typeof fetchNasaMediaAssets>
 const mockedGetOptimizedNasaImage = getOptimizedNasaImage as jest.MockedFunction<
   typeof getOptimizedNasaImage
 >
@@ -32,6 +39,7 @@ function createApp() {
 describe('NASA Image Library controller', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockedFetchAssets.mockReset()
     mockedGetOptimizedNasaImage.mockReset()
   })
 
@@ -273,5 +281,61 @@ describe('NASA Image Library controller', () => {
       640,
       72,
     )
+  })
+
+  it('returns resolved media assets for a valid manifest request', async () => {
+    mockedFetchAssets.mockResolvedValue({
+      assets: [
+        'https://images-assets.nasa.gov/video/GS-2026/GS-2026~orig.mp4',
+        'https://images-assets.nasa.gov/video/GS-2026/metadata.json',
+      ],
+      preferredAsset: 'https://images-assets.nasa.gov/video/GS-2026/GS-2026~orig.mp4',
+    })
+
+    const response = await request(createApp()).get(
+      '/api/nasa-image/assets?src=https%3A%2F%2Fimages-assets.nasa.gov%2Fvideo%2FGS-2026%2Fcollection.json&media_type=video',
+    )
+
+    expect(response.status).toBe(200)
+    expect(response.body.preferredAsset).toBe(
+      'https://images-assets.nasa.gov/video/GS-2026/GS-2026~orig.mp4',
+    )
+    expect(mockedFetchAssets).toHaveBeenCalledWith(
+      'https://images-assets.nasa.gov/video/GS-2026/collection.json',
+      'video',
+    )
+  })
+
+  it('returns 400 for invalid manifest hosts on the assets route', async () => {
+    const response = await request(createApp()).get(
+      '/api/nasa-image/assets?src=https%3A%2F%2Fexample.com%2Fvideo%2FGS-2026%2Fcollection.json&media_type=video',
+    )
+
+    expect(response.status).toBe(400)
+    expect(response.body.code).toBe('invalid_asset_manifest_src')
+    expect(mockedFetchAssets).not.toHaveBeenCalled()
+  })
+
+  it('returns 400 for invalid assets media_type', async () => {
+    const response = await request(createApp()).get(
+      '/api/nasa-image/assets?src=https%3A%2F%2Fimages-assets.nasa.gov%2Fvideo%2FGS-2026%2Fcollection.json&media_type=image',
+    )
+
+    expect(response.status).toBe(400)
+    expect(response.body.code).toBe('invalid_media_type')
+    expect(mockedFetchAssets).not.toHaveBeenCalled()
+  })
+
+  it('returns 502 when the NASA Image Library asset manifest fails', async () => {
+    mockedFetchAssets.mockRejectedValue(
+      new Error('NASA Image Library asset manifest responded with 500'),
+    )
+
+    const response = await request(createApp()).get(
+      '/api/nasa-image/assets?src=https%3A%2F%2Fimages-assets.nasa.gov%2Fvideo%2FGS-2026%2Fcollection.json&media_type=video',
+    )
+
+    expect(response.status).toBe(502)
+    expect(response.body.code).toBe('upstream_service_unavailable')
   })
 })

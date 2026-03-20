@@ -1,7 +1,7 @@
 import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
 import logger from '../lib/logger'
 import { fetchUpstreamJson } from '../lib/upstreamService'
-import type { NasaImageItem, NasaImageQuery } from '../types/nasaImage'
+import type { NasaImageItem, NasaImageMediaAssetResult, NasaImageQuery } from '../types/nasaImage'
 
 // NASA Image and Video Library — no API key required
 const BASE_URL = 'https://images-api.nasa.gov'
@@ -10,9 +10,14 @@ const searchCache = new Map<string, { items: NasaImageItem[]; totalHits: number 
 const failedQueries = new Map<string, { timestamp: number; message: string }>()
 const FAIL_COOLDOWN_MS = 10 * 60 * 1000 // don't retry a failed query for 10 minutes
 const NASA_IMAGE_TTL_SECONDS = 60 * 60
+const NASA_IMAGE_ASSET_TTL_SECONDS = 60 * 60
+const assetCache = new Map<string, NasaImageMediaAssetResult>()
+const inflightAssetRequests = new Map<string, Promise<NasaImageMediaAssetResult>>()
 
 // In-flight request deduplication — prevents concurrent identical API calls
 const inflight = new Map<string, Promise<{ items: NasaImageItem[]; totalHits: number }>>()
+const NASA_IMAGE_ASSET_HOST = 'images-assets.nasa.gov'
+const NASA_IMAGE_ASSET_PATH_PREFIXES = ['/image/', '/video/', '/audio/'] as const
 
 function cacheKey(query: NasaImageQuery): string {
   return `${query.q}:${query.media_type ?? ''}:${query.year_start ?? ''}:${query.year_end ?? ''}:${query.page ?? 1}`
@@ -35,6 +40,52 @@ interface NasaSearchResponse {
     }[]
     metadata: { total_hits: number }
   }
+}
+
+function normalizeNasaAssetManifestUrl(sourceUrl: string): string | null {
+  try {
+    const parsed = new URL(sourceUrl)
+    if (parsed.protocol !== 'https:') return null
+    if (parsed.hostname !== NASA_IMAGE_ASSET_HOST) return null
+    if (parsed.search || parsed.hash) return null
+
+    const matchesPrefix = NASA_IMAGE_ASSET_PATH_PREFIXES.some((prefix) =>
+      parsed.pathname.startsWith(prefix),
+    )
+    if (!matchesPrefix) return null
+    if (!parsed.pathname.endsWith('/collection.json')) return null
+
+    return parsed.toString()
+  } catch {
+    return null
+  }
+}
+
+export function isSupportedNasaAssetManifestSource(
+  sourceUrl: string | undefined,
+): sourceUrl is string {
+  return typeof sourceUrl === 'string' && normalizeNasaAssetManifestUrl(sourceUrl) !== null
+}
+
+function normalizeManifestAssets(assets: string[]): string[] {
+  const normalized = assets
+    .filter((asset): asset is string => typeof asset === 'string' && asset.length > 0)
+    .map((asset) => asset.replace(/^http:\/\//i, 'https://'))
+
+  return [...new Set(normalized)]
+}
+
+function pickPreferredMediaAsset(assets: string[], mediaType: 'video' | 'audio'): string | null {
+  const videoCandidates = ['~orig.mp4', '.mp4', '.m4v', '.mov', '.webm']
+  const audioCandidates = ['.mp3', '.m4a', '.wav']
+  const candidates = mediaType === 'video' ? videoCandidates : audioCandidates
+
+  for (const suffix of candidates) {
+    const match = assets.find((asset) => asset.toLowerCase().endsWith(suffix))
+    if (match) return match
+  }
+
+  return null
 }
 
 function decodeHtmlEntities(text: string): string {
@@ -186,4 +237,65 @@ export async function searchNasaImages(
     failedQueries.set(key, { timestamp: Date.now(), message })
     throw error
   }
+}
+
+export async function fetchNasaMediaAssets(
+  sourceUrl: string,
+  mediaType: 'video' | 'audio',
+): Promise<NasaImageMediaAssetResult> {
+  const normalizedSourceUrl = normalizeNasaAssetManifestUrl(sourceUrl)
+  if (!normalizedSourceUrl) {
+    throw new Error('Unsupported NASA Image Library asset manifest source')
+  }
+
+  const cacheKey = `${normalizedSourceUrl}:${mediaType}`
+  const durableKey = buildDurableCacheKey('nasa-image-assets', normalizedSourceUrl, mediaType)
+  const durableHit = await durableCache.get<NasaImageMediaAssetResult>(durableKey)
+  if (durableHit) {
+    logger.info('NASA Image Library asset durable cache hit', { key: durableKey })
+    assetCache.set(cacheKey, durableHit)
+    return durableHit
+  }
+
+  const cached = assetCache.get(cacheKey)
+  if (cached) {
+    logger.info('NASA Image Library asset cache hit', { key: cacheKey })
+    return cached
+  }
+
+  const existing = inflightAssetRequests.get(cacheKey)
+  if (existing) {
+    logger.info('Deduplicating in-flight NASA Image Library asset request', { key: cacheKey })
+    return existing
+  }
+
+  const promise = (async () => {
+    const manifest = await fetchUpstreamJson<string[]>(normalizedSourceUrl, {
+      serviceName: 'NASA Image Library asset manifest',
+      requestLog: 'Fetching NASA Image Library asset manifest',
+      transientRetryLog: 'NASA Image Library asset manifest transient error, retrying',
+      networkRetryLog: 'NASA Image Library asset manifest network error, retrying',
+      errorLog: 'NASA Image Library asset manifest error',
+      context: {
+        sourceUrl: normalizedSourceUrl,
+        mediaType,
+      },
+    })
+
+    const assets = normalizeManifestAssets(manifest)
+    const result: NasaImageMediaAssetResult = {
+      assets,
+      preferredAsset: pickPreferredMediaAsset(assets, mediaType),
+    }
+
+    assetCache.set(cacheKey, result)
+    await durableCache.set(durableKey, result, NASA_IMAGE_ASSET_TTL_SECONDS)
+    return result
+  })()
+
+  inflightAssetRequests.set(cacheKey, promise)
+  const cleanup = () => inflightAssetRequests.delete(cacheKey)
+  promise.then(cleanup, cleanup)
+
+  return promise
 }

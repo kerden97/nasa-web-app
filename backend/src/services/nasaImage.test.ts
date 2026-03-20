@@ -10,12 +10,13 @@ jest.mock('../lib/logger', () => ({
 describe('NASA Image Library service', () => {
   const originalFetch = global.fetch
   let searchNasaImages: typeof import('./nasaImage').searchNasaImages
+  let fetchNasaMediaAssets: typeof import('./nasaImage').fetchNasaMediaAssets
 
   beforeEach(async () => {
     jest.useFakeTimers()
     jest.setSystemTime(new Date('2026-03-14T12:00:00Z'))
     jest.resetModules()
-    ;({ searchNasaImages } = await import('./nasaImage'))
+    ;({ searchNasaImages, fetchNasaMediaAssets } = await import('./nasaImage'))
   })
 
   afterEach(() => {
@@ -359,5 +360,64 @@ describe('NASA Image Library service', () => {
     const result = await searchNasaImages({ q: 'test' })
 
     expect(result.items[0]!.href).toBe('')
+  })
+
+  it('fetches and normalizes playable media assets from a NASA manifest', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [
+        'http://images-assets.nasa.gov/video/GS-2026/GS-2026~orig.mp4',
+        'https://images-assets.nasa.gov/video/GS-2026/GS-2026~small.mp4',
+        'https://images-assets.nasa.gov/video/GS-2026/metadata.json',
+      ],
+    })
+
+    global.fetch = fetchMock as typeof fetch
+
+    const result = await fetchNasaMediaAssets(
+      'https://images-assets.nasa.gov/video/GS-2026/collection.json',
+      'video',
+    )
+
+    expect(result.assets).toEqual([
+      'https://images-assets.nasa.gov/video/GS-2026/GS-2026~orig.mp4',
+      'https://images-assets.nasa.gov/video/GS-2026/GS-2026~small.mp4',
+      'https://images-assets.nasa.gov/video/GS-2026/metadata.json',
+    ])
+    expect(result.preferredAsset).toBe(
+      'https://images-assets.nasa.gov/video/GS-2026/GS-2026~orig.mp4',
+    )
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('caches identical media manifest lookups', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ['https://images-assets.nasa.gov/audio/VOX-1/VOX-1.mp3'],
+    })
+
+    global.fetch = fetchMock as typeof fetch
+
+    const first = await fetchNasaMediaAssets(
+      'https://images-assets.nasa.gov/audio/VOX-1/collection.json',
+      'audio',
+    )
+    const second = await fetchNasaMediaAssets(
+      'https://images-assets.nasa.gov/audio/VOX-1/collection.json',
+      'audio',
+    )
+
+    expect(first).toEqual(second)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('rejects unsupported manifest hosts before fetching', async () => {
+    const fetchMock = jest.fn()
+    global.fetch = fetchMock as typeof fetch
+
+    await expect(
+      fetchNasaMediaAssets('https://example.com/video/GS-2026/collection.json', 'video'),
+    ).rejects.toThrow('Unsupported NASA Image Library asset manifest source')
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })

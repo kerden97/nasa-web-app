@@ -59,7 +59,8 @@ The app is intentionally split into:
 
 ## API Contract
 
-The frontend talks only to the backend.
+The frontend talks to the backend for application data and NASA API access. Original full-detail
+media assets may still be loaded from NASA-hosted URLs when opened in the UI.
 
 Current backend routes:
 
@@ -68,6 +69,7 @@ Current backend routes:
 - `GET /api/apod`
 - `GET /api/apod/image`
 - `GET /api/nasa-image`
+- `GET /api/nasa-image/assets`
 - `GET /api/nasa-image/image`
 - `GET /api/epic`
 - `GET /api/epic/dates`

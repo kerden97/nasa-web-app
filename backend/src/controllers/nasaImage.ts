@@ -9,7 +9,11 @@ import {
   normalizeNasaImageQuality,
   normalizeNasaImageWidth,
 } from '../services/nasaImageProxy'
-import { searchNasaImages } from '../services/nasaImage'
+import {
+  fetchNasaMediaAssets,
+  isSupportedNasaAssetManifestSource,
+  searchNasaImages,
+} from '../services/nasaImage'
 import { imageProxyDefaults } from '../config/imageProxy'
 import { buildImageProxyUrl, createImageProxyHandler } from '../lib/imageProxyController'
 import type { NasaImageItem } from '../types/nasaImage'
@@ -131,6 +135,36 @@ const nasaImageQuerySchema = z
     }),
   )
 
+const nasaImageAssetQuerySchema = z.object({
+  src: z
+    .preprocess(
+      (value) => (typeof value === 'string' ? value.trim() : undefined),
+      z.string().optional(),
+    )
+    .superRefine((value, ctx) => {
+      if (!value || !isSupportedNasaAssetManifestSource(value)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'src must be a valid NASA Image Library asset manifest URL.',
+          params: { apiCode: 'invalid_asset_manifest_src' },
+        })
+      }
+    })
+    .transform((value) => value as string),
+  media_type: z
+    .preprocess((value) => (typeof value === 'string' ? value : undefined), z.string().optional())
+    .superRefine((value, ctx) => {
+      if (value !== 'video' && value !== 'audio') {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'media_type must be one of: video, audio.',
+          params: { apiCode: 'invalid_media_type' },
+        })
+      }
+    })
+    .transform((value) => value as 'video' | 'audio'),
+})
+
 const { cardWidth: NASA_IMAGE_CARD_WIDTH, cardQuality: NASA_IMAGE_CARD_QUALITY } =
   imageProxyDefaults.nasaImage
 const NASA_IMAGE_PROXY_ROUTE = '/api/nasa-image/image'
@@ -188,6 +222,49 @@ export async function searchImages(req: Request, res: Response, next: NextFuncti
       )
       return
     }
+    next(error)
+  }
+}
+
+export async function getNasaImageAssets(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const parsedQuery = nasaImageAssetQuerySchema.safeParse(req.query)
+
+    if (!parsedQuery.success) {
+      sendZodQueryError(res, sendApiError, parsedQuery.error)
+      return
+    }
+
+    const data = await fetchNasaMediaAssets(parsedQuery.data.src, parsedQuery.data.media_type)
+    res.json(data)
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === 'Unsupported NASA Image Library asset manifest source'
+    ) {
+      sendApiError(
+        res,
+        400,
+        'invalid_asset_manifest_src',
+        'src must be a valid NASA Image Library asset manifest URL.',
+      )
+      return
+    }
+
+    if (isUpstreamServiceError(error, 'NASA Image Library')) {
+      sendApiError(
+        res,
+        502,
+        'upstream_service_unavailable',
+        "NASA's Image Library asset manifest is temporarily unavailable. Please try again shortly.",
+      )
+      return
+    }
+
     next(error)
   }
 }
