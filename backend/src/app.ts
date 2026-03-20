@@ -31,6 +31,33 @@ export function createApp() {
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: [
+            "'self'",
+            'data:',
+            'https://apod.nasa.gov',
+            'https://epic.gsfc.nasa.gov',
+            'https://images-assets.nasa.gov',
+          ],
+          connectSrc: ["'self'"],
+          fontSrc: ["'self'"],
+          frameSrc: ["'self'", 'https://www.youtube.com', 'https://player.vimeo.com'],
+          objectSrc: ["'none'"],
+          baseUri: ["'self'"],
+          formAction: ["'self'"],
+          frameAncestors: ["'none'"],
+        },
+      },
+      strictTransportSecurity: {
+        maxAge: 63_072_000,
+        includeSubDomains: true,
+        preload: true,
+      },
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     }),
   )
   app.use(cors({ origin: config.frontendOrigins }))

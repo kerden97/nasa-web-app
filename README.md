@@ -332,6 +332,30 @@ Detailed testing notes live in:
 - [frontend/TESTING.md](./frontend/TESTING.md)
 - [backend/TESTING.md](./backend/TESTING.md)
 
+## Security — OWASP Top 10 (2025)
+
+The codebase was audited against the [OWASP Top 10 2025](https://owasp.org/Top10/2025/) checklist. The table below summarizes the status of each category and what is in place.
+
+| #   | Category                             | Status | What is in place                                                                                                           |
+| --- | ------------------------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------- |
+| A01 | Broken Access Control                | Pass   | API routes are scoped per resource; no elevation or bypass vectors                                                         |
+| A02 | Cryptographic Failures               | Pass   | Explicit CSP directives via Helmet; HSTS with 2-year max-age, includeSubDomains, and preload                               |
+| A03 | Injection                            | Pass   | Zod validation on every inbound query; no raw SQL or shell execution; user input is never interpolated into upstream calls |
+| A04 | Insecure Design                      | Pass   | API keys are server-side only (`.env`, gitignored); secrets never reach the client bundle                                  |
+| A05 | Security Misconfiguration            | Pass   | Helmet sets CSP, HSTS, Referrer-Policy, X-Content-Type-Options, X-Frame-Options; CORS allowlists frontend origins only     |
+| A06 | Vulnerable and Outdated Components   | Pass   | Dependencies are up to date; no known advisories                                                                           |
+| A07 | Identification and Authentication    | N/A    | No user authentication; the app uses a single server-side NASA API key                                                     |
+| A08 | Software and Data Integrity Failures | Pass   | CSP `script-src 'self'` restricts script origins; `object-src 'none'` blocks plugin-based vectors                          |
+| A09 | Security Logging and Monitoring      | Pass   | Winston request/error logging with daily rotation; no sensitive data in logs; structured error payloads hide internals     |
+| A10 | Server-Side Request Forgery (SSRF)   | Pass   | Image proxy endpoints validate URLs against an allowlist of NASA domains before forwarding                                 |
+
+Additional hardening already present:
+
+- `express-rate-limit` — 100 requests per minute per IP on `/api`
+- `compression` — gzip/brotli responses
+- Standardized error payloads — no stack traces or internal details leak to the client
+- `crossOriginResourcePolicy: 'cross-origin'` — allows proxied images to load cross-origin
+
 # Decisions
 
 I considered modern package-manager options including `pnpm`. For this project, I kept `npm` because it was sufficient for the repository size, aligned cleanly with the existing `Node.js + Express` stack, and minimized setup, CI, and deployment friction for the assessment. If the repository evolved into a larger multi-package workspace, `pnpm` would be the most likely next step.

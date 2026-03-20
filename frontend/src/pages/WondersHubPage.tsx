@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { triggerApodPrefetch } from '@/lib/apodPrefetch'
 import { wondersUiConfig } from '@/lib/wondersUi'
 
 export default function WondersHubPage() {
@@ -25,6 +26,8 @@ export default function WondersHubPage() {
             <Link
               key={destination.to}
               to={destination.slug}
+              onMouseEnter={destination.slug === 'apod' ? triggerApodPrefetch : undefined}
+              onFocus={destination.slug === 'apod' ? triggerApodPrefetch : undefined}
               className="ui-card-surface group flex min-h-[16.9rem] flex-col rounded-[28px] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(11,61,145,0.26)] dark:hover:border-[rgba(140,184,255,0.26)]"
             >
               <div className="flex items-center gap-4">

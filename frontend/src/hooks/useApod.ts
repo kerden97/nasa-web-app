@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react'
 import { fetchApi } from '@/lib/api'
 import { APOD_EPOCH } from '@/lib/apodMeta'
+import { consumeApodPrefetch } from '@/lib/apodPrefetch'
 import {
   createPersistedCacheKey,
   readPersistedCache,
@@ -292,14 +293,24 @@ export function useApod(options: UseApodOptions = {}): UseApodResult {
       dispatch({ type: 'start-request' })
     }
 
-    fetchApi(
-      '/api/apod',
-      Object.keys(params).length ? params : undefined,
-      controller.signal,
-      apodResponseSchema,
-    )
-      .then((data) => {
-        const list = Array.isArray(data) ? data : [data]
+    const dataPromise =
+      isLatestFeed && !Object.keys(params).length
+        ? (consumeApodPrefetch() ??
+          fetchApi(
+            '/api/apod',
+            { count: String(FIRST_PAGE_SIZE) },
+            controller.signal,
+            apodResponseSchema,
+          ).then((data) => (Array.isArray(data) ? data : [data])))
+        : fetchApi(
+            '/api/apod',
+            Object.keys(params).length ? params : undefined,
+            controller.signal,
+            apodResponseSchema,
+          ).then((data) => (Array.isArray(data) ? data : [data]))
+
+    dataPromise
+      .then((list) => {
         addItemsToPool(itemPoolRef.current, list)
 
         if (date || startDate) {

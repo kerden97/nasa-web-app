@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Footer from '@/components/Footer/Footer'
+import { triggerApodPrefetch } from '@/lib/apodPrefetch'
 import Navbar from '@/components/Header/Navbar'
 import AsteroidRouteSkeleton from '@/components/RouteFallbacks/AsteroidRouteSkeleton'
 import WondersRouteSkeleton from '@/components/RouteFallbacks/WondersRouteSkeleton'
@@ -32,6 +33,7 @@ function RouteFallback({ pathname }: { pathname: string }) {
       return null
     }
 
+    triggerApodPrefetch()
     return <WondersRouteSkeleton section="apod" />
   }
 
