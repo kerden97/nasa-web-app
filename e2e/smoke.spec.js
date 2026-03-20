@@ -184,6 +184,26 @@ const radarBrief = {
   },
 }
 
+const nasaImageSearchResult = {
+  items: [
+    {
+      nasa_id: 'GS-2026',
+      title: 'Mock Mission Brief',
+      description: 'A mocked NASA Image Library video result for smoke coverage.',
+      date_created: '2026-03-18T09:00:00Z',
+      media_type: 'video',
+      href: '',
+      asset_manifest_url: 'https://images-assets.nasa.gov/video/GS-2026/collection.json',
+    },
+  ],
+  totalHits: 1,
+}
+
+const nasaImageAssets = {
+  assets: ['https://images-assets.nasa.gov/video/GS-2026/GS-2026~orig.mp4'],
+  preferredAsset: 'https://images-assets.nasa.gov/video/GS-2026/GS-2026~orig.mp4',
+}
+
 test('home route navigates into the APOD experience', async ({ page }) => {
   await page.route('**/api/apod**', async (route) => {
     await route.fulfill(jsonResponse(apodItems))
@@ -218,4 +238,33 @@ test('asteroid watch loads mocked feed data and opens the radar brief modal', as
   await expect(page.getByRole('heading', { name: 'Radar Brief' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Mock radar headline' })).toBeVisible()
   await expect(page.getByText(/illustrative scenario only/i)).toBeVisible()
+})
+
+test('nasa image search opens a video result and resolves assets through the backend route', async ({
+  page,
+}) => {
+  await page.route('**/api/nasa-image?**', async (route) => {
+    await route.fulfill(jsonResponse(nasaImageSearchResult))
+  })
+
+  await page.route('**/api/nasa-image/assets?**', async (route) => {
+    await route.fulfill(jsonResponse(nasaImageAssets))
+  })
+
+  await page.goto('/wonders-of-the-universe/nasa-image-library')
+
+  const searchInput = page.getByPlaceholder('e.g. nebula, apollo 11, saturn...')
+  await expect(searchInput).toBeVisible()
+
+  await searchInput.fill('mission')
+  await page.getByRole('button', { name: 'Search', exact: true }).click()
+
+  await expect(page.getByText(/1 result for/i)).toBeVisible()
+  await page.getByRole('button', { name: /mock mission brief/i }).click()
+
+  await expect(page.getByRole('heading', { name: 'Mock Mission Brief' })).toBeVisible()
+  await expect(page.locator('video')).toHaveAttribute(
+    'src',
+    'https://images-assets.nasa.gov/video/GS-2026/GS-2026~orig.mp4',
+  )
 })

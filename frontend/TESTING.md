@@ -18,6 +18,17 @@ npm test -- --run
 
 This document covers the frontend Vitest + React Testing Library layer. Separate Playwright smoke tests live at the repository root in `e2e/` and run through `npm run test:e2e` from the root.
 
+## How Test Cases Are Selected
+
+Frontend cases are chosen with a risk-based approach rather than trying to snapshot every component variation:
+
+- test user-visible route behavior first: success, loading, error, and empty states
+- test interactions that can regress silently: filters, pagination, modal open/close, and navigation
+- test boundary behavior where state changes branch: trimmed queries, reset flows, responsive variants, and deferred rendering
+- leave purely decorative styling to visual review unless it changes logic or accessibility
+
+That means the frontend suite is meant to prove that the UI behaves correctly under the main states a reviewer or user can actually hit, not just that components render once in a happy path.
+
 ## Test Files
 
 Tests are co-located next to their source files, with shared setup under `src/test`.

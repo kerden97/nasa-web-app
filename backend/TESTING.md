@@ -15,6 +15,17 @@ cd backend
 npm test
 ```
 
+## How Test Cases Are Selected
+
+Backend cases are chosen around the highest-risk failure modes in this app:
+
+- validate every public query boundary and invalid combination at the controller layer
+- verify the shared API error contract and status-code mapping
+- test retry, cooldown, cache, stale-fallback, and in-flight deduplication logic at the service layer
+- isolate deterministic business rules from live NASA responses by mocking `fetch`
+
+That gives better signal than broad “calls function, gets result” tests because most backend regressions here would come from bad validation, bad resilience behavior, or broken upstream handling rather than simple mapping.
+
 ## Test Files
 
 Tests are co-located next to their source files:
