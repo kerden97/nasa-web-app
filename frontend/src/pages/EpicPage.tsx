@@ -5,8 +5,10 @@ import EpicCardSkeleton from '@/components/Epic/EpicCardSkeleton'
 import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
 import MiniCalendar from '@/components/MiniCalendar'
 import FilterChipButton from '@/components/Wonders/FilterChipButton'
+import EmptyState from '@/components/Wonders/EmptyState'
 import ActiveFilterPill from '@/components/Wonders/ActiveFilterPill'
 import PresetOverflowMenu from '@/components/Wonders/PresetOverflowMenu'
+import SectionHeader from '@/components/Wonders/SectionHeader'
 import SegmentedControl from '@/components/Wonders/SegmentedControl'
 import {
   epicDateOptions,
@@ -118,25 +120,17 @@ export default function EpicPage() {
     <>
       <p className="mb-6 text-base leading-8 text-slate-500 dark:text-slate-400">{epicIntro}</p>
 
-      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="ui-kicker">{epicSectionKicker}</p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
-            {epicSectionTitle}
-          </h2>
-          <p className="mt-2 text-base leading-7 text-slate-600 dark:text-slate-400">
-            {epicSectionDescription}
+      <SectionHeader
+        kicker={epicSectionKicker}
+        title={epicSectionTitle}
+        description={epicSectionDescription}
+      >
+        {images.length > 0 && (
+          <p>
+            {images.length} item{images.length === 1 ? '' : 's'}
           </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-          {images.length > 0 && (
-            <p>
-              {images.length} item{images.length === 1 ? '' : 's'}
-            </p>
-          )}
-        </div>
-      </div>
+        )}
+      </SectionHeader>
 
       <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-4">
         <div className="min-w-0 flex-1">
@@ -216,9 +210,7 @@ export default function EpicPage() {
       )}
 
       {!loading && !epicError && images.length === 0 && !datesLoading && (
-        <div className="rounded-[28px] border border-slate-200 bg-white px-6 py-12 text-center text-slate-500 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
-          No EPIC imagery is available for this collection right now.
-        </div>
+        <EmptyState>No EPIC imagery is available for this collection right now.</EmptyState>
       )}
 
       <div aria-live="polite" className="sr-only">

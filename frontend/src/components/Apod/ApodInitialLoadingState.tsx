@@ -2,6 +2,8 @@ import { Calendar, ChevronDown, Image as ImageIcon, Play, Shapes } from 'lucide-
 import ApodCardSkeleton from '@/components/Apod/ApodCardSkeleton'
 import FeaturedApodHeroSkeleton from '@/components/Apod/FeaturedApodHeroSkeleton'
 import FilterChipButton from '@/components/Wonders/FilterChipButton'
+import LoadMoreButton from '@/components/Wonders/LoadMoreButton'
+import SectionHeader from '@/components/Wonders/SectionHeader'
 import SegmentedControl from '@/components/Wonders/SegmentedControl'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { WONDERS_MEDIA_GRID_CLASS } from '@/lib/wondersLayout'
@@ -17,22 +19,15 @@ export default function ApodInitialLoadingState({ cardCount = 20 }: ApodInitialL
     <>
       <FeaturedApodHeroSkeleton />
 
-      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="ui-kicker">Archive</p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
-            Browse recent discoveries
-          </h2>
-          <p className="mt-2 text-base leading-7 text-slate-600 dark:text-slate-400">
-            Jump through recent APOD entries with quick presets or a custom date range.
-          </p>
-        </div>
-        <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-          <p>
-            {cardCount} item{cardCount === 1 ? '' : 's'}
-          </p>
-        </div>
-      </div>
+      <SectionHeader
+        kicker="Archive"
+        title="Browse recent discoveries"
+        description="Jump through recent APOD entries with quick presets or a custom date range."
+      >
+        <p>
+          {cardCount} item{cardCount === 1 ? '' : 's'}
+        </p>
+      </SectionHeader>
 
       <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-4">
         <div className="min-w-0 flex-1">
@@ -83,11 +78,7 @@ export default function ApodInitialLoadingState({ cardCount = 20 }: ApodInitialL
         ))}
       </div>
 
-      <div className="mt-8 flex justify-center">
-        <span className="cosmic-btn-load-more rounded-full px-6 py-3 text-sm font-semibold opacity-50">
-          Load more
-        </span>
-      </div>
+      <LoadMoreButton disabled />
     </>
   )
 }

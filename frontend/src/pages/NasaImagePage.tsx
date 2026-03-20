@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useState } from 'react'
 import { Image as ImageIcon, Play, Search, Shapes, X } from 'lucide-react'
 import { useNasaImage } from '@/hooks/useNasaImage'
 import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
+import LoadMoreButton from '@/components/Wonders/LoadMoreButton'
 import ImageCard from '@/components/NasaImage/ImageCard'
 import ImageCardSkeleton from '@/components/NasaImage/ImageCardSkeleton'
 import SegmentedControl from '@/components/Wonders/SegmentedControl'
@@ -190,16 +191,7 @@ export default function NasaImagePage() {
           )}
       </div>
 
-      {!loading && hasMore && items.length > 0 && (
-        <div className="mt-8 flex justify-center">
-          <button
-            onClick={loadMore}
-            className="cosmic-btn-load-more rounded-full px-6 py-3 text-sm font-semibold"
-          >
-            Load more
-          </button>
-        </div>
-      )}
+      {!loading && hasMore && items.length > 0 && <LoadMoreButton onClick={loadMore} />}
 
       {selectedItem && (
         <Suspense fallback={null}>

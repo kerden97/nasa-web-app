@@ -8,6 +8,9 @@ import ApodInitialLoadingState from '@/components/Apod/ApodInitialLoadingState'
 import DateFilter from '@/components/Apod/DateFilter'
 import FeaturedApodHero from '@/components/Apod/FeaturedApodHero'
 import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
+import EmptyState from '@/components/Wonders/EmptyState'
+import LoadMoreButton from '@/components/Wonders/LoadMoreButton'
+import SectionHeader from '@/components/Wonders/SectionHeader'
 import SegmentedControl from '@/components/Wonders/SegmentedControl'
 import { WONDERS_MEDIA_GRID_CLASS } from '@/lib/wondersLayout'
 import type { ApodItem } from '@/types/apod'
@@ -48,9 +51,7 @@ export default function ApodPage() {
   return (
     <>
       {!loading && items.length === 0 && !error && (
-        <div className="rounded-[28px] border border-slate-200 bg-white/80 py-20 text-center text-slate-500 shadow-sm dark:border-slate-800 dark:bg-slate-900/45 dark:text-slate-400">
-          No results found for the selected date.
-        </div>
+        <EmptyState>No results found for the selected date.</EmptyState>
       )}
 
       {featuredItem && !loading && !error && !isFiltered && (
@@ -58,24 +59,17 @@ export default function ApodPage() {
       )}
 
       {(archiveItems.length > 0 || loading || error) && (
-        <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="ui-kicker">Archive</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
-              Browse recent discoveries
-            </h2>
-            <p className="mt-2 text-base leading-7 text-slate-600 dark:text-slate-400">
-              Jump through recent APOD entries with quick presets or a custom date range.
+        <SectionHeader
+          kicker="Archive"
+          title="Browse recent discoveries"
+          description="Jump through recent APOD entries with quick presets or a custom date range."
+        >
+          {archiveItems.length > 0 && (
+            <p>
+              {archiveItems.length} item{archiveItems.length === 1 ? '' : 's'}
             </p>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-            {archiveItems.length > 0 && (
-              <p>
-                {archiveItems.length} item{archiveItems.length === 1 ? '' : 's'}
-              </p>
-            )}
-          </div>
-        </div>
+          )}
+        </SectionHeader>
       )}
 
       <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-4">
@@ -126,16 +120,7 @@ export default function ApodPage() {
           ))}
       </div>
 
-      {!loading && hasMore && items.length > 0 && (
-        <div className="mt-8 flex justify-center">
-          <button
-            onClick={loadMore}
-            className="cosmic-btn-load-more rounded-full px-6 py-3 text-sm font-semibold"
-          >
-            Load more
-          </button>
-        </div>
-      )}
+      {!loading && hasMore && items.length > 0 && <LoadMoreButton onClick={loadMore} />}
 
       {selectedItem && (
         <Suspense fallback={null}>
