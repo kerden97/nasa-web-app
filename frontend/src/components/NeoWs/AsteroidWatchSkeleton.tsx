@@ -74,7 +74,7 @@ function FilterRowSkeleton() {
           <button
             type="button"
             disabled
-            className="cosmic-btn-primary inline-flex h-11 w-full cursor-default items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold opacity-55 sm:w-auto sm:min-w-[10.5rem]"
+            className="cosmic-btn-primary inline-flex h-11 w-full cursor-default items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold opacity-55 sm:w-auto sm:min-w-42"
           >
             <Sparkles size={15} />
             {asteroidWatchRadarBriefButton}
@@ -95,7 +95,7 @@ function StatCardSkeleton({
   detailWidthClass: string
 }) {
   return (
-    <div className="relative min-h-[8.5rem] overflow-hidden rounded-[26px] border border-slate-200/80 bg-white/88 p-5 shadow-[0_14px_40px_rgba(15,23,42,0.07)] dark:border-slate-800 dark:bg-slate-900/55 dark:shadow-[0_18px_46px_rgba(2,6,23,0.22)]">
+    <div className="relative min-h-34 overflow-hidden rounded-[26px] border border-slate-200/80 bg-white/88 p-5 shadow-[0_14px_40px_rgba(15,23,42,0.07)] dark:border-slate-800 dark:bg-slate-900/55 dark:shadow-[0_18px_46px_rgba(2,6,23,0.22)]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(11,61,145,0.05),transparent_34%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(140,184,255,0.08),transparent_32%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/80 to-transparent dark:via-white/12" />
       <p className="ui-kicker text-slate-500 dark:text-slate-400">{label}</p>

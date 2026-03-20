@@ -35,7 +35,7 @@ export default function NotFoundPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(96,165,250,0.18),transparent_42%),radial-gradient(circle_at_80%_20%,rgba(14,165,233,0.12),transparent_28%)]" />
 
       <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-white/95 shadow-[0_24px_80px_rgba(15,23,42,0.16)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/88 dark:shadow-[0_24px_80px_rgba(2,6,23,0.45)]">
+        <div className="overflow-hidden rounded-4xl border border-slate-200 bg-white/95 shadow-[0_24px_80px_rgba(15,23,42,0.16)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/88 dark:shadow-[0_24px_80px_rgba(2,6,23,0.45)]">
           <div className="border-b border-slate-200 px-6 py-5 dark:border-slate-800 sm:px-8">
             <p className="ui-kicker text-[#2563EB] dark:text-[#60A5FA]">404</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl">

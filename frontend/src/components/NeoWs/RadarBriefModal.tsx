@@ -98,7 +98,7 @@ export default function RadarBriefModal({ startDate, endDate, onClose }: RadarBr
 
   return (
     <ModalFrame onClose={onClose} maxWidthClass="max-w-4xl" titleId="radar-brief-modal-title">
-      <div className="relative flex h-[min(44rem,calc(100vh-7rem))] min-h-[30rem] flex-col">
+      <div className="relative flex h-[min(44rem,calc(100vh-7rem))] min-h-120 flex-col">
         <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-[#0B3D91]/12 blur-3xl" />
 
         <div className="relative border-b border-slate-200 px-5 pb-5 pt-5 pr-12 dark:border-slate-800 sm:px-8 sm:pb-5 sm:pt-8">
@@ -164,7 +164,7 @@ export default function RadarBriefModal({ startDate, endDate, onClose }: RadarBr
                   </p>
                 </div>
 
-                <div className="rounded-[24px] border border-[rgba(11,61,145,0.16)] bg-[rgba(11,61,145,0.06)] p-5 dark:border-[rgba(140,184,255,0.24)] dark:bg-[rgba(11,61,145,0.18)]">
+                <div className="rounded-3xl border border-[rgba(11,61,145,0.16)] bg-[rgba(11,61,145,0.06)] p-5 dark:border-[rgba(140,184,255,0.24)] dark:bg-[rgba(11,61,145,0.18)]">
                   <p className="text-xs uppercase tracking-[0.16em] text-[#0B3D91] dark:text-[#8CB8FF]">
                     {asteroidWatchRadarBriefScenarioLabel}
                   </p>

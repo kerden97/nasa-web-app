@@ -54,7 +54,7 @@ export default function NasaImagePage() {
   }
 
   return (
-    <>
+    <div>
       <div className="mb-8">
         <p className="max-w-4xl text-base leading-8 text-slate-500 dark:text-slate-400">
           {nasaImageIntro}
@@ -198,6 +198,6 @@ export default function NasaImagePage() {
           <ImageModal item={selectedItem} onClose={() => setSelectedItem(null)} />
         </Suspense>
       )}
-    </>
+    </div>
   )
 }

@@ -72,6 +72,10 @@
     background-color: theme(--color-slate-50);
   }
 
+  html {
+    scrollbar-gutter: stable;
+  }
+
   body {
     margin: 0;
   }
