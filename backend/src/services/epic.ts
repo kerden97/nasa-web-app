@@ -1,4 +1,5 @@
 import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
+import { todayUTC } from '../lib/date'
 import logger from '../lib/logger'
 import { fetchUpstreamJson } from '../lib/upstreamService'
 import type { EpicImage, EpicCollection } from '../types/epic'
@@ -18,10 +19,6 @@ const EPIC_ARCHIVE_BASE_URL = 'https://epic.gsfc.nasa.gov/archive'
 // In-flight request deduplication
 const inflight = new Map<string, Promise<EpicImage[]>>()
 const inflightDates = new Map<string, Promise<string[]>>()
-
-function todayUTC(): string {
-  return new Date().toISOString().split('T')[0]!
-}
 
 interface EpicApiItem {
   identifier: string

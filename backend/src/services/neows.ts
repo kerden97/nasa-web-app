@@ -1,4 +1,5 @@
 import { config } from '../config'
+import { todayUTC } from '../lib/date'
 import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
 import logger from '../lib/logger'
 import { fetchUpstreamJson } from '../lib/upstreamService'
@@ -13,10 +14,6 @@ const NEOWS_FRESH_TTL_SECONDS = 15 * 60
 const NEOWS_HISTORICAL_TTL_SECONDS = 24 * 60 * 60
 
 const inflight = new Map<string, Promise<NeoFeedResult>>()
-
-function todayUTC(): string {
-  return new Date().toISOString().split('T')[0]!
-}
 
 function cacheKey(startDate: string, endDate: string): string {
   return `${startDate}:${endDate}`

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { AlertTriangle, Sparkles } from 'lucide-react'
 import ModalFrame from '@/components/Wonders/ModalFrame'
+import InfoBox from '@/components/Wonders/InfoBox'
 import { fetchApi } from '@/lib/api'
+import { formatUtcShortDate } from '@/lib/dateFormat'
 import { neoRadarBriefResponseSchema } from '@/schemas/api'
 import type { NeoRadarBriefResponse } from '@/types/neowsRadarBrief'
 import {
@@ -23,25 +25,12 @@ interface RadarBriefModalProps {
 
 const radarBriefSessionCache = new Map<string, NeoRadarBriefResponse>()
 
-function formatDate(date: string): string {
-  return new Date(`${date}T00:00:00Z`).toLocaleDateString('en-GB', {
-    weekday: 'short',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'UTC',
-  })
-}
-
 function FactCard({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50/85 p-4 dark:border-slate-800 dark:bg-slate-950/55">
-      <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-        {label}
-      </p>
-      <p className="mt-2 text-base font-semibold text-slate-900 dark:text-white">{value}</p>
+    <InfoBox label={label} paddingClassName="p-4" className="dark:bg-slate-950/55">
+      <p className="text-base font-semibold text-slate-900 dark:text-white">{value}</p>
       <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{detail}</p>
-    </div>
+    </InfoBox>
   )
 }
 
@@ -134,8 +123,8 @@ export default function RadarBriefModal({ startDate, endDate, onClose }: RadarBr
             {asteroidWatchRadarBriefTitle}
           </h2>
           <p className="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-400">
-            {formatDate(startDate)}
-            {startDate === endDate ? '' : ` to ${formatDate(endDate)}`}
+            {formatUtcShortDate(startDate)}
+            {startDate === endDate ? '' : ` to ${formatUtcShortDate(endDate)}`}
           </p>
         </div>
 

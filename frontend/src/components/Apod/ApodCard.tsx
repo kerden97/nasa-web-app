@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import type { ApodItem } from '@/types/apod'
 import { Play } from 'lucide-react'
 import MediaBadge from '@/components/Wonders/MediaBadge'
 import { formatApodLongDate, getApodTeaser, isDirectVideo } from '@/lib/apodMeta'
 import { buildCardSrcSet } from '@/lib/imageProxy'
+import { useInView } from '@/hooks/useInView'
+import { WONDERS_CARD_IMAGE_SIZES } from '@/lib/wondersLayout'
 
 interface ApodCardProps {
   item: ApodItem
@@ -15,29 +17,11 @@ export default function ApodCard({ item, onClick }: ApodCardProps) {
   const hasDirectVideo = isVideo && isDirectVideo(item.url)
   const thumbnail = isVideo ? item.thumbnail_url : (item.card_url ?? item.url)
   const [loaded, setLoaded] = useState(false)
-  const [inView, setInView] = useState(false)
   const cardRef = useRef<HTMLButtonElement>(null)
+  const inView = useInView(cardRef)
   const credit = item.copyright ?? 'NASA APOD'
   const readyToShow = loaded && inView
   const shouldLoadImage = inView && Boolean(thumbnail)
-
-  useEffect(() => {
-    const el = cardRef.current
-    if (!el) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setInView(true)
-          observer.disconnect()
-        }
-      },
-      { rootMargin: '50px' },
-    )
-
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
 
   return (
     <button
@@ -68,7 +52,7 @@ export default function ApodCard({ item, onClick }: ApodCardProps) {
           {...(item.card_url
             ? {
                 srcSet: buildCardSrcSet(item.card_url),
-                sizes: '(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw',
+                sizes: WONDERS_CARD_IMAGE_SIZES,
               }
             : {})}
         />

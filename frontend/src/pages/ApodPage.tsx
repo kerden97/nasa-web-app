@@ -9,6 +9,7 @@ import DateFilter from '@/components/Apod/DateFilter'
 import FeaturedApodHero from '@/components/Apod/FeaturedApodHero'
 import InlineErrorNotice from '@/components/Feedback/InlineErrorNotice'
 import SegmentedControl from '@/components/Wonders/SegmentedControl'
+import { WONDERS_MEDIA_GRID_CLASS } from '@/lib/wondersLayout'
 import type { ApodItem } from '@/types/apod'
 
 const ApodModal = lazy(() => import('@/components/Apod/ApodModal'))
@@ -115,7 +116,7 @@ export default function ApodPage() {
           ? 'Loading APOD entries...'
           : `${visibleItems.length} item${visibleItems.length === 1 ? '' : 's'} loaded`}
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+      <div className={WONDERS_MEDIA_GRID_CLASS}>
         {archiveItems.map((item) => (
           <ApodCard key={item.date} item={item} onClick={setSelectedItem} />
         ))}

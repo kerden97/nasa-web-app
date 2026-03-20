@@ -21,6 +21,7 @@ import { formatLabel, todayStr } from '@/lib/calendarUtils'
 import { useEpic, useEpicDates } from '@/hooks/useEpic'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import type { EpicCollection, EpicImage } from '@/types/epic'
+import { WONDERS_MEDIA_GRID_CLASS } from '@/lib/wondersLayout'
 
 type EpicDatePreset = 'latest' | 'previous' | 'week' | 'month' | 'custom'
 const EpicModal = lazy(() => import('@/components/Epic/EpicModal'))
@@ -225,7 +226,7 @@ export default function EpicPage() {
           ? 'Loading EPIC imagery...'
           : `${images.length} image${images.length === 1 ? '' : 's'} loaded`}
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+      <div className={WONDERS_MEDIA_GRID_CLASS}>
         {images.map((item) => (
           <EpicCard key={item.identifier} item={item} onClick={setSelectedItem} />
         ))}

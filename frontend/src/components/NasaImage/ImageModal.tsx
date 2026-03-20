@@ -3,7 +3,10 @@ import { Check, Copy, ExternalLink } from 'lucide-react'
 import type { NasaImageItem } from '@/types/nasaImage'
 import ModalFrame from '@/components/Wonders/ModalFrame'
 import ExternalLinkPrompt from '@/components/Wonders/ExternalLinkPrompt'
+import InfoBox from '@/components/Wonders/InfoBox'
 import MediaBadge from '@/components/Wonders/MediaBadge'
+import useExternalLink from '@/hooks/useExternalLink'
+import { formatUtcLongDate } from '@/lib/dateFormat'
 
 interface ImageModalProps {
   item: NasaImageItem
@@ -17,10 +20,8 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
   } | null>(null)
   const [expandedDescription, setExpandedDescription] = useState(false)
   const [copiedId, setCopiedId] = useState(false)
-  const [pendingExternalLink, setPendingExternalLink] = useState<{
-    href: string
-    hostname: string
-  } | null>(null)
+  const { pendingExternalLink, queueExternalLink, confirmExternalLink, cancelExternalLink } =
+    useExternalLink('Original')
   const requiresAsset = item.media_type !== 'image' && Boolean(item.asset_manifest_url)
   const assetResolvedForCurrent =
     !requiresAsset || resolvedAsset?.manifest === item.asset_manifest_url
@@ -64,12 +65,7 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
     return () => controller.abort()
   }, [item.asset_manifest_url, item.media_type, requiresAsset, resolvedAsset?.manifest])
 
-  const date = new Date(item.date_created).toLocaleDateString('en-GB', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  const date = formatUtcLongDate(item.date_created)
   const descriptionText = useMemo(() => {
     if (!item.description) return ''
 
@@ -80,17 +76,6 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
   const shouldTruncateDescription = item.description.length > 500
 
   const originalHref = item.media_type === 'image' ? item.href : assetUrl
-
-  const queueExternalLink = (href: string) => {
-    const hostname = new URL(href).hostname.replace(/^www\./, '')
-    setPendingExternalLink({ href, hostname })
-  }
-
-  const confirmExternalLink = () => {
-    if (!pendingExternalLink) return
-    window.open(pendingExternalLink.href, '_blank', 'noopener,noreferrer')
-    setPendingExternalLink(null)
-  }
 
   const copyNasaId = async () => {
     try {
@@ -208,18 +193,12 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
                     )}
 
                     <div className="grid gap-3 text-sm">
-                      <div className="min-w-0 rounded-2xl border border-slate-200 bg-slate-50/85 p-3 dark:border-slate-800 dark:bg-slate-950/60">
-                        <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                          Center
-                        </p>
-                        <p className="mt-1 text-sm leading-6 font-medium text-slate-800 dark:text-slate-200 [overflow-wrap:anywhere]">
+                      <InfoBox label="Center" className="min-w-0">
+                        <p className="text-sm leading-6 font-medium text-slate-800 dark:text-slate-200 [overflow-wrap:anywhere]">
                           {item.center ?? 'NASA'}
                         </p>
-                      </div>
-                      <div className="relative min-w-0 rounded-2xl border border-slate-200 bg-slate-50/85 p-3 dark:border-slate-800 dark:bg-slate-950/60">
-                        <p className="pr-20 text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                          ID
-                        </p>
+                      </InfoBox>
+                      <InfoBox label="ID" className="relative min-w-0" labelClassName="pr-20">
                         <button
                           type="button"
                           onClick={copyNasaId}
@@ -231,22 +210,19 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
                           <span>{copiedId ? 'Copied' : 'Copy'}</span>
                         </button>
                         <p
-                          className="mt-1 truncate text-sm leading-6 font-medium text-slate-800 dark:text-slate-200"
+                          className="truncate text-sm leading-6 font-medium text-slate-800 dark:text-slate-200"
                           title={item.nasa_id}
                         >
                           {item.nasa_id}
                         </p>
-                      </div>
+                      </InfoBox>
                     </div>
 
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-800 dark:bg-slate-950/60">
-                      <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                        Source
-                      </p>
-                      <p className="mt-2 font-medium text-slate-800 dark:text-slate-200">
+                    <InfoBox label="Source" className="bg-slate-50 text-sm dark:bg-slate-950/60">
+                      <p className="font-medium text-slate-800 dark:text-slate-200">
                         NASA Image and Video Library
                       </p>
-                    </div>
+                    </InfoBox>
                   </div>
                 </div>
               </div>
@@ -267,18 +243,12 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
               )}
 
               <div className="grid gap-3 text-sm sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-                <div className="min-w-0 rounded-2xl border border-slate-200 bg-slate-50/85 p-3 dark:border-slate-800 dark:bg-slate-950/60">
-                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                    Center
-                  </p>
-                  <p className="mt-1 text-sm leading-6 font-medium text-slate-800 dark:text-slate-200 [overflow-wrap:anywhere]">
+                <InfoBox label="Center" className="min-w-0">
+                  <p className="text-sm leading-6 font-medium text-slate-800 dark:text-slate-200 [overflow-wrap:anywhere]">
                     {item.center ?? 'NASA'}
                   </p>
-                </div>
-                <div className="relative min-w-0 rounded-2xl border border-slate-200 bg-slate-50/85 p-3 dark:border-slate-800 dark:bg-slate-950/60">
-                  <p className="pr-20 text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                    ID
-                  </p>
+                </InfoBox>
+                <InfoBox label="ID" className="relative min-w-0" labelClassName="pr-20">
                   <button
                     type="button"
                     onClick={copyNasaId}
@@ -290,22 +260,23 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
                     <span>{copiedId ? 'Copied' : 'Copy'}</span>
                   </button>
                   <p
-                    className="mt-1 truncate text-sm leading-6 font-medium text-slate-800 dark:text-slate-200"
+                    className="truncate text-sm leading-6 font-medium text-slate-800 dark:text-slate-200"
                     title={item.nasa_id}
                   >
                     {item.nasa_id}
                   </p>
-                </div>
+                </InfoBox>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-800 dark:bg-slate-950/60">
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                  Source
-                </p>
-                <p className="mt-2 font-medium text-slate-800 dark:text-slate-200">
+              <InfoBox
+                label="Source"
+                className="bg-slate-50 text-sm dark:bg-slate-950/60"
+                paddingClassName="p-4"
+              >
+                <p className="font-medium text-slate-800 dark:text-slate-200">
                   NASA Image and Video Library
                 </p>
-              </div>
+              </InfoBox>
             </div>
           </div>
         </div>
@@ -315,7 +286,7 @@ export default function ImageModal({ item, onClose }: ImageModalProps) {
         <ExternalLinkPrompt
           hostname={pendingExternalLink.hostname}
           label="Original"
-          onCancel={() => setPendingExternalLink(null)}
+          onCancel={cancelExternalLink}
           onConfirm={confirmExternalLink}
         />
       )}

@@ -1,13 +1,9 @@
+import { formatUtcLongDate } from '@/lib/dateFormat'
+
 export const APOD_EPOCH = '1995-06-16'
 
 export function formatApodLongDate(date: string): string {
-  return new Intl.DateTimeFormat('en-GB', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(`${date}T00:00:00Z`))
+  return formatUtcLongDate(date)
 }
 
 export function formatApodRelativeDate(date: string): string {

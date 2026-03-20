@@ -4,6 +4,7 @@ import FeaturedApodHeroSkeleton from '@/components/Apod/FeaturedApodHeroSkeleton
 import FilterChipButton from '@/components/Wonders/FilterChipButton'
 import SegmentedControl from '@/components/Wonders/SegmentedControl'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { WONDERS_MEDIA_GRID_CLASS } from '@/lib/wondersLayout'
 
 interface ApodInitialLoadingStateProps {
   cardCount?: number
@@ -76,7 +77,7 @@ export default function ApodInitialLoadingState({ cardCount = 20 }: ApodInitialL
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+      <div className={WONDERS_MEDIA_GRID_CLASS}>
         {Array.from({ length: cardCount }).map((_, index) => (
           <ApodCardSkeleton key={index} />
         ))}

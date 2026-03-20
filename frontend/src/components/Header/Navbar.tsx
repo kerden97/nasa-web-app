@@ -89,7 +89,7 @@ export default function Navbar() {
                 aria-haspopup="menu"
                 onClick={() => setIsWondersOpen((open) => !open)}
                 onMouseEnter={() => setIsWondersOpen(true)}
-                className={`${desktopLinkBase} ${isWondersActive ? desktopLinkActive : desktopLinkIdle}`}
+                className={`min-w-[11.5rem] justify-center ${desktopLinkBase} ${isWondersActive ? desktopLinkActive : desktopLinkIdle}`}
               >
                 <span className="text-base leading-none" aria-hidden="true">
                   ✨

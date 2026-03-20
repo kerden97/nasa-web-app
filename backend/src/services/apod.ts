@@ -1,4 +1,5 @@
 import { config } from '../config'
+import { todayUTC } from '../lib/date'
 import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
 import logger from '../lib/logger'
 import { fetchUpstreamJson, isUpstreamServiceError } from '../lib/upstreamService'
@@ -9,10 +10,6 @@ const cache = new Map<string, ApodItem>()
 const failedDates = new Map<string, { timestamp: number; message: string }>() // date → last failure info
 const FAIL_COOLDOWN_MS = 10 * 60 * 1000 // don't retry a failed date for 10 minutes
 let cachedTodayDate = '' // which date string was cached as "today"
-
-function todayUTC(): string {
-  return new Date().toISOString().split('T')[0]!
-}
 
 function getCached(date: string): ApodItem | undefined {
   const item = cache.get(date)

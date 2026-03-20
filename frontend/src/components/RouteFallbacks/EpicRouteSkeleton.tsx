@@ -11,6 +11,7 @@ import {
   epicSectionKicker,
   epicSectionTitle,
 } from '@/content/epicContent'
+import { WONDERS_MEDIA_GRID_CLASS } from '@/lib/wondersLayout'
 
 export default function EpicRouteSkeleton() {
   const isMobile = useMediaQuery('(max-width: 639px)')
@@ -82,7 +83,7 @@ export default function EpicRouteSkeleton() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+      <div className={WONDERS_MEDIA_GRID_CLASS}>
         {Array.from({ length: epicInitialCardCount }).map((_, index) => (
           <EpicCardSkeleton key={index} />
         ))}

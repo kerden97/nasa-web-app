@@ -1,6 +1,7 @@
 import crypto from 'node:crypto'
 import { zodTextFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
+import { todayUTC } from '../lib/date'
 import { buildDurableCacheKey, durableCache } from '../lib/durableCache'
 import logger from '../lib/logger'
 import { openai, openAiEnabled, radarBriefModel } from '../lib/openai'
@@ -16,10 +17,6 @@ import { fetchNeoFeed } from './neows'
 
 const RADAR_BRIEF_PROMPT_VERSION = 1
 const inflightBriefs = new Map<string, Promise<NeoRadarBriefResponse>>()
-
-function todayUTC(): string {
-  return new Date().toISOString().slice(0, 10)
-}
 
 function formatNeoDisplayName(name: string): string {
   const trimmed = name.trim()

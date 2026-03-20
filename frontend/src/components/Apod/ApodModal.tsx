@@ -3,7 +3,9 @@ import { ExternalLink } from 'lucide-react'
 import type { ApodItem } from '@/types/apod'
 import ModalFrame from '@/components/Wonders/ModalFrame'
 import ExternalLinkPrompt from '@/components/Wonders/ExternalLinkPrompt'
+import InfoBox from '@/components/Wonders/InfoBox'
 import MediaBadge from '@/components/Wonders/MediaBadge'
+import useExternalLink from '@/hooks/useExternalLink'
 import { formatApodLongDate, isDirectVideo } from '@/lib/apodMeta'
 
 interface ApodModalProps {
@@ -18,28 +20,14 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
   const credit = item.copyright ?? 'NASA/ESA'
   const explanationPreviewLength = 260
   const [expandedExplanation, setExpandedExplanation] = useState(false)
-  const [pendingExternalLink, setPendingExternalLink] = useState<{
-    href: string
-    label: 'Original' | 'HD'
-    hostname: string
-  } | null>(null)
+  const { pendingExternalLink, queueExternalLink, confirmExternalLink, cancelExternalLink } =
+    useExternalLink<'Original' | 'HD'>('Original')
   const shouldTruncateExplanation = item.explanation.length > explanationPreviewLength
   const explanationText = useMemo(() => {
     if (!shouldTruncateExplanation || expandedExplanation) return item.explanation
 
     return `${item.explanation.slice(0, explanationPreviewLength).trimEnd()}...`
   }, [expandedExplanation, item.explanation, shouldTruncateExplanation])
-
-  const queueExternalLink = (href: string, label: 'Original' | 'HD') => {
-    const hostname = new URL(href).hostname.replace(/^www\./, '')
-    setPendingExternalLink({ href, label, hostname })
-  }
-
-  const confirmExternalLink = () => {
-    if (!pendingExternalLink) return
-    window.open(pendingExternalLink.href, '_blank', 'noopener,noreferrer')
-    setPendingExternalLink(null)
-  }
 
   return (
     <ModalFrame onClose={onClose} titleId="apod-modal-title">
@@ -123,14 +111,9 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
                       ) : null}
                     </div>
 
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-800 dark:bg-slate-950/60">
-                      <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                        Credit
-                      </p>
-                      <p className="mt-2 font-medium text-slate-800 dark:text-slate-200">
-                        {credit}
-                      </p>
-                    </div>
+                    <InfoBox label="Credit" className="bg-slate-50 dark:bg-slate-950/60">
+                      <p className="font-medium text-slate-800 dark:text-slate-200">{credit}</p>
+                    </InfoBox>
                   </div>
                 </div>
               </div>
@@ -165,12 +148,13 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
                 ) : null}
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-800 dark:bg-slate-950/60 lg:p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                  Credit
-                </p>
-                <p className="mt-2 font-medium text-slate-800 dark:text-slate-200">{credit}</p>
-              </div>
+              <InfoBox
+                label="Credit"
+                className="bg-slate-50 text-sm dark:bg-slate-950/60"
+                paddingClassName="p-3 lg:p-4"
+              >
+                <p className="font-medium text-slate-800 dark:text-slate-200">{credit}</p>
+              </InfoBox>
             </div>
           </div>
         </div>
@@ -180,7 +164,7 @@ export default function ApodModal({ item, onClose }: ApodModalProps) {
         <ExternalLinkPrompt
           hostname={pendingExternalLink.hostname}
           label={pendingExternalLink.label}
-          onCancel={() => setPendingExternalLink(null)}
+          onCancel={cancelExternalLink}
           onConfirm={confirmExternalLink}
         />
       )}

@@ -14,6 +14,7 @@ import {
   nasaImagePopularSearchLabel,
   nasaImageSuggestions,
 } from '@/content/nasaImageContent'
+import { WONDERS_MEDIA_GRID_CLASS } from '@/lib/wondersLayout'
 import type { NasaImageItem } from '@/types/nasaImage'
 
 const ImageModal = lazy(() => import('@/components/NasaImage/ImageModal'))
@@ -179,7 +180,7 @@ export default function NasaImagePage() {
             ? `Search complete, ${totalHits} results found`
             : ''}
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+      <div className={WONDERS_MEDIA_GRID_CLASS}>
         {items.map((item) => (
           <ImageCard key={item.nasa_id} item={item} onClick={setSelectedItem} />
         ))}
