@@ -5,6 +5,8 @@ interface MediaCardProps {
   badge: string
   imageAlt: string
   imageSrc?: string
+  imageSrcSet?: string
+  imageSizes?: string
   shouldLoadImage?: boolean
   readyToShow: boolean
   title: string
@@ -21,6 +23,8 @@ export default function MediaCard({
   badge,
   imageAlt,
   imageSrc,
+  imageSrcSet,
+  imageSizes,
   shouldLoadImage = true,
   readyToShow,
   title,
@@ -50,6 +54,8 @@ export default function MediaCard({
       {canRenderImage ? (
         <img
           src={imageSrc}
+          srcSet={imageSrcSet}
+          sizes={imageSizes}
           alt={imageAlt}
           className={`h-full w-full ${fit === 'cover' ? 'object-cover' : 'object-contain'} transition-all duration-700 group-hover:scale-105 ${
             readyToShow ? 'scale-100 opacity-100' : 'scale-105 opacity-0'
@@ -72,13 +78,19 @@ export default function MediaCard({
       <MediaBadge kind={badge} cardStyle className="absolute left-3 top-3" />
 
       <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/78 via-45% to-slate-950/6" />
-      <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-20">
-        <p className="text-sm font-medium text-slate-400">{meta}</p>
-        <p className="mt-2 text-xl font-semibold leading-tight text-white line-clamp-2">{title}</p>
-        {teaser && <p className="mt-3 text-sm leading-6 text-slate-300 line-clamp-3">{teaser}</p>}
-        <div className="mt-3 flex items-center justify-between gap-3 text-[11px]">
+      <div className="absolute inset-x-0 bottom-0 px-2.5 pb-2.5 pt-14 lg:px-4 lg:pb-4 lg:pt-20">
+        <p className="text-[11px] font-medium text-slate-400 lg:text-sm">{meta}</p>
+        <p className="mt-1 text-sm font-semibold leading-tight text-white line-clamp-2 lg:mt-2 lg:text-xl">
+          {title}
+        </p>
+        {teaser && (
+          <p className="mt-1.5 hidden text-sm leading-6 text-slate-300 line-clamp-3 xl:block">
+            {teaser}
+          </p>
+        )}
+        <div className="mt-2 flex items-center justify-between gap-2 text-[10px] lg:mt-3 lg:gap-3 lg:text-[11px]">
           <span className="truncate text-slate-400">{footerLeft}</span>
-          <span className="whitespace-nowrap rounded-full border border-white/14 bg-white/5 px-3 py-1.5 font-medium text-white/90 transition-colors group-hover:border-[rgba(140,184,255,0.3)] group-hover:bg-[rgba(11,61,145,0.22)]">
+          <span className="whitespace-nowrap rounded-full border border-white/14 bg-white/5 px-2 py-0.5 font-medium text-white/90 transition-colors group-hover:border-[rgba(140,184,255,0.3)] group-hover:bg-[rgba(11,61,145,0.22)] lg:px-3 lg:py-1.5">
             View details
           </span>
         </div>

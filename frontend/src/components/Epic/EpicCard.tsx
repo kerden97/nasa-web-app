@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { EpicImage } from '@/types/epic'
 import MediaCard from '@/components/Wonders/MediaCard'
+import { buildCardSrcSet } from '@/lib/imageProxy'
 
 interface EpicCardProps {
   item: EpicImage
@@ -44,6 +45,8 @@ export default function EpicCard({ item, onClick }: EpicCardProps) {
         badge="EPIC"
         imageAlt={item.caption}
         imageSrc={item.card_url ?? item.image}
+        imageSrcSet={item.card_url ? buildCardSrcSet(item.card_url) : undefined}
+        imageSizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
         shouldLoadImage={inView}
         readyToShow={readyToShow}
         title={item.caption}

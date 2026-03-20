@@ -2,6 +2,7 @@ import type { KeyboardEvent } from 'react'
 import type { ApodItem } from '@/types/apod'
 import MediaBadge from '@/components/Wonders/MediaBadge'
 import { formatApodLongDate, formatApodRelativeDate, isDirectVideo } from '@/lib/apodMeta'
+import { buildProxyUrlAtWidth } from '@/lib/imageProxy'
 
 interface FeaturedApodHeroProps {
   item: ApodItem
@@ -32,7 +33,7 @@ export default function FeaturedApodHero({ item, onOpen }: FeaturedApodHeroProps
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(11,61,145,0.16),transparent_30%),radial-gradient(circle_at_85%_85%,rgba(99,102,241,0.12),transparent_28%)]" />
       <div className="relative grid lg:h-[32.5rem] lg:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.95fr)]">
-        <div className="relative min-h-[30rem] overflow-hidden bg-black sm:min-h-[21rem] lg:h-[32.5rem]">
+        <div className="relative h-64 overflow-hidden bg-black sm:h-80 lg:h-[32.5rem]">
           {heroImage ? (
             <img
               src={heroImage}
@@ -41,6 +42,12 @@ export default function FeaturedApodHero({ item, onOpen }: FeaturedApodHeroProps
               loading="eager"
               fetchPriority="high"
               decoding="async"
+              {...(item.hero_url
+                ? {
+                    srcSet: `${buildProxyUrlAtWidth(item.hero_url, 640)} 640w, ${buildProxyUrlAtWidth(item.hero_url, 960)} 960w, ${item.hero_url} 1280w`,
+                    sizes: '(min-width: 1024px) 57vw, 100vw',
+                  }
+                : {})}
             />
           ) : hasDirectVideo ? (
             <video src={item.url} muted autoPlay loop className="h-full w-full object-cover" />
@@ -68,13 +75,13 @@ export default function FeaturedApodHero({ item, onOpen }: FeaturedApodHeroProps
               <MediaBadge kind={item.media_type} />
             </div>
 
-            <h2 className="ui-page-title mt-4 text-2xl leading-[1.08] text-slate-950 dark:text-white sm:text-3xl">
+            <h2 className="ui-page-title mt-4 min-h-[calc(2*1em*1.08)] text-2xl leading-[1.08] text-slate-950 line-clamp-2 dark:text-white sm:text-3xl">
               {item.title}
             </h2>
             <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
               {formatApodRelativeDate(item.date)}
             </p>
-            <p className="mt-4 max-w-xl overflow-hidden line-clamp-6 text-base leading-8 text-slate-600 dark:text-slate-300">
+            <p className="mt-4 max-w-xl overflow-hidden line-clamp-3 text-sm leading-7 text-slate-600 dark:text-slate-300 lg:line-clamp-6 lg:text-base lg:leading-8">
               {item.explanation}
             </p>
           </div>

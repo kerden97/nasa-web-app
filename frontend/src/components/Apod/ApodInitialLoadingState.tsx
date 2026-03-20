@@ -1,7 +1,8 @@
-import { Calendar, ChevronDown } from 'lucide-react'
+import { Calendar, ChevronDown, Image as ImageIcon, Play, Shapes } from 'lucide-react'
 import ApodCardSkeleton from '@/components/Apod/ApodCardSkeleton'
 import FeaturedApodHeroSkeleton from '@/components/Apod/FeaturedApodHeroSkeleton'
 import FilterChipButton from '@/components/Wonders/FilterChipButton'
+import SegmentedControl from '@/components/Wonders/SegmentedControl'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 interface ApodInitialLoadingStateProps {
@@ -9,7 +10,7 @@ interface ApodInitialLoadingStateProps {
 }
 
 export default function ApodInitialLoadingState({ cardCount = 20 }: ApodInitialLoadingStateProps) {
-  const isMobile = useMediaQuery('(max-width: 639px)')
+  const isMobile = useMediaQuery('(max-width: 767px)')
 
   return (
     <>
@@ -42,45 +43,49 @@ export default function ApodInitialLoadingState({ cardCount = 20 }: ApodInitialL
                   More
                   <ChevronDown size={14} />
                 </FilterChipButton>
-                <FilterChipButton className="inline-flex items-center gap-1.5">
-                  <Calendar size={13} />
-                  Custom
-                </FilterChipButton>
               </>
             ) : (
-              [
-                'w-[4.5rem]',
-                'w-[6rem]',
-                'w-[6.25rem]',
-                'w-[6.5rem]',
-                'w-[6.9rem]',
-                'w-[6.25rem]',
-                'w-[6.2rem]',
-              ].map((widthClass, index) => (
-                <div
-                  key={index}
-                  className={`h-10 animate-pulse rounded-2xl border border-slate-200 bg-white/82 dark:border-slate-800 dark:bg-slate-900/58 ${widthClass}`}
-                />
-              ))
+              <>
+                <FilterChipButton>Today</FilterChipButton>
+                <FilterChipButton>Yesterday</FilterChipButton>
+                <FilterChipButton>This week</FilterChipButton>
+                <FilterChipButton>Last 7 days</FilterChipButton>
+                <FilterChipButton>Last 30 days</FilterChipButton>
+                <FilterChipButton>This month</FilterChipButton>
+              </>
             )}
+            <FilterChipButton className="inline-flex items-center gap-1.5">
+              <Calendar size={13} />
+              Custom
+            </FilterChipButton>
           </div>
         </div>
 
         <div className="self-start lg:shrink-0 lg:self-auto">
-          <div className="inline-flex h-10 w-[15.2rem] animate-pulse rounded-2xl border border-slate-200 bg-white/82 p-0.5 shadow-[0_16px_36px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-slate-800/90 dark:bg-slate-900/72 dark:shadow-[0_14px_32px_rgba(2,6,23,0.18)]">
-            <div className="grid h-full w-full grid-cols-3 gap-1">
-              <div className="rounded-xl bg-slate-200 dark:bg-slate-800" />
-              <div className="rounded-xl bg-slate-200 dark:bg-slate-800" />
-              <div className="rounded-xl bg-slate-200 dark:bg-slate-800" />
-            </div>
-          </div>
+          <SegmentedControl
+            legend="Filter by media type"
+            className="w-fit p-0.5 [&_button]:h-8 [&_button]:min-w-19 [&_button]:px-3 [&_button]:text-xs"
+            value="all"
+            onChange={() => {}}
+            options={[
+              { value: 'image', label: 'Image', icon: <ImageIcon size={13} /> },
+              { value: 'video', label: 'Video', icon: <Play size={13} /> },
+              { value: 'all', label: 'All', icon: <Shapes size={13} /> },
+            ]}
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
         {Array.from({ length: cardCount }).map((_, index) => (
           <ApodCardSkeleton key={index} />
         ))}
+      </div>
+
+      <div className="mt-8 flex justify-center">
+        <span className="cosmic-btn-load-more rounded-full px-6 py-3 text-sm font-semibold opacity-50">
+          Load more
+        </span>
       </div>
     </>
   )

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { NasaImageItem } from '@/types/nasaImage'
 import MediaCard from '@/components/Wonders/MediaCard'
+import { buildCardSrcSet } from '@/lib/imageProxy'
 
 interface ImageCardProps {
   item: NasaImageItem
@@ -43,12 +44,14 @@ export default function ImageCard({ item, onClick }: ImageCardProps) {
         badge={item.media_type}
         imageAlt={item.title}
         imageSrc={item.card_url ?? item.href}
+        imageSrcSet={item.card_url ? buildCardSrcSet(item.card_url) : undefined}
+        imageSizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
         shouldLoadImage={inView}
         readyToShow={readyToShow}
         title={item.title}
         meta={date}
         footerLeft={item.center ?? 'NASA'}
-        teaser={item.description}
+        teaser={item.description?.slice(0, 120)}
         onClick={() => onClick(item)}
         onLoad={() => setLoaded(true)}
       />

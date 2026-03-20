@@ -7,7 +7,7 @@ function mockMobileMatchMedia(isMobile: boolean) {
     writable: true,
     configurable: true,
     value: vi.fn().mockImplementation((query: string) => ({
-      matches: query === '(max-width: 639px)' ? isMobile : false,
+      matches: query === '(max-width: 767px)' ? isMobile : false,
       media: query,
       onchange: null,
       addListener: () => {},

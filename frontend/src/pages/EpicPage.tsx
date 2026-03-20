@@ -225,7 +225,7 @@ export default function EpicPage() {
           ? 'Loading EPIC imagery...'
           : `${images.length} image${images.length === 1 ? '' : 's'} loaded`}
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
         {images.map((item) => (
           <EpicCard key={item.identifier} item={item} onClick={setSelectedItem} />
         ))}

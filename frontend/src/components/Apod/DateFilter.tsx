@@ -81,7 +81,7 @@ export default function DateFilter({
   const [hoveredDate, setHoveredDate] = useState<string | null>(null)
   const [activePreset, setActivePreset] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const isMobile = useMediaQuery('(max-width: 639px)')
+  const isMobile = useMediaQuery('(max-width: 767px)')
 
   const isDateDisabled = (iso: string) => iso > todayStr() || iso < APOD_EPOCH
 

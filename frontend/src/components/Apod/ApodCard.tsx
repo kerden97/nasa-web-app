@@ -3,6 +3,7 @@ import type { ApodItem } from '@/types/apod'
 import { Play } from 'lucide-react'
 import MediaBadge from '@/components/Wonders/MediaBadge'
 import { formatApodLongDate, getApodTeaser, isDirectVideo } from '@/lib/apodMeta'
+import { buildCardSrcSet } from '@/lib/imageProxy'
 
 interface ApodCardProps {
   item: ApodItem
@@ -64,6 +65,12 @@ export default function ApodCard({ item, onClick }: ApodCardProps) {
           loading="lazy"
           decoding="async"
           onLoad={() => setLoaded(true)}
+          {...(item.card_url
+            ? {
+                srcSet: buildCardSrcSet(item.card_url),
+                sizes: '(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw',
+              }
+            : {})}
         />
       ) : thumbnail ? (
         <div aria-hidden="true" className="h-full w-full" />
@@ -87,17 +94,19 @@ export default function ApodCard({ item, onClick }: ApodCardProps) {
       <MediaBadge kind={item.media_type} cardStyle className="absolute left-3 top-3" />
 
       <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/78 via-45% to-slate-950/6" />
-      <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-20">
-        <p className="text-sm font-medium text-slate-400">{formatApodLongDate(item.date)}</p>
-        <p className="mt-2 text-xl font-semibold leading-tight text-white line-clamp-2">
+      <div className="absolute inset-x-0 bottom-0 px-2.5 pb-2.5 pt-14 lg:px-4 lg:pb-4 lg:pt-20">
+        <p className="text-[11px] font-medium text-slate-400 lg:text-sm">
+          {formatApodLongDate(item.date)}
+        </p>
+        <p className="mt-1 text-sm font-semibold leading-tight text-white line-clamp-2 lg:mt-2 lg:text-xl">
           {item.title}
         </p>
-        <p className="mt-3 text-sm leading-6 text-slate-300 line-clamp-2">
+        <p className="mt-1.5 hidden text-sm leading-6 text-slate-300 line-clamp-2 xl:block">
           {getApodTeaser(item.explanation)}
         </p>
-        <div className="mt-3 flex items-center justify-between gap-3 text-[11px]">
+        <div className="mt-2 flex items-center justify-between gap-2 text-[10px] lg:mt-3 lg:gap-3 lg:text-[11px]">
           <span className="truncate text-slate-400">{credit}</span>
-          <span className="whitespace-nowrap rounded-full border border-white/14 bg-white/5 px-2.5 py-1 font-medium text-white/90 transition-colors group-hover:border-[rgba(140,184,255,0.3)] group-hover:bg-[rgba(11,61,145,0.22)]">
+          <span className="whitespace-nowrap rounded-full border border-white/14 bg-white/5 px-2 py-0.5 font-medium text-white/90 transition-colors group-hover:border-[rgba(140,184,255,0.3)] group-hover:bg-[rgba(11,61,145,0.22)] lg:px-2.5 lg:py-1">
             View details
           </span>
         </div>
