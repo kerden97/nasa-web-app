@@ -1,5 +1,5 @@
 import { createHash } from 'crypto'
-import sharp from 'sharp'
+import type sharp from 'sharp'
 import logger from '../lib/logger'
 
 const MIN_IMAGE_WIDTH = 240
@@ -28,6 +28,9 @@ interface CachedRemoteImageAsset extends OptimizedRemoteImageAsset {
 
 const remoteImageMemoryCache = new Map<string, CachedRemoteImageAsset>()
 const inflightOptimizations = new Map<string, Promise<OptimizedRemoteImageAsset>>()
+type SharpFactory = typeof sharp
+
+let sharpLoader: Promise<SharpFactory> | null = null
 
 export function createRemoteImageProxyPolicy(
   label: string,
@@ -111,6 +114,19 @@ export function normalizeOptimizedImageQuality(
   return Math.min(MAX_IMAGE_QUALITY, Math.max(MIN_IMAGE_QUALITY, Math.round(candidate)))
 }
 
+async function getSharp(): Promise<SharpFactory> {
+  if (!sharpLoader) {
+    sharpLoader = import('sharp')
+      .then((module) => module.default)
+      .catch((error) => {
+        sharpLoader = null
+        throw error
+      })
+  }
+
+  return sharpLoader
+}
+
 async function fetchSourceImageBuffer(sourceUrl: string): Promise<Buffer> {
   const response = await fetch(sourceUrl)
   if (!response.ok) {
@@ -159,6 +175,7 @@ export async function getOptimizedRemoteImage(
     })
 
     const sourceBuffer = await fetchSourceImageBuffer(normalizedSourceUrl)
+    const sharp = await getSharp()
     const optimizedBuffer = await sharp(sourceBuffer)
       .rotate()
       .resize({

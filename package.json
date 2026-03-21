@@ -5,6 +5,7 @@
   "scripts": {
     "format": "prettier . --write",
     "format:check": "prettier . --check",
+    "test:coverage": "npm --prefix backend run test:coverage && npm --prefix frontend run test:coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },

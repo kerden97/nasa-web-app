@@ -281,19 +281,41 @@ Check formatting without rewriting files:
 npm run format:check
 ```
 
+## Coverage
+
+Coverage is enforced mechanically for the backend and frontend. The thresholds are intended to stop regression, not to encourage low-value test padding.
+
+Useful commands:
+
+```bash
+npm run test:coverage
+cd backend && npm run test:coverage
+cd frontend && npm run test:coverage
+```
+
+Current enforced thresholds:
+
+- Backend: `80% statements`, `68% branches`, `75% functions`, `82% lines`
+- Frontend: `75% statements`, `62% branches`, `71% functions`, `78% lines`
+
+Current measured baselines used to set those gates:
+
+- Backend: `83.45% statements`, `69.60% branches`, `78.32% functions`, `85.38% lines`
+- Frontend: `75.84% statements`, `62.78% branches`, `71.62% functions`, `78.08% lines`
+
 ## CI/CD
 
 GitHub Actions runs on every push to `main` and on pull requests:
 
 - **Format Check** — `npm run format:check` at the repo root
-- **Backend Tests** — `npm test` (Jest) in `backend/`
+- **Backend Coverage Gate** — `npm run test:coverage` (Jest) in `backend/`
 - **Backend Test Typecheck** — `npm run typecheck:tests` in `backend/`
-- **Frontend Tests** — `npm test` (Vitest) in `frontend/`
+- **Frontend Coverage Gate** — `npm run test:coverage` (Vitest) in `frontend/`
 - **Frontend Test Typecheck** — `npm run typecheck:tests` in `frontend/`
 - **Frontend Build** — `npm run build` in `frontend/`
 - **E2E Smoke Tests** — `npm run test:e2e` (Playwright) at the repo root
 
-Formatting is enforced before backend/frontend jobs run. The Playwright job runs after backend and frontend verification complete and exercises a small mocked smoke layer for the homepage/APOD flow and the Asteroid Watch Radar Brief flow. Render (backend) is configured to deploy only after CI checks pass. Vercel (frontend) deploys on every push independently.
+Formatting is enforced before backend/frontend jobs run. Backend and frontend verification now include coverage thresholds, so coverage is a real CI gate rather than a manual judgment call. The Playwright job runs after backend and frontend verification complete, starts a local mock NASA server plus the real frontend and backend, and exercises a live frontend-to-backend integration smoke layer alongside a smaller mocked UI smoke layer. Render (backend) is configured to deploy only after CI checks pass. Vercel (frontend) deploys on every push independently.
 
 Workflow file: `.github/workflows/ci.yml`
 
@@ -341,13 +363,16 @@ Workflow file: `.github/workflows/ci.yml`
 - Frontend:
   - Vitest + React Testing Library for route, component, and utility coverage
   - targeted regressions for header/mobile-menu behavior, route fallbacks, and loading-state UX
+  - coverage thresholds enforced in CI
 - E2E:
-  - Playwright smoke coverage for homepage -> APOD navigation
-  - Playwright smoke coverage for Asteroid Watch loading and Radar Brief modal flow
+  - Playwright live integration coverage for homepage -> APOD navigation through the real backend
+  - Playwright live integration coverage for Asteroid Watch feed loading and Radar Brief generation through the real backend
+  - Playwright mocked smoke coverage for stable UI-only route flows where deterministic fixtures are more valuable than external integration
 - Backend:
   - Jest + Supertest for controller and service coverage
   - controller tests assert validation, status codes, and structured error payloads
   - service tests cover caching, retries, cooldowns, deduplication, and fallback behavior
+  - coverage thresholds enforced in CI
 
 Detailed testing notes live in:
 

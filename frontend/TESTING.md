@@ -14,9 +14,24 @@
 ```bash
 cd frontend
 npm test -- --run
+npm run test:coverage
 ```
 
 This document covers the frontend Vitest + React Testing Library layer. Separate Playwright smoke tests live at the repository root in `e2e/` and run through `npm run test:e2e` from the root.
+
+Use `npm run test:coverage` for CI-grade verification. Coverage is collected with Vitest's `v8` provider and enforced with these global minimums:
+
+- Statements: `75%`
+- Branches: `62%`
+- Functions: `71%`
+- Lines: `78%`
+
+Current measured frontend baseline:
+
+- Statements: `75.84%`
+- Branches: `62.78%`
+- Functions: `71.62%`
+- Lines: `78.08%`
 
 ## How Test Cases Are Selected
 
@@ -28,6 +43,8 @@ Frontend cases are chosen with a risk-based approach rather than trying to snaps
 - leave purely decorative styling to visual review unless it changes logic or accessibility
 
 That means the frontend suite is meant to prove that the UI behaves correctly under the main states a reviewer or user can actually hit, not just that components render once in a happy path.
+
+Coverage is used here as a regression guard, not as the definition of quality. The main standard remains risk-based testing of user-visible state changes and fragile interaction paths. The current gate is intentionally set close to the measured baseline because several page tests replace heavy leaf components with focused test doubles, so the floor should prevent regression without pretending that every visual leaf is covered directly.
 
 ## Test Files
 
@@ -279,6 +296,19 @@ These are page-level behavior tests for the NeoWs asteroid route. The `useNeows`
 | Rows-per-page reset          | Changing rows per page resets pagination to the first page              |
 | Single-page disable state    | Pagination buttons disable when all rows fit on one page                |
 
+## Component Tests — Radar Brief Modal (`components/NeoWs/RadarBriefModal.test.tsx`)
+
+These are focused async-lifecycle tests for the Asteroid Watch Radar Brief modal. The shared API client is mocked so the modal's own request, cache, and unmount behavior can be exercised without depending on the full page shell.
+
+**What is covered:**
+
+| Test                         | Validates                                                                |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| Loading -> success lifecycle | Modal shows its loading state, fetches the brief, and renders AI content |
+| Error state                  | Failed brief requests render the dedicated modal error panel             |
+| Session cache reuse          | Reopening the same date range reuses the session cache without refetch   |
+| Abort on unmount             | In-flight requests are cancelled when the modal closes/unmounts          |
+
 ## Component Tests — APOD Card (`components/Apod/ApodCard.test.tsx`)
 
 These are focused rendering and interaction tests for a single APOD archive card.
@@ -350,9 +380,9 @@ The real skeletons are purely visual and do not expose accessible labels. Small 
 
 `apodMeta.test.ts`, `EpicPage.test.tsx`, and `AsteroidWatchPage.test.tsx` all rely on date-sensitive logic, so fake timers are used to keep assertions deterministic.
 
-### Why is the Radar Brief feature not deeply mocked in frontend tests?
+### Why test `RadarBriefModal` separately from `AsteroidWatchPage`?
 
-The Radar Brief modal depends on a backend-generated AI/system summary rather than a purely local UI transformation. Frontend coverage currently focuses on the deterministic page shell, filter behavior, tables, and charts, while the summary generation contract is documented and handled server-side.
+`AsteroidWatchPage` already covers the page shell, filters, charts, table interactions, and the presence of the Radar Brief action. The modal itself has a different risk profile: async fetching, session cache reuse, abort handling, and dedicated loading/error states. Testing it separately keeps page tests focused and gives direct coverage to the modal lifecycle.
 
 ### Why wrap `HomePage` in `MemoryRouter`?
 

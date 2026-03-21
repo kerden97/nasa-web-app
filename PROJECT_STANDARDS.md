@@ -39,7 +39,8 @@ backend/src/
 ├── routes/         # route definitions
 ├── services/       # business logic, NASA API communication
 ├── types/          # shared TypeScript types
-└── index.ts        # app entry point
+├── app.ts          # Express composition root
+└── server.ts       # process entry point
 ```
 
 ### Import Conventions
@@ -76,6 +77,7 @@ backend/src/
 - DOM assertions: `@testing-library/jest-dom`
 - User interaction testing: `@testing-library/user-event`
 - Browser-like test environment: `jsdom`
+- Coverage provider: `@vitest/coverage-v8`
 
 Use frontend tests for:
 
@@ -108,6 +110,27 @@ Use Playwright for:
 - full user flows across frontend and backend
 - high-value journeys only
 - final integration confidence before submission
+
+### Coverage Gates
+
+Coverage is enforced mechanically in CI for the backend and frontend. These thresholds are a regression floor, not a replacement for risk-based testing.
+
+- Backend minimums:
+  - statements `80%`
+  - branches `68%`
+  - functions `75%`
+  - lines `82%`
+- Frontend minimums:
+  - statements `75%`
+  - branches `62%`
+  - functions `71%`
+  - lines `78%`
+
+Standard commands:
+
+- Backend: `npm run test:coverage`
+- Frontend: `npm run test:coverage`
+- Root aggregate: `npm run test:coverage`
 
 ## Color Palette
 
@@ -184,6 +207,7 @@ Theme is toggled via Tailwind's `dark:` variant with a `dark` class on `<html>`.
 - Backend owns NASA API communication
 - Frontend communicates with backend, not directly with NASA as the main integration path
 - New features should include corresponding tests where appropriate
+- New work should not silently reduce the existing frontend or backend coverage gates below threshold
 - Loading, error, and empty states must be handled deliberately
 - Use skeleton components for loading states — skeletons must mirror the real component's DOM structure and dimensions to prevent layout shift
 - Backend errors should use the shared `{ error, code, status }` response shape
@@ -267,6 +291,7 @@ All four backend feature services share these resilience patterns:
 - Frontend testing uses `Vitest` + React Testing Library
 - Backend testing uses `Jest` + `Supertest`
 - End-to-end testing uses `Playwright`
+- Backend and frontend coverage are enforced in CI
 - Formatting uses root-level `Prettier`
 - Backend follows route → controller → service pattern
 - Backend CORS supports comma-separated origins via `FRONTEND_ORIGIN`

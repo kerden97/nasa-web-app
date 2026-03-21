@@ -13,7 +13,22 @@
 ```bash
 cd backend
 npm test
+npm run test:coverage
 ```
+
+Use `npm run test:coverage` for CI-grade verification. Coverage is collected from non-test backend source files and enforced with these global minimums:
+
+- Statements: `80%`
+- Branches: `68%`
+- Functions: `75%`
+- Lines: `82%`
+
+Current measured backend baseline:
+
+- Statements: `83.45%`
+- Branches: `69.60%`
+- Functions: `78.32%`
+- Lines: `85.38%`
 
 ## How Test Cases Are Selected
 
@@ -26,12 +41,18 @@ Backend cases are chosen around the highest-risk failure modes in this app:
 
 That gives better signal than broad “calls function, gets result” tests because most backend regressions here would come from bad validation, bad resilience behavior, or broken upstream handling rather than simple mapping.
 
+Coverage is treated as a floor, not as a substitute for judgment. The threshold gate prevents silent regression, while the layered controller/service tests keep the suite focused on the backend’s highest-risk behavior.
+
 ## Test Files
 
 Tests are co-located next to their source files:
 
 ```text
 backend/src/
+├── app.test.ts
+├── lib/
+│   ├── date.ts
+│   └── date.test.ts
 ├── controllers/
 │   ├── apod.ts
 │   ├── apod.test.ts
@@ -41,7 +62,8 @@ backend/src/
 │   ├── epic.test.ts
 │   ├── neows.ts
 │   ├── neowsRadarBrief.ts
-│   └── neows.test.ts
+│   ├── neows.test.ts
+│   └── neowsRadarBrief.test.ts
 ├── services/
 │   ├── apod.ts
 │   ├── apod.test.ts
@@ -51,13 +73,16 @@ backend/src/
 │   ├── epic.test.ts
 │   ├── neows.ts
 │   ├── neowsRadarBrief.ts
-│   └── neows.test.ts
+│   ├── neows.test.ts
+│   └── neowsRadarBrief.test.ts
 ```
 
 These backend tests are intentionally split into:
 
+- app-level integration tests for shared Express wiring such as JSON 404 fallbacks
 - controller tests for validation and HTTP response behavior
 - service tests for caching, retries, cooldowns, deduplication, and response mapping
+- focused library tests for date and utility behavior that is reused across controllers/services
 
 Current backend cache behavior combines:
 
@@ -256,7 +281,7 @@ These are unit tests for the EPIC service's image fetching, URL building, date l
 
 These are HTTP-level tests for the NeoWs feed endpoint. The service layer is mocked so the controller is tested in isolation for required-parameter checks, date validation, range validation, and error mapping.
 
-The backend also exposes `GET /api/neows/radar-brief`, which reuses the same date-range validation rules and the same structured error contract. Current automated controller coverage is still focused on the deterministic feed route.
+The backend also exposes `GET /api/neows/radar-brief`, which reuses the same date-range validation rules and the same structured error contract. That route now has its own focused controller coverage as well.
 
 **What is covered:**
 
@@ -305,6 +330,33 @@ The AI-assisted Radar Brief is built as an additional service layer on top of th
 | Stale cache fallback after rollover | Stale cached feeds are served when a refetch fails after cache rollover    |
 | Stale cache served during cooldown  | Cooldown requests return stale cached data immediately when available      |
 | Separate cache keys                 | Different date ranges maintain separate cache entries                      |
+
+## Controller Tests — NeoWs Radar Brief (`controllers/neowsRadarBrief.test.ts`)
+
+These are HTTP-level tests for the `GET /api/neows/radar-brief` endpoint. The Radar Brief service is mocked so the controller can stay focused on query validation, date-range rules, status codes, and public error payloads.
+
+**What is covered:**
+
+| Test                        | Validates                                                  |
+| --------------------------- | ---------------------------------------------------------- |
+| Valid single-day range      | 200 + brief body returned + correct args passed to service |
+| Missing start_date          | 400 — `start_date` is required                             |
+| Missing end_date            | 400 — `end_date` is required                               |
+| start_date > end_date       | 400 — invalid range ordering                               |
+| Range exceeds 7 days        | 400 — more than 7 inclusive days rejected                  |
+| Radar Brief service failure | 502 + structured upstream error payload                    |
+
+## Service Tests — NeoWs Radar Brief (`services/neowsRadarBrief.test.ts`)
+
+These are unit tests for the AI-assisted Radar Brief service layered on top of the NeoWs feed. NeoWs feed fetching, durable cache access, and OpenAI parsing are mocked directly so the tests can verify the Radar Brief workflow deterministically.
+
+**What is covered:**
+
+| Test                         | Validates                                                                       |
+| ---------------------------- | ------------------------------------------------------------------------------- |
+| AI-generated brief           | OpenAI output is transformed into a public brief and persisted in durable cache |
+| Deterministic fallback brief | OpenAI failure falls back to a deterministic summary and still persists result  |
+| Historical brief cache reuse | Durable cached brief is reused without calling OpenAI again                     |
 
 ## Key Patterns and Gotchas
 
