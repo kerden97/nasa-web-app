@@ -371,15 +371,15 @@ These are focused hook tests for the responsive grid breakpoint resolver used by
 
 **What is covered:**
 
-| Test                     | Validates                                                    |
-| ------------------------ | ------------------------------------------------------------ |
-| Desktop breakpoint       | 1024px+ returns 4 columns and 20-item page size              |
-| Tablet breakpoint        | 768–1023px returns 3 columns and 12-item page size           |
-| Small breakpoint         | 640–767px returns 2 columns and 8-item page size             |
-| Single-column breakpoint | Below 640px returns 1 column and 8-item page size            |
-| Cross-breakpoint resize  | Resize from desktop to small updates the returned value      |
-| Same-breakpoint no-op    | Resize within a breakpoint does not trigger a state update   |
-| Cleanup on unmount       | Resize event listener is removed when the hook unmounts      |
+| Test                     | Validates                                                  |
+| ------------------------ | ---------------------------------------------------------- |
+| Desktop breakpoint       | 1024px+ returns 4 columns and 20-item page size            |
+| Tablet breakpoint        | 768–1023px returns 3 columns and 12-item page size         |
+| Small breakpoint         | 640–767px returns 2 columns and 8-item page size           |
+| Single-column breakpoint | Below 640px returns 1 column and 8-item page size          |
+| Cross-breakpoint resize  | Resize from desktop to small updates the returned value    |
+| Same-breakpoint no-op    | Resize within a breakpoint does not trigger a state update |
+| Cleanup on unmount       | Resize event listener is removed when the hook unmounts    |
 
 ## Shared Test Setup (`test/setup.ts`)
 
