@@ -125,7 +125,7 @@ Coverage is enforced mechanically in CI for the backend and frontend. These thre
   - statements `75%`
   - branches `62%`
   - functions `71%`
-  - lines `78%`
+  - lines `77%`
 
 Standard commands:
 

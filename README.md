@@ -296,12 +296,12 @@ cd frontend && npm run test:coverage
 Current enforced thresholds:
 
 - Backend: `80% statements`, `68% branches`, `75% functions`, `82% lines`
-- Frontend: `75% statements`, `62% branches`, `71% functions`, `78% lines`
+- Frontend: `75% statements`, `62% branches`, `71% functions`, `77% lines`
 
 Current measured baselines used to set those gates:
 
 - Backend: `83.45% statements`, `69.60% branches`, `78.32% functions`, `85.38% lines`
-- Frontend: `75.84% statements`, `62.78% branches`, `71.62% functions`, `78.08% lines`
+- Frontend: `76.79% statements`, `63.00% branches`, `72.99% functions`, `79.00% lines`
 
 ## CI/CD
 

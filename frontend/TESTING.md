@@ -17,21 +17,21 @@ npm test -- --run
 npm run test:coverage
 ```
 
-This document covers the frontend Vitest + React Testing Library layer. Separate Playwright smoke tests live at the repository root in `e2e/` and run through `npm run test:e2e` from the root.
+This document covers the frontend Vitest + React Testing Library layer. Separate Playwright end-to-end tests live at the repository root in `e2e/` and run through `npm run test:e2e` from the root.
 
 Use `npm run test:coverage` for CI-grade verification. Coverage is collected with Vitest's `v8` provider and enforced with these global minimums:
 
 - Statements: `75%`
 - Branches: `62%`
 - Functions: `71%`
-- Lines: `78%`
+- Lines: `77%`
 
 Current measured frontend baseline:
 
-- Statements: `75.84%`
-- Branches: `62.78%`
-- Functions: `71.62%`
-- Lines: `78.08%`
+- Statements: `76.79%`
+- Branches: `63.00%`
+- Functions: `72.99%`
+- Lines: `79.00%`
 
 ## How Test Cases Are Selected
 
@@ -63,6 +63,9 @@ frontend/src/
 │   └── Header/
 │       ├── Navbar.tsx
 │       └── Navbar.test.tsx
+├── hooks/
+│   ├── useGridSize.ts
+│   └── useGridSize.test.ts
 ├── lib/
 │   ├── apodMeta.ts
 │   ├── apodMeta.test.ts
@@ -355,6 +358,28 @@ These are pure unit tests for APOD formatting and helper logic.
 | `formatApodRelativeDate` | Today, past dates, and future dates                           |
 | `isDirectVideo`          | Direct video extensions, query params, and supported formats  |
 | `getApodTeaser`          | Truncation, whitespace cleanup, exact length, and empty input |
+
+## Hook Tests — Grid Size (`hooks/useGridSize.test.ts`)
+
+These are focused hook tests for the responsive grid breakpoint resolver used by APOD load-more pagination.
+
+**Setup pattern:**
+
+- `window.innerWidth` is set directly via `Object.defineProperty` to simulate different viewport widths
+- `window.dispatchEvent(new Event('resize'))` triggers the hook's resize listener
+- Width is reset to `1024` in `afterEach`
+
+**What is covered:**
+
+| Test                     | Validates                                                    |
+| ------------------------ | ------------------------------------------------------------ |
+| Desktop breakpoint       | 1024px+ returns 4 columns and 20-item page size              |
+| Tablet breakpoint        | 768–1023px returns 3 columns and 12-item page size           |
+| Small breakpoint         | 640–767px returns 2 columns and 8-item page size             |
+| Single-column breakpoint | Below 640px returns 1 column and 8-item page size            |
+| Cross-breakpoint resize  | Resize from desktop to small updates the returned value      |
+| Same-breakpoint no-op    | Resize within a breakpoint does not trigger a state update   |
+| Cleanup on unmount       | Resize event listener is removed when the hook unmounts      |
 
 ## Shared Test Setup (`test/setup.ts`)
 
