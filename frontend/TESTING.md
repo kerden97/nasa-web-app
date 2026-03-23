@@ -49,6 +49,7 @@ Coverage is used here as a regression guard, not as the definition of quality. T
 ## Test Files
 
 Tests are co-located next to their source files, with shared setup under `src/test`.
+The tree below is illustrative rather than exhaustive.
 
 ```text
 frontend/src/
@@ -113,21 +114,23 @@ These are page-level rendering tests for the homepage. Because the page uses `re
 
 ## Page Tests — Wonders (`pages/WondersPage.test.tsx`)
 
-These are page-level rendering tests for the Wonders layout shell. Because the page uses `NavLink` and `Outlet` from `react-router-dom`, it is rendered inside a `MemoryRouter`.
+These are page-level rendering tests for the Wonders route shell. Because the page uses nested routes, breadcrumbs, and `Outlet`, it is rendered inside a `MemoryRouter` with child routes.
 
 **Setup pattern:**
 
-- `WondersPage` is rendered through a `renderPage()` helper wrapped in `MemoryRouter`
-- No hooks or async data are mocked because the page is a static layout shell
+- `WondersPage` is rendered through a `renderPage()` helper wrapped in `MemoryRouter` plus nested `Routes`
+- child route stubs are provided so hub-route and subpage behavior can both be asserted
+- no data hooks are mocked because the page is mainly a route/layout shell
 
 **What is covered:**
 
-| Test             | Validates                                                                      |
-| ---------------- | ------------------------------------------------------------------------------ |
-| Document title   | `document.title` is set to `Wonders of the Universe \| Home & Beyond` on mount |
-| Heading and copy | Page heading and description render correctly                                  |
-| Navigation tabs  | All three tab links (APOD, NASA Image Library, EPIC) render                    |
-| Tab href targets | Each tab links to the correct sub-route                                        |
+| Test                         | Validates                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| Document title               | `document.title` is set to `Wonders of the Universe \| Home & Beyond` on mount |
+| Hub heading and description  | Hub route renders the Wonders heading and intro copy                           |
+| Old tab row removed on hub   | Legacy APOD / NASA Image / EPIC hub links do not render on the hub route       |
+| Old tab row removed on pages | Legacy tab-row links still do not render on child routes                       |
+| Breadcrumb back-link         | Subpages link the `Wonders of the Universe` breadcrumb back to the hub         |
 
 ## Page Tests — APOD (`pages/ApodPage.test.tsx`)
 
@@ -359,8 +362,16 @@ The shared setup file loads:
 
 - `@testing-library/jest-dom`
 - a mock `IntersectionObserver`
+- a default `matchMedia` implementation
+- a mocked `window.scrollTo`
+- a mocked canvas `2d` context
 
-The `IntersectionObserver` mock is important because APOD cards and similar UI can rely on viewport-based behavior in the browser. Without this mock, tests can fail in jsdom even when the component logic is otherwise correct.
+These global mocks are important because several frontend tests depend on browser APIs that jsdom does not implement well by default:
+
+- `IntersectionObserver` for viewport-driven hooks like `useInView`
+- `matchMedia` for responsive hooks and mobile-layout branches
+- `scrollTo` for route-restoration and scroll helpers
+- canvas `getContext('2d')` for the starfield background
 
 ## Key Patterns and Gotchas
 

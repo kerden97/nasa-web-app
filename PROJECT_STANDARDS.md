@@ -17,9 +17,10 @@ frontend/src/
 ├── assets/         # static assets (logo, images)
 ├── components/     # UI components grouped by feature (Header/, Footer/, Apod/)
 ├── content/        # route/content configuration and shared static copy
-├── context/        # React context providers (ThemeContext)
+├── context/        # React context providers and shared UI preference state
 ├── hooks/          # custom React hooks (useApod, useGridSize)
 ├── lib/            # shared utilities (api client, APOD helpers)
+├── schemas/        # runtime API/data validation with Zod
 ├── pages/          # route-level page components
 ├── test/           # shared frontend test setup and browser API mocks
 ├── types/          # shared TypeScript types
